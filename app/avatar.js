@@ -145,8 +145,6 @@ export function createAvatar(profile) {
       piece(head,new T.ConeGeometry(.105,.27,4),pink,side*.34,.38,.105).rotation.z = -side*.27;
     }
     eyes.push(glossyEye(head,dark,pale,side*.22,.045,.409,[.058,.073,.04]));
-    const eyebrow=sphere(head,shade,side*.224,.163,.394,[.068,.021,.021]);
-    eyebrow.rotation.z=side*.15;
     if (hamster) sphere(head,pale,side*.265,-.145,.34,[.237,.185,.17]);
     if (cat) {
       for (const offset of [-1,1]) {

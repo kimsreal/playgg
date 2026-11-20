@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.min.js';
-import { createAvatar } from './avatar.js?v=25';
+import { createAvatar } from './avatar.js?v=26';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import { meadow } from './data.js';
 
