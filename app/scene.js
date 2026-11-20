@@ -183,7 +183,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   toy.visible=false;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const ray = new T.Raycaster();
-  let frame=0, action=null, until=0;
+  let frame=0, action=null, idleTime=0;
   const start = performance.now();
   let previousTime=start;
   const ground=new T.Plane(new T.Vector3(0,1,0),0);
@@ -214,6 +214,10 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const initial=new T.Vector3();
   const target=new T.Vector3();
   const arrival=new T.Vector3(0,0,1.65);
+  const ballGrip=new T.Vector3();
+  const petStep=new T.Vector3();
+  const wanderTarget=new T.Vector3();
+  const previousLegAngles=pet.legs.map(() => 0);
   let heart;
   if (!preview) {
     const shape=new T.Shape();
@@ -232,8 +236,16 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const t=(now-start)/1000;
     const elapsed=T.MathUtils.clamp((now-previousTime)/1000,0,.05);
     previousTime=now;
-    const alive=now<until;
-    const p=alive ? clamp((now-action.started)/(until-action.started),0,1) : 0;
+    const alive=Boolean(action);
+    if (alive) action.elapsed=Math.min(action.duration,action.elapsed+elapsed);
+    else idleTime+=elapsed;
+    const p=alive ? action.elapsed/action.duration : 0;
+    const previousY=pet.root.position.y;
+    const previousScale=pet.root.scale.y;
+    const previousHeadX=pet.head.rotation.x;
+    const previousHeadY=pet.head.rotation.y;
+    const previousTail=pet.tail.rotation.y;
+    pet.legs.forEach((leg,i) => {previousLegAngles[i]=leg.rotation.x;});
     const move=!reduced.matches;
     const walk=move ? Math.sin(t*10) : 0;
     if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
@@ -247,34 +259,39 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     for (const eye of pet.eyes) eye.scale.y=.073;
     pet.mouth.visible=true;
     if (!preview) {
-      if (!alive && move && Math.floor(t/7)%2===0) {
-        pet.root.position.x=Math.sin(t*.56)*1.75;
-        pet.root.position.z=Math.cos(t*.56)*1.35;
-        pet.root.rotation.y=Math.atan2(Math.cos(t*.56)*1.75,-Math.sin(t*.56)*1.35);
-        pet.legs.forEach((leg,i) => {leg.rotation.x=walk*(i===0||i===3 ? .33 : -.33);});
-      } else if (!alive && move) {
-        pet.root.scale.y=pet.scale*.83;
+      const position=pet.root.position;
+      const previousX=position.x;
+      const previousZ=position.z;
+      let stride=.33;
+      if (!alive && move) {
+        if (idleTime<.7 || Math.floor((idleTime-.7)/6)%2===1) {
+          if (idleTime>=.7) pet.root.scale.y=pet.scale*.83;
+        } else {
+          const phase=(idleTime-.7)*.56;
+          wanderTarget.set(Math.sin(phase)*1.75,0,Math.cos(phase)*1.35);
+          petStep.set(wanderTarget.x-position.x,0,wanderTarget.z-position.z).clampLength(0,elapsed*1.32);
+          position.add(petStep);
+        }
       }
       if (alive) {
         const kind=action.kind;
         const moving=['ball','greet','treat','liked'].includes(kind);
         if (moving && move) {
-          const returning=kind==='ball' && p>.54;
-          const progress=returning ? clamp((p-.54)/.34,0,1) : clamp(p/(kind==='ball'?.54:.65),0,1);
-          pet.root.position.lerpVectors(returning ? target : initial, returning ? arrival : target,progress);
-          const end=returning ? arrival : target;
-          const from=returning ? target : initial;
-          pet.root.rotation.y=Math.atan2(end.x-from.x,end.z-from.z);
-          pet.legs.forEach((leg,i) => {leg.rotation.x=progress<1 ? walk*(i===0||i===3 ? .46 : -.46) : 0;});
-          if (progress===1) pet.root.rotation.y=.18;
+          const returning=kind==='ball' && p>=.62;
+          const progress=returning ? clamp((p-.62)/.34,0,1) : clamp(p/(kind==='ball' ? .54 : .65),0,1);
+          position.lerpVectors(returning ? target : initial,returning ? arrival : target,progress);
+          stride=.46;
         }
         if (['ball','treat','liked','disliked'].includes(kind)) {
           toy.visible=true;
           const toyColors={ball:0xf1a79c,treat:0xaa654b,liked:0xe8bb64,disliked:0x9aaecd};
           toy.material.color.set(toyColors[kind]);
-          if (kind==='ball' && move && p>.54) {
+          if (kind==='ball' && move && p>=.54) {
             const angle=pet.root.rotation.y;
-            toy.position.set(pet.root.position.x+Math.sin(angle)*.93,.95,pet.root.position.z+Math.cos(angle)*.93);
+            ballGrip.set(position.x+Math.sin(angle)*.74,.83,position.z+Math.cos(angle)*.74);
+            const pickup=clamp((p-.54)/.08,0,1);
+            toy.position.set(target.x,.18,target.z).lerp(ballGrip,pickup);
+            if (p>.96) toy.position.y=T.MathUtils.lerp(ballGrip.y,.18,(p-.96)/.04);
           } else {
             const f=kind==='ball' && move ? clamp(p/.28,0,1) : 1;
             toy.position.lerpVectors(arrival,target,f);
@@ -293,12 +310,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         }
         if (kind==='pet' || kind==='wag' || kind==='liked') {
           pet.tail.rotation.y=move ? Math.sin(t*18)*.85 : .3;
-          pet.root.position.y=move ? Math.abs(Math.sin(p*9))*.22 : 0;
+          pet.root.position.y=move ? Math.abs(Math.sin(p*Math.PI*2))*.22 : 0;
         }
         if (kind==='disliked') {
           pet.head.rotation.y=.85;
-          pet.root.position.copy(initial);
-          pet.root.position.z=initial.z-(move ? Math.sin(p*Math.PI)*.34 : 0);
+          const retreatZ=initial.z-.34;
+          const limit=Math.sqrt(Math.max(0,theme.radius**2-position.x**2));
+          position.z=T.MathUtils.lerp(initial.z,Math.max(-limit,retreatZ),move ? Math.sin(p*Math.PI) : 0);
         }
         if (kind==='belly') {
           pet.legs[1].rotation.x=-.7+(move ? Math.sin(t*12)*.33 : 0);
@@ -308,6 +326,23 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
           pet.root.scale.y=pet.scale*(kind==='sleep' ? .57 : .79);
           if (kind==='sleep') for (const eye of pet.eyes) eye.scale.y=.018;
         }
+      }
+      const dx=position.x-previousX;
+      const dz=position.z-previousZ;
+      if (dx*dx+dz*dz>1e-8 && action?.kind!=='disliked') {
+        const heading=Math.atan2(dx,dz);
+        const turn=heading-pet.root.rotation.y;
+        pet.root.rotation.y+=Math.atan2(Math.sin(turn),Math.cos(turn))*(1-Math.exp(-elapsed*11));
+        pet.legs.forEach((leg,i) => {leg.rotation.x=walk*(i===0||i===3 ? stride : -stride);});
+      }
+      if (move) {
+        const blend=1-Math.exp(-elapsed*15);
+        pet.root.position.y=T.MathUtils.lerp(previousY,pet.root.position.y,blend);
+        pet.root.scale.y=T.MathUtils.lerp(previousScale,pet.root.scale.y,blend);
+        pet.head.rotation.x=T.MathUtils.lerp(previousHeadX,pet.head.rotation.x,blend);
+        pet.head.rotation.y=T.MathUtils.lerp(previousHeadY,pet.head.rotation.y,blend);
+        pet.tail.rotation.y=T.MathUtils.lerp(previousTail,pet.tail.rotation.y,blend);
+        pet.legs.forEach((leg,i) => {leg.rotation.x=T.MathUtils.lerp(previousLegAngles[i],leg.rotation.x,blend);});
       }
     }
     if (owner) {
@@ -329,6 +364,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     if (heart?.visible) heart.quaternion.copy(camera.quaternion);
     shadow.position.x=pet.root.position.x;
     shadow.position.z=pet.root.position.z;
+    if (alive && p===1) action=null;
     renderer.render(scene,camera);
     frame=requestAnimationFrame(animate);
   };
@@ -377,11 +413,9 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       }
     },
     play(kind) {
-      const now=performance.now();
-      action={kind,started:now};
-      until=now+(kind==='ball' ? 3100 : kind==='treat' ? 2750 : 2050);
-      initial.copy(pet.root.position);
-      initial.y=0;
+      action={kind,elapsed:0,duration:kind==='ball' ? 3.1 : kind==='treat' ? 2.75 : 2.05};
+      idleTime=0;
+      initial.set(pet.root.position.x,0,pet.root.position.z);
       const locations={ball:[2.65,0,-1.2],greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65],disliked:[initial.x+.55,0,initial.z+.7]};
       target.set(...(locations[kind] || [0,0,0]));
     },
