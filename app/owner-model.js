@@ -4,7 +4,7 @@ import {GLTFLoader} from './vendor/GLTFLoader.js';
 let model;
 export function loadOwnerModel() {
   if (!model) {
-    model=new GLTFLoader().loadAsync(new URL('./models/hood_character_refined_legs.glb',import.meta.url).href)
+    model=new GLTFLoader().loadAsync(new URL('./models/hood_character_cylindrical_legs.glb',import.meta.url).href)
       .then(({scene}) => scene)
       .catch(() => {
         model=null;
