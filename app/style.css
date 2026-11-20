@@ -81,8 +81,22 @@ legend { font-weight: 650; }
 }
 .fields.profile-field { grid-template-columns: minmax(0, 1fr); }
 .fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 12px 0; }
-label > input:not([type=radio]), label > select { width: 100%; display: block; margin-top: 4px; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; color: inherit; background: var(--white); padding: 6px; }
-label > select { border-radius: var(--choice-radius); padding-inline: 12px; }
+label > input:not([type=radio]), label > select { width: 100%; display: block; margin-top: 4px; min-height: 44px; border: 1px solid var(--line); color: inherit; background-color: var(--white); }
+label > input:not([type=radio]) { border-radius: 10px; padding: 6px; }
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  padding-inline: 14px 38px;
+  border-radius: var(--choice-radius);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%2318384e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 13px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+@media (forced-colors: active) {
+  select { appearance: auto; background-image: none; }
+}
 label > input[type=file] { margin-bottom: 8px; }
 label > input[type=color] { width: 72px; }
 input[type=radio] { accent-color: var(--sky); }
@@ -220,10 +234,8 @@ section > .page-back { margin-bottom: 20px; }
   display: block;
   margin-top: 5px;
   min-height: 44px;
-  padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: var(--choice-radius);
-  background: var(--white);
+  background-color: var(--white);
   color: var(--ink);
 }
 #home-scene::before { content: none; }
