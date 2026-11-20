@@ -492,7 +492,37 @@ function renderDates() {
   $('#occasion').text(notices.join(' ')).prop('hidden',notices.length===0);
 }
 
-function openProfile() {
+const profilePanels=[...profileForm.querySelectorAll('[data-profile-step]')];
+const profileTitles=['우리 공간을 만들어요','이름을 알려 주세요','어떤 반려동물인가요?','기억하고 싶은 날짜','좋아하는 것과 싫어하는 것'];
+let profileStep=0;
+
+function renderProfileStep(focus=false) {
+  const wizard=!state?.profile;
+  profilePanels.forEach((panel,index) => { panel.hidden=wizard && profileStep!==index; });
+  const progress=byId('profile-progress');
+  progress.hidden=!wizard;
+  progress.textContent=(profileStep+1)+' / '+profilePanels.length+' 단계';
+  byId('profile-previous').hidden=!wizard || profileStep===0;
+  byId('profile-next').textContent=wizard && profileStep<profilePanels.length-1 ? '다음' : '저장';
+  if (wizard) byId('setup-title').textContent=profileTitles[profileStep];
+  byId('profile-storage-copy').hidden=wizard && profileStep!==0;
+  if (focus) {
+    byId('setup-title').focus();
+    window.scrollTo(0,0);
+  }
+}
+
+function goToProfileStep(step) {
+  profileStep=step;
+  byId('setup-error').textContent='';
+  renderProfileStep(true);
+  void saveOnboarding('setup',readProfileForm());
+}
+
+byId('profile-previous').addEventListener('click',() => goToProfileStep(profileStep-1));
+
+function openProfile(step=0) {
+  profileStep=Number.isInteger(step) && step>=0 && step<profilePanels.length ? step : 0;
   profileForm.reset();
   $('#profile-storage-copy').text(account
     ? '반려동물 정보는 계정에 저장돼요. 사진은 이 브라우저에만 저장돼요.'
@@ -521,6 +551,7 @@ function openProfile() {
   profileForm.dataset.mode=profileForm.elements.mode.value;
   refreshModeLabel();
   show('setup');
+  renderProfileStep();
 }
 
 function refreshModeLabel() {
@@ -557,7 +588,7 @@ function readProfileForm() {
 
 function saveOnboarding(step,profile) {
   if (state?.profile) return Promise.resolve();
-  const onboarding={step,profile};
+  const onboarding={step,profile,...(step==='setup' ? {profileStep} : {})};
   const errorId=step==='avatar' ? 'avatar-error' : 'setup-error';
   return updateState(current => current?.profile ? current : {...current,onboarding:{...current?.onboarding,...onboarding}}).catch(() => {
     $('#'+errorId).text('입력한 내용을 이 브라우저에 저장하지 못했어요.');
@@ -572,21 +603,29 @@ $(profileForm).on('change','[name=mode]',event => {
   refreshModeLabel();
   if (validateItemCounts() && !state?.profile) void saveOnboarding('setup',readProfileForm());
 });
+profileForm.elements.name.addEventListener('input',event => event.target.setCustomValidity(''));
 $(profileForm).on('input change','input:not([type=radio]):not([type=file]),select',() => {
   if (validateItemCounts() && !state?.profile) void saveOnboarding('setup',readProfileForm());
 });
 
 $(profileForm).on('submit',async event => {
   event.preventDefault();
-  if (!validateItemCounts()) {
-    profileForm.reportValidity();
+  validateItemCounts();
+  const name=profileForm.elements.name;
+  name.setCustomValidity(name.value.trim() || !name.value ? '' : '반려동물 이름을 입력해 주세요.');
+  const wizard=!state?.profile;
+  const finalStep=profilePanels.length-1;
+  if (wizard && profileStep<finalStep) {
+    const controls=profilePanels[profileStep].querySelectorAll('input,select');
+    if ([...controls].every(control => control.reportValidity())) goToProfileStep(profileStep+1);
     return;
   }
-  const fields=Object.fromEntries(new FormData(profileForm));
-  if (!fields.name.trim()) {
-    $('#setup-error').text('반려동물 이름을 입력해 주세요.');
-    return;
+  if (wizard) {
+    const firstInvalid=profilePanels.findIndex(panel =>
+      [...panel.querySelectorAll('input,select')].some(control => !control.validity.valid));
+    if (firstInvalid>=0) goToProfileStep(firstInvalid);
   }
+  if (!profileForm.reportValidity()) return;
   draft=readProfileForm();
   if (state?.profile && !addingFriend) {
     const id=activeFriendId(state);
@@ -635,7 +674,7 @@ $('#avatar-back').on('click',() => {
     draft=null;
     show('settings');
   } else {
-    openProfile();
+    openProfile(profilePanels.length-1);
     void saveOnboarding('setup',draft);
   }
 });
@@ -1036,7 +1075,7 @@ function showSavedScreen() {
     const saved=state.onboarding;
     draft=saved.profile;
     if (saved.step==='avatar') openAvatar();
-    else openProfile();
+    else openProfile(saved.profileStep);
   } else if (state?.welcomed || account) openProfile();
   else show('welcome');
 }

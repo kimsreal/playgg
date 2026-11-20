@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=63">
+  <link rel="stylesheet" href="./app/style.css?v=64">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=63"></script>
+  <script type="module" src="./app/main.js?v=64"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -44,25 +44,35 @@
       <h1 id="setup-title" tabindex="-1">우리 공간을 만들어요</h1>
       <p id="profile-storage-copy">로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
       <button type="button" class="account-link" data-open-account>로그인 · 회원가입</button>
-      <form id="profile-form">
-        <fieldset><legend>어떤 이야기를 담을까요?</legend>
+      <form id="profile-form" novalidate>
+        <p class="small" id="profile-progress" hidden></p>
+        <fieldset data-profile-step><legend>어떤 이야기를 담을까요?</legend>
           <label class="choice"><input type="radio" name="mode" value="memory" required> 무지개다리를 건넜어요</label>
           <label class="choice"><input type="radio" name="mode" value="away" required> 멀리 떨어져 있어요</label>
           <label class="choice"><input type="radio" name="mode" value="play" required> 그냥 같이 놀래요</label>
         </fieldset>
-        <div class="fields">
+        <div class="fields profile-field" data-profile-step>
           <label>이름<input name="name" maxlength="24" required></label>
+        </div>
+        <div class="fields profile-field" data-profile-step>
           <label>종류<select name="species"><option value="dog">강아지</option><option value="cat">고양이</option><option value="hamster">햄스터</option><option value="parrot">앵무새</option><option value="lizard">도마뱀</option></select></label>
+        </div>
+        <div class="fields" data-profile-step>
           <label>생일<input type="date" name="birthday" required></label>
           <label id="event-field"><span id="event-label">기일 또는 다시 만날 날짜</span><input type="date" name="event" required></label>
         </div>
-        <div class="fields">
-          <label>좋아하는 것<input name="likes" maxlength="240" placeholder="공놀이, 닭가슴살"></label>
-          <label>싫어하는 것<input name="dislikes" maxlength="240" placeholder="목욕, 청소기"></label>
+        <div data-profile-step>
+          <div class="fields">
+            <label>좋아하는 것<input name="likes" maxlength="240" placeholder="공놀이, 닭가슴살"></label>
+            <label>싫어하는 것<input name="dislikes" maxlength="240" placeholder="목욕, 청소기"></label>
+          </div>
+          <p class="small">쉼표로 나눠 좋아하는 것과 싫어하는 것을 각각 3개까지 적어 주세요.</p>
         </div>
-        <p class="small">쉼표로 나눠 좋아하는 것과 싫어하는 것을 각각 3개까지 적어 주세요.</p>
         <p id="setup-error" role="alert"></p>
-        <button class="primary" type="submit">저장</button>
+        <div class="buttons">
+          <button type="button" id="profile-previous" hidden>이전</button>
+          <button class="primary" id="profile-next" type="submit">저장</button>
+        </div>
       </form>
     </section>
     <section id="avatar" hidden>

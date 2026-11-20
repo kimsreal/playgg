@@ -42,6 +42,8 @@ fieldset { border: 1px solid var(--line); border-radius: 15px; margin: 16px 0; }
 legend { font-weight: 650; }
 .choice { display: flex; min-height: 42px; align-items: center; gap: 7px; padding-inline: 10px; border-radius: var(--choice-radius); cursor: pointer; }
 .choice:hover, .choice:has(:checked) { background: var(--sky-soft); }
+#profile-progress { margin-top: 12px; }
+.fields.profile-field { grid-template-columns: minmax(0, 1fr); }
 .fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 12px 0; }
 label > input:not([type=radio]), label > select { width: 100%; display: block; margin-top: 4px; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; color: inherit; background: var(--white); padding: 6px; }
 label > select { border-radius: var(--choice-radius); padding-inline: 12px; }
