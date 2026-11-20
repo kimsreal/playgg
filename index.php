@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=34">
+  <link rel="stylesheet" href="./app/style.css?v=36">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=35"></script>
+  <script type="module" src="./app/main.js?v=36"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -19,10 +19,17 @@
 </div>
 <div class="app" id="app" hidden>
   <main>
+    <section id="welcome" hidden>
+      <img src="./app/icon-drawing-192.png" alt="" width="192" height="192">
+      <h1>안녕</h1>
+      <p>보고 싶은 날에도, 그냥 같이 놀고 싶은 날에도.<br>반려동물과 둘만의 초원에서 편하게 시간을 보내요.</p>
+      <button type="button" class="primary" id="start-welcome">시작하기</button>
+      <p id="welcome-error" role="alert"></p>
+    </section>
     <section id="setup" hidden>
       <button type="button" id="setup-back" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기" hidden><span aria-hidden="true">‹</span></button>
       <p class="kicker" id="setup-kicker">처음 만나는 날</p>
-      <h1 id="setup-title">우리 공간을 만들어요</h1>
+      <h1 id="setup-title" tabindex="-1">우리 공간을 만들어요</h1>
       <p>로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
       <form id="profile-form">
         <fieldset><legend>어떤 이야기를 담을까요?</legend>

@@ -602,6 +602,21 @@ document.addEventListener('visibilitychange',checkDay);
 setInterval(checkDay,60000);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 
+byId('start-welcome').addEventListener('click',async event => {
+  const button=event.currentTarget;
+  button.disabled=true;
+  $('#welcome-error').text('');
+  try {
+    state=await updateState(current => ({...current,welcomed:true}));
+    openProfile();
+    byId('setup-title').focus();
+  } catch {
+    $('#welcome-error').text('이 브라우저에 시작 상태를 저장하지 못했어요. 다시 시도해 주세요.');
+  } finally {
+    button.disabled=false;
+  }
+});
+
 try {
   state=await readState();
   if (state?.profile) {
@@ -611,7 +626,8 @@ try {
     draft=saved.profile;
     if (saved.step==='avatar') openAvatar();
     else openProfile();
-  } else openProfile();
+  } else if (state?.welcomed) openProfile();
+  else show('welcome');
 } catch {
   showError('이 기기의 저장 공간을 열 수 없어요. 일반 브라우저 창에서 다시 열어 주세요.');
 } finally {

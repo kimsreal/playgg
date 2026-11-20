@@ -399,3 +399,17 @@ section > .page-back { margin-bottom: 20px; }
   overflow-wrap: anywhere;
 }
 .item-options .treat-icon { width: 56px; height: 56px; }
+
+#welcome {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-height: min(480px, calc(100dvh - 40px));
+  text-align: center;
+  padding: 24px 0;
+}
+#welcome img { width: min(156px, 46vw); height: auto; }
+#welcome h1 { margin: 2px 0 12px; }
+#welcome p { max-width: 29ch; color: var(--muted-ink); word-break: keep-all; }
+#welcome button { margin-top: 14px; min-width: min(200px, 100%); }
+#welcome #welcome-error { color: #87432f; }
