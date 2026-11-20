@@ -271,6 +271,9 @@ section > .page-back { margin-bottom: 20px; }
 #home[data-view="first"] #home-scene .fallback-pet { top: 57%; font-size: clamp(60px, 19vw, 105px); }
 
 #home-scene, #home-scene canvas { cursor: grab; touch-action: none; user-select: none; }
+@media (hover: hover) and (pointer: fine) {
+  #home-scene, #home-scene canvas { cursor: url("./paw-cursor.png") 16 16, grab; }
+}
 #home-scene.is-looking, #home-scene.is-looking canvas, #home-scene.is-looking button { cursor: grabbing; }
 #home-scene .meadow-fallback,
 #home-scene .fallback-owner,
