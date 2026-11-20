@@ -1,7 +1,7 @@
-const CACHE='annyeong-v10';
+const CACHE='annyeong-v11';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=6','./app/style.css?v=10','./app/main.js?v=10','./app/photos.js?v=5',
-  './app/friends.js','./app/data.js','./app/avatar.js?v=9','./app/scene.js?v=9','./app/vendor/three.module.min.js',
+  './','./manifest.webmanifest?v=6','./app/style.css?v=11','./app/main.js?v=10','./app/photos.js?v=5',
+  './app/fonts/nanum-pen-script.woff2','./app/friends.js','./app/data.js','./app/avatar.js?v=9','./app/scene.js?v=9','./app/vendor/three.module.min.js',
   './app/vendor/jquery.min.js','./app/icon-drawing-192.png','./app/icon-drawing-512.png'
 ];
 const assets=new Set(APP_FILES.map(file => new URL(file,self.registration.scope).href));

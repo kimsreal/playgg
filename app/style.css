@@ -1,3 +1,10 @@
+@font-face {
+  font-family: "Nanum Pen Script";
+  src: url("./fonts/nanum-pen-script.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
 :root {
   color-scheme: light;
   font: 16px/1.5 system-ui, "Apple SD Gothic Neo", sans-serif;
@@ -73,8 +80,10 @@ input[type=radio] { accent-color: var(--sky); }
   place-items: center;
   padding: 17px 8px 9px;
   text-align: center;
-  font-family: Georgia, "Apple SD Gothic Neo", serif;
-  font-size: 17px;
+  color: #332721;
+  font-family: "Nanum Pen Script", "Apple SD Gothic Neo", sans-serif;
+  font-size: clamp(27px, 7.3vw, 34px);
+  line-height: 1.05;
   overflow-wrap: anywhere;
 }
 .polaroid-tape {
@@ -82,8 +91,8 @@ input[type=radio] { accent-color: var(--sky); }
   z-index: 1;
   top: 3px;
   left: var(--tape-x, 50%);
-  width: 34%;
-  height: 34px;
+  width: 48%;
+  height: clamp(40px, 13vw, 50px);
   transform: translate(-50%, -35%) rotate(var(--tape-angle, -8deg));
   opacity: .88;
   pointer-events: none;
