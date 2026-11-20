@@ -14,7 +14,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=12').catch(() => null);
+const scenes=import('./scene.js?v=13').catch(() => null);
 let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
@@ -42,6 +42,20 @@ $('.view-picker button').on('click',function () {
   } catch {
     // The active scene has already switched.
   }
+});
+
+const homeScene=byId('home-scene');
+homeScene.addEventListener('click',event => {
+  if (scene || event.target.closest('button')) return;
+  const island=homeScene.querySelector('.meadow-island').getBoundingClientRect();
+  const view=homeScene.getBoundingClientRect();
+  const x=(event.clientX-island.left)/island.width;
+  const y=(event.clientY-island.top)/island.height;
+  if (Math.hypot((x-.5)*2,(y-.5)*2)>1) return;
+  homeScene.style.setProperty('--owner-x',((event.clientX-view.left)/view.width*100)+'%');
+  homeScene.style.setProperty('--owner-y',((event.clientY-view.top)/view.height*100)+'%');
+  homeScene.style.setProperty('--view-x',((.5-x)*88)+'px');
+  homeScene.style.setProperty('--view-y',((.5-y)*44)+'px');
 });
 
 function showError(message) {

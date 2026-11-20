@@ -109,11 +109,16 @@ function createOwner(scene) {
   oval(head,skin,0,0,0,.24,.26,.22);
   oval(head,hair,0,.115,-.035,.25,.178,.226);
   oval(head,hair,-.107,.154,.105,.156,.102,.12);
+  const legs=[];
   for (const side of [-1,1]) {
     oval(head,hair,side*.087,.005,.199,.024,.032,.017);
     oval(head,skin,side*.235,-.029,0,.045,.066,.048);
-    oval(root,trousers,side*.105,.332,0,.12,.275,.12);
-    oval(root,shoes,side*.112,.102,.064,.122,.097,.171);
+    const leg=new T.Group();
+    leg.position.set(side*.105,.58,0);
+    root.add(leg);
+    oval(leg,trousers,0,-.248,0,.12,.275,.12);
+    oval(leg,shoes,side*.007,-.478,.064,.122,.097,.171);
+    legs.push(leg);
   }
   oval(root,blue,0,.857,0,.267,.34,.186);
   const arms=[-1,1].map(side => {
@@ -129,7 +134,7 @@ function createOwner(scene) {
   scene.add(root);
   const shadow=mesh(scene,new T.CircleGeometry(.32,20),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.16}),root.position.x,.009,root.position.z);
   shadow.rotation.x=-Math.PI/2;
-  return {root,head,arms,shadow};
+  return {root,head,arms,legs,shadow};
 }
 
 export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third'}={}) {
@@ -169,6 +174,16 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const ray = new T.Raycaster();
   let frame=0, action=null, until=0;
   const start = performance.now();
+  let previousTime=start;
+  const ground=new T.Plane(new T.Vector3(0,1,0),0);
+  const hit=new T.Vector3();
+  const ownerTarget=owner?.root.position.clone();
+  const marker=owner ? mesh(scene,new T.RingGeometry(.18,.23,32),
+    new T.MeshBasicMaterial({color:0x62b9f1,transparent:true,opacity:.8,side:T.DoubleSide}),0,.025,0) : null;
+  if (marker) {
+    marker.rotation.x=-Math.PI/2;
+    marker.visible=false;
+  }
   const size = () => {
     const {clientWidth:w,clientHeight:h}=host;
     if (!w || !h) return;
@@ -204,6 +219,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const clamp=T.MathUtils.clamp;
   const animate = now => {
     const t=(now-start)/1000;
+    const elapsed=T.MathUtils.clamp((now-previousTime)/1000,0,.05);
+    previousTime=now;
     const alive=now<until;
     const p=alive ? clamp((now-action.started)/(until-action.started),0,1) : 0;
     const move=!reduced.matches;
@@ -283,14 +300,28 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       }
     }
     if (owner) {
-      const position=pet.root.position;
-      owner.root.rotation.y=Math.atan2(position.x-owner.root.position.x,position.z-owner.root.position.z);
+      const petPosition=pet.root.position;
+      const position=owner.root.position;
+      const distance=position.distanceTo(ownerTarget);
+      const walking=distance>.008;
+      if (walking) position.lerp(ownerTarget,move ? Math.min(1,elapsed*2.45/distance) : 1);
+      else if (marker.visible) marker.visible=false;
+      const heading=walking && distance>.05 ? ownerTarget : petPosition;
+      owner.root.rotation.y=Math.atan2(heading.x-position.x,heading.z-position.z);
+      const stride=walking && move ? Math.sin(t*13)*.37 : 0;
+      owner.legs[0].rotation.x=stride;
+      owner.legs[1].rotation.x=-stride;
+      owner.shadow.position.set(position.x,.009,position.z);
       const reaching=alive && ['pet','treat','liked','ball'].includes(action.kind);
-      owner.arms[0].rotation.x=reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : 0;
-      owner.arms[1].rotation.x=move ? Math.sin(t*2)*.055 : 0;
+      owner.arms[0].rotation.x=reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : -stride*.7;
+      owner.arms[1].rotation.x=walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0;
       owner.head.rotation.x=reaching ? .13 : 0;
-      eye.position.set(owner.root.position.x,1.46,owner.root.position.z);
-      eyeTarget.set(position.x,.72,position.z);
+      eye.position.set(position.x,1.46,position.z);
+      eyeTarget.set(petPosition.x,.72,petPosition.z);
+      if (Math.hypot(eyeTarget.x-position.x,eyeTarget.z-position.z)<.4) {
+        eyeTarget.x=position.x+Math.sin(owner.root.rotation.y)*.4;
+        eyeTarget.z=position.z+Math.cos(owner.root.rotation.y)*.4;
+      }
       eye.lookAt(eyeTarget);
     }
     if (heart?.visible) heart.quaternion.copy(camera.quaternion);
@@ -302,8 +333,17 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   frame=requestAnimationFrame(animate);
   const tap = event => {
     const rect=renderer.domElement.getBoundingClientRect();
+    camera.updateMatrixWorld();
     ray.setFromCamera(new T.Vector2((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2),camera);
-    if (ray.intersectObject(pet.root,true).length) onPet();
+    if (ray.intersectObject(pet.root,true).length) {
+      onPet();
+      return;
+    }
+    if (!owner || !ray.ray.intersectPlane(ground,hit) || hit.length()>theme.radius) return;
+    ownerTarget.copy(hit).clampLength(0,theme.radius-.25);
+    ownerTarget.y=0;
+    marker.position.set(ownerTarget.x,.025,ownerTarget.z);
+    marker.visible=true;
   };
   if (onPet) renderer.domElement.addEventListener('click',tap);
   return {

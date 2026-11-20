@@ -233,3 +233,21 @@ input[type=radio] { accent-color: var(--sky); }
 .has-webgl .fallback-owner, #home[data-view="first"] .fallback-owner { display: none; }
 #home[data-view="first"] .meadow-island { top: 48%; width: min(125vw, 110dvh, 1050px); aspect-ratio: 3; }
 #home[data-view="first"] #home-scene .fallback-pet { top: 57%; font-size: clamp(60px, 19vw, 105px); }
+
+#home-scene, #home-scene canvas { cursor: pointer; }
+.fallback-owner {
+  left: var(--owner-x, 66%);
+  top: var(--owner-y, 57%);
+  transform: translate(-50%, -75%);
+  transition: left .65s ease, top .65s ease;
+}
+#home[data-view="first"] .meadow-fallback,
+#home[data-view="first"] #home-scene .fallback-pet {
+  translate: var(--view-x, 0px) var(--view-y, 0px);
+  transition: translate .65s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fallback-owner,
+  #home[data-view="first"] .meadow-fallback,
+  #home[data-view="first"] #home-scene .fallback-pet { transition: none; }
+}
