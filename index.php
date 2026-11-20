@@ -8,7 +8,7 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=59">
+  <link rel="stylesheet" href="./app/style.css?v=60">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=57"></script>
@@ -110,12 +110,12 @@
           <div id="interaction-options" class="buttons"></div>
         </div>
         <div class="scene-actions" role="group" aria-label="함께 놀기">
-          <button type="button" data-action="pet"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#heart"></use></svg>쓰다듬기</button>
-          <button type="button" data-panel="treats"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#bone"></use></svg>간식</button>
-          <button type="button" data-action="ball"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#volleyball"></use></svg>공놀이</button>
-          <button type="button" data-panel="items"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#sparkles"></use></svg>아이템</button>
-          <button type="button" data-panel="talk"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#message-circle"></use></svg>말 걸기</button>
-          <button type="button" id="ride" aria-pressed="false" hidden><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#paw-print"></use></svg>합체</button>
+          <button type="button" data-action="pet" aria-label="쓰다듬기" title="쓰다듬기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M3 11h4l3.4-2.6a2.2 2.2 0 0 1 2.7 0l1.4 1H21a1 1 0 0 1 0 2h-5m3.5 0a1 1 0 0 1 0 2H15m3 0a1 1 0 0 1 0 2h-4m2.5 0a1 1 0 0 1 0 2H11L7 16H3Z"/><path d="M16 4.5 18 3m1 4 2.5-.5"/></svg></button>
+          <button type="button" data-panel="treats" aria-label="간식" title="간식"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#bone"></use></svg></button>
+          <button type="button" data-action="ball" aria-label="공놀이" title="공놀이"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#volleyball"></use></svg></button>
+          <button type="button" data-panel="items" aria-label="아이템" title="아이템"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12 2.5c1.2 6 3.5 8.3 9.5 9.5-6 1.2-8.3 3.5-9.5 9.5C10.8 15.5 8.5 13.2 2.5 12c6-1.2 8.3-3.5 9.5-9.5Z"/></svg></button>
+          <button type="button" data-panel="talk" aria-label="말 걸기" title="말 걸기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#message-circle"></use></svg></button>
+          <button type="button" id="ride" aria-pressed="false" hidden aria-label="합체" title="합체"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10" cy="4.5" r="2"/><path d="m9.5 7-1 4.8 3.4 1.1-.4 3m-1.1-7.8 2.8 2.1H16M3 10l2.7 3.4 2.8-.4m4.5 0H15l1.6-3.9L19 11l2.5.7v2.4l-3.4 1.1-1 5.3h-2m0-4.3H8l-1.3 4.3H4.5l.7-5.6 1-1.3"/></svg></button>
         </div>
       </div>
     </section>
