@@ -351,6 +351,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const initial=new T.Vector3();
   const target=new T.Vector3();
   const escape=new T.Vector3();
+  const treatPosition=new T.Vector3();
   const itemDirection=new T.Vector3();
   const arrival=new T.Vector3(0,0,1.65);
   const ballGrip=new T.Vector3();
@@ -470,8 +471,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         }
         if (kind==='treat') {
           const model=treats[action.object];
-          model.position.copy(target);
-          model.position.y=.18;
+          model.position.copy(treatPosition);
           model.visible=p<.88;
           if (p>.65) pet.head.rotation.x=.35+(move ? Math.sin(t*15)*.14 : 0);
         }
@@ -509,12 +509,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       }
       const dx=position.x-previousX;
       const dz=position.z-previousZ;
-      if (dx*dx+dz*dz>1e-8) {
-        const heading=Math.atan2(dx,dz);
+      const walking=dx*dx+dz*dz>1e-8;
+      if (walking || (move && action?.kind==='treat')) {
+        const heading=walking ? Math.atan2(dx,dz) : Math.atan2(treatPosition.x-position.x,treatPosition.z-position.z);
         const turn=heading-pet.root.rotation.y;
         pet.root.rotation.y+=Math.atan2(Math.sin(turn),Math.cos(turn))*(1-Math.exp(-elapsed*11));
         const step=hamster ? stride*.68 : stride;
-        pet.legs.forEach((leg,i) => {leg.rotation.x=walk*(i===0||i===3 ? step : -step);});
+        if (walking) pet.legs.forEach((leg,i) => {leg.rotation.x=walk*(i===0||i===3 ? step : -step);});
       }
       if (move) {
         const blend=1-Math.exp(-elapsed*15);
@@ -672,6 +673,26 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       initial.set(pet.root.position.x,0,pet.root.position.z);
       const locations={ball:[2.65,0,-1.2],greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65]};
       target.set(...(locations[kind] || [0,0,0]));
+      if (kind==='treat') {
+        const reach=(pet.head.position.z+pet.mouth.position.z*pet.head.scale.z)*pet.scale+.24;
+        if (reduced.matches) {
+          const heading=pet.root.rotation.y;
+          itemDirection.set(Math.sin(heading),0,Math.cos(heading));
+          treatPosition.copy(initial).addScaledVector(itemDirection,reach);
+        } else {
+          treatPosition.copy(target);
+          itemDirection.subVectors(treatPosition,initial);
+          if (itemDirection.length()<reach+.25) {
+            // Leave a short approach even if the pet is already near the feeding spot.
+            itemDirection.copy(initial).negate();
+            if (itemDirection.lengthSq()<.01) itemDirection.set(0,0,1);
+            treatPosition.copy(initial).addScaledVector(itemDirection.normalize(),reach+.45);
+          }
+          itemDirection.subVectors(treatPosition,initial).normalize();
+          target.copy(treatPosition).addScaledVector(itemDirection,-reach);
+        }
+        treatPosition.y=.18;
+      }
       if (kind==='disliked') {
         const heading=pet.root.rotation.y;
         itemDirection.set(Math.sin(heading),0,Math.cos(heading));
