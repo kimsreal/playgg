@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#f4f4e6">
   <meta name="description" content="반려동물과 함께 쉬어 가는 둘만의 초원">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./app/icon-192.png">
+  <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
+  <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
   <link rel="stylesheet" href="./app/style.css">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
