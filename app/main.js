@@ -140,7 +140,6 @@ function showError(message) {
 
 const rideButton=byId('ride');
 function updateRideButton() {
-  rideButton.textContent=riding ? '내리기' : '타기';
   rideButton.setAttribute('aria-pressed',String(riding));
 }
 rideButton.addEventListener('click',() => {
