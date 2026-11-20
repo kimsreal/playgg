@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=76">
+  <link rel="stylesheet" href="./app/style.css?v=77">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=76"></script>
+  <script type="module" src="./app/main.js?v=77"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -164,6 +164,7 @@
     </section>
     <section id="food-intro" aria-label="먹이 합치기 안내" hidden>
       <div class="food-intro-content">
+        <img class="food-intro-cake" src="./app/food-intro-cake.webp" alt="" width="320" height="320">
         <p>같은 먹이를 합쳐 케이크를 만들어봐요!<br>잎사귀 5개를 받을 수 있어요.</p>
         <button type="button" class="primary" data-page="leaf-game">시작하기</button>
       </div>

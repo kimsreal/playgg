@@ -125,8 +125,9 @@ export function createFoodGame({canvas,reset,status,upcoming,onClear}) {
     ctx.translate(x,y);
     ctx.scale(r,r);
     const glow=ctx.createRadialGradient(-.25,-.35,.08,0,0,1);
-    glow.addColorStop(0,'#fff8eb');
-    glow.addColorStop(1,FOODS[level][2]);
+    glow.addColorStop(0,'#ffffffcf');
+    glow.addColorStop(.55,FOODS[level][2]+'ba');
+    glow.addColorStop(1,FOODS[level][2]+'e3');
     ellipse(0,0,.985,.985,glow);
     if (level===0) {
       ellipse(0,0,.38,.68,'#514543',.4);
@@ -208,12 +209,27 @@ export function createFoodGame({canvas,reset,status,upcoming,onClear}) {
       ellipse(0,-.12,.62,.21,'#fff4d4');
       ellipse(0,-.37,.14,.17,'#df596f');
     }
+    const reflection=ctx.createLinearGradient(0,-.96,0,-.37);
+    reflection.addColorStop(0,'#ffffffe6');
+    reflection.addColorStop(1,'#ffffff00');
+    ellipse(-.10,-.61,.62,.27,reflection,-.12);
+    ctx.beginPath();
+    ctx.arc(0,0,.94,0,2*Math.PI);
+    ctx.strokeStyle='#ffffffbd';
+    ctx.lineWidth=.065;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0,0,.88,.42,1.36);
+    ctx.strokeStyle='#ffffff8c';
+    ctx.lineWidth=.045;
+    ctx.lineCap='round';
+    ctx.stroke();
     ctx.restore();
   }
 
   function paint() {
     ctx.clearRect(0,0,width,height);
-    ctx.strokeStyle='#c6d8c6';
+    ctx.strokeStyle='#c1d8e9';
     ctx.setLineDash([6,5]);
     ctx.beginPath();
     ctx.moveTo(0,LIMIT);
@@ -223,7 +239,7 @@ export function createFoodGame({canvas,reset,status,upcoming,onClear}) {
     const r=FOODS[queued][1];
     const x=clamp(aimX,r,width-r);
     if (state==='playing') {
-      ctx.strokeStyle='#7bab83';
+      ctx.strokeStyle='#7ea8c8';
       ctx.setLineDash([4,5]);
       ctx.beginPath();
       ctx.moveTo(x,31);

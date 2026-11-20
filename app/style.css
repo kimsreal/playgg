@@ -319,7 +319,16 @@ section > .page-back { margin-bottom: 20px; }
 .scene-actions button:active {
   box-shadow: inset 0 2px 7px #326b9e4d, 0 2px 7px #23567d29;
 }
-.scene-actions .ui-icon { width: clamp(21px, 6vw, 32px); height: clamp(21px, 6vw, 32px); }
+.scene-actions .ui-icon {
+  width: clamp(21px, 6vw, 32px);
+  height: clamp(21px, 6vw, 32px);
+  color: #385a74;
+  filter: drop-shadow(0 -1px 0 #16364d46) drop-shadow(0 1px 0 #e6f4ffc9);
+}
+.scene-actions #ride[aria-pressed="true"] .ui-icon {
+  color: #c3dbe9;
+  filter: drop-shadow(0 -1px 0 #10283ab8) drop-shadow(0 1px 0 #c3e5ff40);
+}
 
 #interaction { width: min(100%, 420px); max-height: min(50dvh, 320px); overflow: auto; overscroll-behavior: contain; pointer-events: auto; padding: 10px 14px; border-radius: 20px; background: var(--white); box-shadow: 0 6px 22px var(--shadow), inset 0 0 0 1px var(--line); }
 .interaction-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -526,7 +535,6 @@ section > .page-back { margin-bottom: 20px; }
 #owner-color-status:empty { display: none; }
 
 .scene-actions #ride[aria-pressed="true"] {
-  color: var(--white);
   border-color: #a7d2f4c9;
   background: linear-gradient(170deg, #376f9e, #205380 57%, #306a9a);
   box-shadow: inset 0 2px 2px #b9ddff55, 0 5px 13px #23567d55;
@@ -776,6 +784,13 @@ section > .page-back { margin-bottom: 20px; }
   text-align: center;
   word-break: keep-all;
 }
+.food-intro-cake {
+  display: block;
+  width: min(42vw, 174px);
+  height: auto;
+  margin: 0 auto 14px;
+  filter: drop-shadow(0 8px 10px #45647d29);
+}
 .food-intro-content p { margin-bottom: 20px; }
 .food-intro-content button { min-width: 140px; }
 .food-stage { position: relative; width: min(100%,300px); margin-inline: auto; }
@@ -837,7 +852,7 @@ section > .page-back { margin-bottom: 20px; }
   margin-inline: auto;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: linear-gradient(#fafff7,#edf7e7);
+  background: linear-gradient(#f3faff,#deeffd);
   cursor: crosshair;
 }
 #food-board:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }

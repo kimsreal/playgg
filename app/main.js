@@ -1,4 +1,4 @@
-import {createFoodGame} from './food-game.js?v=76';
+import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
