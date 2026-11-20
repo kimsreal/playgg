@@ -8,7 +8,7 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=54">
+  <link rel="stylesheet" href="./app/style.css?v=55">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=53"></script>
@@ -123,8 +123,18 @@
       <button type="button" class="page-back scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1>반려동물에게 편지쓰기</h1>
       <div class="letter-menu">
-        <button type="button" class="primary" data-page="letter-write">편지쓰기</button>
-        <button type="button" data-page="letter-history">내가 쓴 편지 보기</button>
+        <button type="button" data-page="letter-write">
+          <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m4 16-1 5 5-1L20.3 7.7a2.8 2.8 0 0 0-4-4L4 16Zm10-10 4 4M4 16l4 4"/>
+          </svg>
+          <span>편지쓰기</span>
+        </button>
+        <button type="button" data-page="letter-history">
+          <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M6 10 3 12v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7l-3-2M3 12l8 5.3a2 2 0 0 0 2 0l8-5.3M6 14V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10M9 7h6m-6 4h6"/>
+          </svg>
+          <span>내가 쓴 편지 보기</span>
+        </button>
       </div>
     </section>
     <section id="letter-write" hidden>

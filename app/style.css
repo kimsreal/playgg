@@ -534,7 +534,24 @@ section > .page-back { margin-bottom: 20px; }
 #account-form button { justify-self: start; }
 #account [data-auth-mode][aria-pressed="true"] { background: var(--sky); font-weight: 650; }
 
+#letters h1 { letter-spacing: -.025em; }
 .letter-menu, #letter-form, #letter-list { display: grid; gap: 12px; }
+.letter-menu {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+.letter-menu button {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-height: 116px;
+  padding: 12px 8px;
+  border-radius: 20px;
+  font-weight: 650;
+  word-break: keep-all;
+}
+.letter-menu .ui-icon { width: 34px; height: 34px; color: var(--focus); }
 #letter-form textarea {
   width: 100%;
   padding: 14px;
