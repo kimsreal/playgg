@@ -103,7 +103,7 @@
       <button type="button" class="primary" id="add-friend">반려동물 추가</button>
     </section>
     <section id="photo" hidden>
-      <button type="button" class="return-home" data-page="home">초원으로 돌아가기</button>
+      <button type="button" class="return-home scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1>오늘의 사진</h1>
       <div id="photo-card" hidden>
         <figure class="polaroid" id="daily-frame">
@@ -120,7 +120,7 @@
       <p id="photo-status" class="small" role="status"></p>
     </section>
     <section id="settings" hidden>
-      <button type="button" class="return-home" data-page="home">초원으로 돌아가기</button>
+      <button type="button" class="return-home scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <p class="kicker">우리 공간</p>
       <h1>설정</h1>
       <p id="mode-copy" class="small" hidden></p>
