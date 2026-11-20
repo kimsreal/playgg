@@ -272,7 +272,7 @@ section > .page-back { margin-bottom: 20px; }
 
 #home-scene, #home-scene canvas { cursor: grab; touch-action: none; user-select: none; }
 @media (hover: hover) and (pointer: fine) {
-  #home-scene, #home-scene canvas { cursor: url("./paw-cursor.png") 16 16, grab; }
+  #home-scene, #home-scene canvas { cursor: url("./paw-cursor-pink.png") 16 16, grab; }
 }
 #home-scene.is-looking, #home-scene.is-looking canvas, #home-scene.is-looking button { cursor: grabbing; }
 #home-scene .meadow-fallback,
