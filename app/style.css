@@ -151,7 +151,7 @@ section > .page-back { margin-bottom: 20px; }
   --edge-top: max(16px, env(safe-area-inset-top));
   --edge-bottom: max(14px, env(safe-area-inset-bottom));
 }
-#home-scene { position: absolute; inset: 0; height: auto; border-radius: 0; background: radial-gradient(ellipse at 50% 43%, #e7f5ff 0%, #f5fbff 34%, transparent 69%) var(--white); }
+#home-scene { position: absolute; inset: 0; height: auto; border-radius: 0; background: linear-gradient(to bottom, #6ebfff 0%, #a9dbff 31%, #e3f4ff 65%, var(--white) 96%); }
 #home-scene::before { content: none; }
 #home-scene .bubble { top: 41%; }
 .scene-shortcuts { display: flex; gap: 6px; position: absolute; top: var(--edge-top); right: var(--edge-right); }
