@@ -268,6 +268,18 @@ function interaction(panel) {
   $('#interaction').prop('hidden',false);
 }
 
+function decorateDailyPhoto(frame,day,photoId) {
+  const patterns=['gingham','sage-dot','blue-dot','stripe','grid'];
+  let seed=2166136261;
+  for (const character of day+':'+photoId) {
+    seed=Math.imul(seed^character.charCodeAt(0),16777619);
+  }
+  const choice=seed>>>0;
+  frame.dataset.tape=patterns[choice%patterns.length];
+  frame.style.setProperty('--tape-x',(28+(choice>>>11)%45)+'%');
+  frame.style.setProperty('--tape-angle',((choice>>>20)%25-12)+'deg');
+}
+
 async function showDaily() {
   const id=activeFriendId(state);
   const day=dayKey();
@@ -284,10 +296,10 @@ async function showDaily() {
     $('#photo-card').prop('hidden',!hasPhoto);
     $('#photo-empty').prop('hidden',hasPhoto);
     if (!hasPhoto) {
-      $('#photo-title').text('아직 사진이 없어요');
       $('#daily-image').removeAttr('src').attr('alt','');
       return;
     }
+    decorateDailyPhoto(byId('daily-frame'),daily.day,daily.photo.id);
     photoUrl=URL.createObjectURL(daily.photo.blob);
     $('#photo-title').text(daily.title.replaceAll('{이름}',() => profile.name));
     $('#daily-image').attr({src:photoUrl,alt:profile.name+'의 오늘 사진'});

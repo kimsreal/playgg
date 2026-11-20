@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=9">
+  <link rel="stylesheet" href="./app/style.css?v=10">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=9"></script>
+  <script type="module" src="./app/main.js?v=10"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -105,13 +105,16 @@
     </section>
     <section id="photo" hidden>
       <button type="button" class="return-home" data-page="home">‹ 초원</button>
-      <p class="kicker">오늘의 사진</p>
-      <h1 id="photo-title"></h1>
+      <h1>오늘의 사진</h1>
       <div id="photo-card" hidden>
-        <figure><img id="daily-image" alt=""></figure>
-        <p class="small">오늘은 이 사진을 함께 봐요.</p>
+        <figure class="polaroid" id="daily-frame">
+          <span class="polaroid-tape" aria-hidden="true"></span>
+          <div class="polaroid-window"><img id="daily-image" alt=""></div>
+          <figcaption id="photo-title"></figcaption>
+        </figure>
       </div>
       <div id="photo-empty" hidden>
+        <h2>아직 사진이 없어요</h2>
         <p>원하는 사진을 추가하면 하루에 한 장씩 볼 수 있어요.</p>
         <button type="button" data-page="settings">사진 설정 열기</button>
       </div>

@@ -46,8 +46,71 @@ input[type=radio] { accent-color: var(--sky); }
 .fallback-pet { position: absolute; left: 50%; top: 53%; transform: translate(-50%,-50%); padding: 8px; font-size: 45px; background: transparent; }
 .bubble { position: absolute; top: 21%; left: 57%; padding: 4px 11px; border-radius: 17px; background: var(--white); font-size: 23px; pointer-events: none; box-shadow: 0 4px 10px var(--shadow); }
 .occasion { background: var(--sky-soft); border-radius: 12px; padding: 9px 12px; }
-figure { margin: 16px 0; padding: 10px; background: var(--sky-soft); border-radius: 17px; transform: rotate(-1deg); }
-figure img { display: block; width: 100%; max-height: 370px; object-fit: contain; border-radius: 11px; }
+.polaroid {
+  position: relative;
+  width: min(100%, 355px);
+  margin: 38px auto 26px;
+  padding: clamp(10px, 3.4vw, 16px);
+  padding-top: clamp(13px, 3.8vw, 19px);
+  color: #514b43;
+  border: 1px solid #e5dfd1;
+  background: repeating-linear-gradient(107deg, #74644a08 0 1px, transparent 1px 4px), linear-gradient(155deg, #faf7ef, #f1ebdf);
+  box-shadow: -3px 5px 8px #41352724, 0 17px 33px -16px #493b3270;
+  transform: rotate(-1.1deg);
+}
+.polaroid-window {
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #ede7dd;
+  box-shadow: inset 0 0 0 1px #66574822;
+}
+.polaroid-window img { display: block; width: 100%; height: 100%; object-fit: contain; min-height: 0; }
+.polaroid figcaption {
+  min-height: 66px;
+  display: grid;
+  place-items: center;
+  padding: 17px 8px 9px;
+  text-align: center;
+  font-family: Georgia, "Apple SD Gothic Neo", serif;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.polaroid-tape {
+  position: absolute;
+  z-index: 1;
+  top: 3px;
+  left: var(--tape-x, 50%);
+  width: 34%;
+  height: 34px;
+  transform: translate(-50%, -35%) rotate(var(--tape-angle, -8deg));
+  opacity: .88;
+  pointer-events: none;
+  background-color: #dce8e6;
+  clip-path: polygon(2% 5%, 17% 2%, 29% 5%, 92% 0, 99% 5%, 97% 18%, 100% 26%, 98% 39%, 100% 49%, 98% 62%, 100% 73%, 97% 88%, 99% 97%, 75% 100%, 62% 96%, 2% 99%, 4% 84%, 0 73%, 3% 60%, 1% 48%, 4% 36%, 1% 24%, 4% 17%);
+}
+.polaroid-tape::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(99deg, #fff3 0 1px, transparent 1px 4px), linear-gradient(#fff4, transparent 28%, #564c251e);
+}
+.polaroid[data-tape="gingham"] .polaroid-tape {
+  background: repeating-linear-gradient(0deg, #4c879d62 0 7px, transparent 7px 14px), repeating-linear-gradient(90deg, #4c879d62 0 7px, #edf3ed 7px 14px);
+}
+.polaroid[data-tape="sage-dot"] .polaroid-tape {
+  background: radial-gradient(circle at 4px 4px, #faf6e9 0 1.6px, transparent 2px) 0 0 / 10px 10px #9eb4a6;
+}
+.polaroid[data-tape="blue-dot"] .polaroid-tape {
+  background: radial-gradient(circle at 4px 4px, #5b8493 0 2px, transparent 2.6px) 0 0 / 12px 11px #bfd9e4;
+}
+.polaroid[data-tape="stripe"] .polaroid-tape {
+  background: repeating-linear-gradient(90deg, #426276 0 4px, #ded1ac 4px 9px);
+}
+.polaroid[data-tape="grid"] .polaroid-tape {
+  background: repeating-linear-gradient(90deg, #50788e59 0 1px, transparent 1px 4px), repeating-linear-gradient(0deg, #56839a78 0 1px, #dde9e9 1px 8px);
+}
 [role=alert]:not(:empty) { color: #87432f; margin: 8px 0; }
 @media (max-width: 500px) { body { padding: 0; } .app { border-radius: 0; min-height: 100dvh; } }
 
