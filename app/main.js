@@ -1,4 +1,4 @@
-import {createFoodGame} from './food-game.js?v=71';
+import {createFoodGame} from './food-game.js?v=72';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
@@ -375,6 +375,7 @@ async function mountScene(host,profile,preview,delivery=false) {
 }
 
 const coastCost=50;
+const foodReward=5;
 const backgroundChoice=byId('background-choice');
 const backgroundStatus=byId('background-status');
 const coastBuy=byId('coast-buy');
@@ -392,7 +393,7 @@ function ownsCoast(current) {
 function renderBalance() {
   const balance=state?.leaves || 0;
   const unlocked=ownsCoast(state);
-  byId('leaf-game-balance').textContent='보유 잎사귀 '+balance+'개';
+  byId('home-leaf-balance').textContent='잎사귀 '+balance+'개';
   byId('leaf-settings-balance').textContent='보유 잎사귀 '+balance+'개';
   byId('coast-unlock').hidden=unlocked;
   backgroundChoice.querySelector('[value=coast]').disabled=!unlocked;
@@ -459,12 +460,12 @@ async function awardFoodGame() {
   foodStatus.textContent='케이크를 완성했어요. 잎사귀를 담는 중이에요.';
   try {
     const updated=await updateState(current => ({
-      ...current,coastUnlocked:ownsCoast(current),leaves:Math.min(999999,(current?.leaves || 0)+50)
+      ...current,coastUnlocked:ownsCoast(current),leaves:Math.min(999999,(current?.leaves || 0)+foodReward)
     }));
     if (account!==session) return;
     rewardPending=false;
     state=updated;
-    foodStatus.textContent='케이크 완성! 잎사귀 50개를 받았어요.';
+    foodStatus.textContent='케이크 완성! 잎사귀 '+foodReward+'개를 받았어요.';
   } catch {
     if (account===session) {
       foodStatus.textContent='잎사귀를 저장하지 못했어요. 다시 받아 주세요.';
@@ -547,6 +548,7 @@ function show(pageId,delivery=false) {
   window.scrollTo(0,0);
   if (pageId==='home') {
     startMusic();
+    renderBalance();
     byId('home').dataset.background=background;
     byId('home').setAttribute('aria-label',background==='coast' ? '노을 바다' : '초원');
     applyPerspective();
@@ -565,12 +567,11 @@ function show(pageId,delivery=false) {
     byId('letter-form').querySelector('button').disabled=true;
   }
   if (pageId==='letter-history') void renderLetters();
-  if (pageId==='leaf-game') {
+  if (pageId==='food-intro') {
     byId('leaf-pet').src='./app/welcome-pets/'+state.profile.species+'.webp';
     byId('leaf-intro').textContent=state.profile.name+'와 함께 먹이를 합쳐요.';
-    foodGame.resume();
-    renderBalance();
   }
+  if (pageId==='leaf-game') foodGame.resume();
   if (pageId==='account') renderAccount();
   if (pageId==='settings') {
     renderBalance();

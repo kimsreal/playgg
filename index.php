@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=70">
+  <link rel="stylesheet" href="./app/style.css?v=72">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=71"></script>
+  <script type="module" src="./app/main.js?v=72"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -113,8 +113,9 @@
         <span id="letter-envelope" aria-hidden="true" hidden><svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></span>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
+      <output id="home-leaf-balance" aria-label="보유 잎사귀"></output>
+      <button type="button" class="primary" id="food-open" data-page="food-intro">먹이 합치기</button>
       <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
-        <button type="button" class="scene-icon" data-page="leaf-game" aria-label="먹이 합치기" title="먹이 합치기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#leaf"></use></svg></button>
         <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></button>
         <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg></button>
         <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#settings"></use></svg></button>
@@ -139,21 +140,27 @@
         </div>
       </div>
     </section>
-    <section id="leaf-game" hidden>
+    <section id="food-intro" hidden>
       <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
-      <h1>먹이 합치기</h1>
-      <div class="leaf-companion">
-        <img id="leaf-pet" alt="" width="78" height="78">
-        <p id="leaf-intro"></p>
+      <div class="food-intro-content">
+        <h1>먹이 합치기</h1>
+        <div class="leaf-companion">
+          <img id="leaf-pet" alt="" width="78" height="78">
+          <p id="leaf-intro"></p>
+        </div>
+        <p>같은 먹이를 합쳐 케이크를 만들면 잎사귀 5개를 받아요.</p>
+        <p class="small food-order">해바라기씨 → 블루베리 → 당근 → 닭가슴살 → 고구마 → 단호박 → 연어 → 케이크</p>
+        <button type="button" class="primary" data-page="leaf-game">시작하기</button>
       </div>
-      <p>같은 먹이를 합쳐 케이크를 만들면 잎사귀 50개를 받아요.</p>
-      <p class="small food-order">해바라기씨 → 블루베리 → 당근 → 닭가슴살 → 고구마 → 단호박 → 연어 → 케이크</p>
-      <p class="small" id="leaf-game-balance"></p>
+    </section>
+    <section id="leaf-game" hidden>
+      <button type="button" class="page-back scene-icon" data-page="food-intro" aria-label="게임 설명으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <h1>먹이 합치기</h1>
       <p class="small" id="food-upcoming"></p>
-      <canvas id="food-board" width="360" height="340" aria-label="먹이 합치기 통"></canvas>
+      <canvas id="food-board" width="300" height="300" aria-label="먹이 합치기 통"></canvas>
       <div class="food-controls">
         <label for="food-aim">떨어뜨릴 위치</label>
-        <input id="food-aim" type="range" min="12" max="348" value="180">
+        <input id="food-aim" type="range" min="12" max="288" value="150">
         <button type="button" class="primary" id="food-drop">먹이 놓기</button>
       </div>
       <p id="food-status" class="small" role="status"></p>
@@ -242,7 +249,7 @@
               <div id="coast-unlock" class="coast-unlock">
                 <p class="small">노을 바다 · 잎사귀 50개</p>
                 <button type="button" id="coast-buy" class="primary">노을 바다 구매</button>
-                <button type="button" data-page="leaf-game">먹이 합치기 하러 가기</button>
+                <button type="button" data-page="food-intro">먹이 합치기 하러 가기</button>
               </div>
               <p class="small" id="background-status" role="status" hidden></p>
             </div>

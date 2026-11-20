@@ -240,7 +240,7 @@ section > .page-back { margin-bottom: 20px; }
 }
 #home-scene::before { content: none; }
 #home-scene .bubble { top: 41%; }
-.scene-shortcuts { display: flex; gap: 6px; position: absolute; top: var(--edge-top); right: var(--edge-right); }
+.scene-shortcuts { display: flex; gap: 6px; position: absolute; top: calc(var(--edge-top) + 52px); right: var(--edge-right); }
 .scene-icon {
   background: var(--sky-soft);
   box-shadow: 0 3px 12px var(--shadow), inset 0 0 0 1px var(--line);
@@ -348,8 +348,8 @@ section > .page-back { margin-bottom: 20px; }
 .view-picker {
   position: absolute;
   z-index: 1;
-  top: calc(var(--edge-top) + 53px);
-  right: var(--edge-right);
+  top: calc(var(--edge-top) + 52px);
+  left: var(--edge-left);
   display: flex;
   gap: 4px;
 }
@@ -733,6 +733,38 @@ section > .page-back { margin-bottom: 20px; }
 }
 #letter-envelope .ui-icon { width: 24px; height: 24px; }
 
+#home-leaf-balance, #food-open {
+  position: absolute;
+  top: var(--edge-top);
+  z-index: 1;
+}
+#home-leaf-balance {
+  left: var(--edge-left);
+  padding: 10px 15px;
+  min-height: 44px;
+  border-radius: var(--choice-radius);
+  color: var(--ink);
+  background: var(--sky-soft);
+  font-weight: 650;
+}
+#food-open { right: var(--edge-right); padding-inline: 17px; }
+#food-intro {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 88px);
+}
+@media (max-width: 500px) {
+  #food-intro { min-height: calc(100dvh - 40px); }
+}
+.food-intro-content {
+  margin-block: auto;
+  padding-block: 20px 48px;
+  text-align: center;
+  word-break: keep-all;
+}
+.food-intro-content .leaf-companion { justify-content: center; }
+.food-intro-content .food-order { margin-bottom: 20px; }
+.food-intro-content button { min-width: 140px; }
 .leaf-companion {
   display: flex;
   align-items: center;
@@ -745,7 +777,7 @@ section > .page-back { margin-bottom: 20px; }
 #food-board {
   display: block;
   width: 100%;
-  max-width: 360px;
+  max-width: 300px;
   height: auto;
   margin-inline: auto;
   border: 6px solid #c6e0cf;

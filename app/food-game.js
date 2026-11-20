@@ -1,5 +1,3 @@
-const WIDTH=360;
-const HEIGHT=340;
 const LIMIT=62;
 const FOODS=[
   ['해바라기씨',12,'#e9c994'],
@@ -15,6 +13,7 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
 export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) {
   const ctx=canvas.getContext('2d');
+  const {width,height}=canvas;
   const pieces=[];
   let state='playing';
   let frame, previousTime, cooldown=0, overflow=0;
@@ -36,16 +35,16 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
 
   function spawn(level,x,y,vx=0,vy=0) {
     const r=FOODS[level][1];
-    pieces.push({level,r,x:clamp(x,r,WIDTH-r),y:Math.min(y,HEIGHT-r),vx,vy,age:0});
+    pieces.push({level,r,x:clamp(x,r,width-r),y:Math.min(y,height-r),vx,vy,age:0});
   }
 
   function walls(piece) {
-    if (piece.x<piece.r || piece.x>WIDTH-piece.r) {
-      piece.x=clamp(piece.x,piece.r,WIDTH-piece.r);
+    if (piece.x<piece.r || piece.x>width-piece.r) {
+      piece.x=clamp(piece.x,piece.r,width-piece.r);
       piece.vx*=-.21;
     }
-    if (piece.y>HEIGHT-piece.r) {
-      piece.y=HEIGHT-piece.r;
+    if (piece.y>height-piece.r) {
+      piece.y=height-piece.r;
       piece.vy=Math.min(0,-piece.vy*.16);
       piece.vx*=.89;
     }
@@ -215,22 +214,22 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
   }
 
   function paint() {
-    ctx.clearRect(0,0,WIDTH,HEIGHT);
+    ctx.clearRect(0,0,width,height);
     ctx.strokeStyle='#c6d8c6';
     ctx.setLineDash([6,5]);
     ctx.beginPath();
     ctx.moveTo(0,LIMIT);
-    ctx.lineTo(WIDTH,LIMIT);
+    ctx.lineTo(width,LIMIT);
     ctx.stroke();
     ctx.setLineDash([]);
     const r=FOODS[queued][1];
-    const x=clamp(Number(aim.value),r,WIDTH-r);
+    const x=clamp(Number(aim.value),r,width-r);
     if (state==='playing') {
       ctx.strokeStyle='#7bab83';
       ctx.setLineDash([4,5]);
       ctx.beginPath();
       ctx.moveTo(x,31);
-      ctx.lineTo(x,HEIGHT);
+      ctx.lineTo(x,height);
       ctx.stroke();
       ctx.setLineDash([]);
       if (!cooldown) food({x,y:26,r,level:queued});
@@ -265,7 +264,7 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
 
   canvas.addEventListener('click',event => {
     const rect=canvas.getBoundingClientRect();
-    aim.value=clamp((event.clientX-rect.left)/rect.width*WIDTH,12,WIDTH-12);
+    aim.value=clamp((event.clientX-rect.left)/rect.width*width,FOODS[queued][1],width-FOODS[queued][1]);
     dropFood();
   });
   drop.addEventListener('click',dropFood);
@@ -273,7 +272,7 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
     pieces.length=0;
     state='playing';
     cooldown=overflow=0;
-    aim.value=WIDTH/2;
+    aim.value=width/2;
     bag=[2,1,0,0,1,1,0];
     nextFood();
     drop.disabled=false;
