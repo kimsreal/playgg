@@ -42,7 +42,7 @@
         </div>
         <p class="small">여러 가지는 쉼표로 나눠 주세요.</p>
         <p id="setup-error" role="alert"></p>
-        <button class="primary" type="submit">아바타 꾸미기</button>
+        <button class="primary" type="submit">저장</button>
       </form>
     </section>
     <section id="avatar" hidden>
