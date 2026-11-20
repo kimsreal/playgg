@@ -29,7 +29,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=37').catch(() => null);
+const scenes=import('./scene.js?v=38').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -76,28 +76,10 @@ genderSelect.addEventListener('change',() => {
 });
 
 const homeScene=byId('home-scene');
-let viewDrag, skipSceneClick=false;
-let fallbackPanX=0, fallbackPanY=0;
+let viewDrag, touchView, skipSceneClick=false;
+let fallbackPanX=0, fallbackPanY=0, fallbackZoom=1;
 
-homeScene.addEventListener('pointerdown',event => {
-  if (!event.isPrimary || event.button!==0) return;
-  skipSceneClick=false;
-  viewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,active:false};
-});
-homeScene.addEventListener('pointermove',event => {
-  if (!viewDrag || viewDrag.id!==event.pointerId) return;
-  const dx=event.clientX-viewDrag.x;
-  const dy=event.clientY-viewDrag.y;
-  if (!viewDrag.active) {
-    const threshold=event.pointerType==='touch' ? 3 : 2;
-    if (Math.hypot(dx,dy)<threshold) return;
-    viewDrag.active=true;
-    skipSceneClick=true;
-    homeScene.setPointerCapture(event.pointerId);
-    homeScene.classList.add('is-looking');
-  }
-  viewDrag.x=event.clientX;
-  viewDrag.y=event.clientY;
+function moveView(dx,dy) {
   if (scene && homeScene.classList.contains('has-webgl')) {
     scene.dragView(dx,dy);
   } else {
@@ -106,15 +88,93 @@ homeScene.addEventListener('pointermove',event => {
     homeScene.style.setProperty('--pan-x',fallbackPanX+'px');
     homeScene.style.setProperty('--pan-y',fallbackPanY+'px');
   }
+}
+
+function zoomView(factor) {
+  if (scene && homeScene.classList.contains('has-webgl')) scene.zoomView(factor);
+  else {
+    fallbackZoom=Math.max(.72,Math.min(2.2,fallbackZoom*factor));
+    homeScene.style.setProperty('--scene-zoom',fallbackZoom);
+  }
+}
+
+homeScene.addEventListener('pointerdown',event => {
+  if (event.pointerType==='touch' || !event.isPrimary || event.button!==0) return;
+  skipSceneClick=false;
+  viewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,active:false};
+});
+homeScene.addEventListener('pointermove',event => {
+  if (!viewDrag || viewDrag.id!==event.pointerId) return;
+  const dx=event.clientX-viewDrag.x;
+  const dy=event.clientY-viewDrag.y;
+  if (!viewDrag.active) {
+    if (Math.hypot(dx,dy)<2) return;
+    viewDrag.active=true;
+    skipSceneClick=true;
+    homeScene.setPointerCapture(event.pointerId);
+    homeScene.classList.add('is-looking');
+  }
+  viewDrag.x=event.clientX;
+  viewDrag.y=event.clientY;
+  moveView(dx,dy);
 });
 function endViewDrag(event) {
   if (viewDrag?.id!==event.pointerId) return;
   viewDrag=null;
   homeScene.classList.remove('is-looking');
 }
-for (const type of ['pointerup','pointercancel','lostpointercapture','pointerleave']) {
+for (const type of ['pointerup','pointercancel','lostpointercapture']) {
   homeScene.addEventListener(type,endViewDrag);
 }
+homeScene.addEventListener('pointerleave',event => {
+  if (!viewDrag?.active) endViewDrag(event);
+});
+
+const sceneTouches=event => Array.from(event.touches).filter(touch => homeScene.contains(touch.target));
+const pinchDistance=([first,second]) => Math.hypot(first.clientX-second.clientX,first.clientY-second.clientY);
+homeScene.addEventListener('touchstart',event => {
+  const touches=sceneTouches(event);
+  if (touches.length===1) {
+    skipSceneClick=false;
+    touchView={x:touches[0].clientX,y:touches[0].clientY,active:false};
+  } else if (touches.length>=2) {
+    skipSceneClick=true;
+    touchView={distance:pinchDistance(touches)};
+    if (event.cancelable) event.preventDefault();
+  }
+},{passive:false});
+homeScene.addEventListener('touchmove',event => {
+  const touches=sceneTouches(event);
+  if (!touchView || !touches.length) return;
+  if (touches.length>=2) {
+    const distance=pinchDistance(touches);
+    if (distance>0 && touchView.distance>0) zoomView(distance/touchView.distance);
+    touchView={distance};
+  } else {
+    const {clientX:x,clientY:y}=touches[0];
+    const dx=x-touchView.x;
+    const dy=y-touchView.y;
+    if (!touchView.active && Math.hypot(dx,dy)<2) return;
+    touchView={x,y,active:true};
+    moveView(dx,dy);
+  }
+  skipSceneClick=true;
+  if (event.cancelable) event.preventDefault();
+},{passive:false});
+function endTouchView(event) {
+  const touches=sceneTouches(event);
+  if (touches.length===1) touchView={x:touches[0].clientX,y:touches[0].clientY,active:skipSceneClick};
+  else if (touches.length===0) touchView=null;
+}
+homeScene.addEventListener('touchend',endTouchView);
+homeScene.addEventListener('touchcancel',endTouchView);
+homeScene.addEventListener('wheel',event => {
+  if (!event.deltaY) return;
+  event.preventDefault();
+  const units=event.deltaMode===1 ? 16 : event.deltaMode===2 ? homeScene.clientHeight : 1;
+  zoomView(Math.exp(-Math.max(-180,Math.min(180,event.deltaY*units))*.003));
+},{passive:false});
+
 homeScene.addEventListener('click',event => {
   if (!skipSceneClick || event.detail===0) return;
   skipSceneClick=false;

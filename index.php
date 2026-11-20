@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=37">
+  <link rel="stylesheet" href="./app/style.css?v=38">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=37"></script>
+  <script type="module" src="./app/main.js?v=38"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">

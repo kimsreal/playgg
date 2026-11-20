@@ -272,7 +272,7 @@ section > .page-back { margin-bottom: 20px; }
 #home-scene.is-looking, #home-scene.is-looking canvas, #home-scene.is-looking button { cursor: grabbing; }
 #home-scene .meadow-fallback,
 #home-scene .fallback-owner,
-#home-scene .fallback-pet { translate: var(--pan-x, 0px) var(--pan-y, 0px); }
+#home-scene .fallback-pet { translate: var(--pan-x, 0px) var(--pan-y, 0px); scale: var(--scene-zoom, 1); }
 .fallback-owner {
   left: var(--owner-x, 66%);
   top: var(--owner-y, 57%);

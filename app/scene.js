@@ -604,6 +604,11 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         overview.lookAt(overviewTarget);
       }
     },
+    zoomView(factor) {
+      if (!owner || !Number.isFinite(factor) || factor<=0) return;
+      camera.zoom=clamp(camera.zoom*factor,.72,2.2);
+      camera.updateProjectionMatrix();
+    },
     play(kind,object='meat') {
       if (kind==='liked' || kind==='disliked') {
         if (placedItem) placedItem.visible=false;
