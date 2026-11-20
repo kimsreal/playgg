@@ -82,38 +82,12 @@ export async function preparePhotos(files) {
   return {photos:[...photos.values()],skipped};
 }
 
-export async function extractColors(photos) {
-  const canvas=document.createElement('canvas');
-  canvas.width=canvas.height=26;
-  const context=canvas.getContext('2d',{willReadFrequently:true});
-  const bins=new Map();
-  for (const {blob} of photos.slice(0,12)) {
-    const image=await loadImage(blob);
-    const crop=Math.min(image.naturalWidth,image.naturalHeight)*.72;
-    context.drawImage(image,(image.naturalWidth-crop)/2,(image.naturalHeight-crop)/2,crop,crop,0,0,26,26);
-    const {data}=context.getImageData(0,0,26,26);
-    for (let i=0;i<data.length;i+=4) {
-      const [r,g,b]=data.subarray(i,i+3);
-      const key=[r,g,b].map(value => Math.floor(value/40)).join(',');
-      const bin=bins.get(key) || {count:0,r:0,g:0,b:0};
-      bin.count++; bin.r+=r; bin.g+=g; bin.b+=b;
-      bins.set(key,bin);
-    }
-  }
-  const colors=[];
-  for (const bin of [...bins.values()].sort((a,b) => b.count-a.count)) {
-    const rgb=[bin.r,bin.g,bin.b].map(value => Math.round(value/bin.count));
-    if (colors.every(color => Math.hypot(...color.map((value,index) => value-rgb[index]))>52)) colors.push(rgb);
-    if (colors.length===3) break;
-  }
-  return colors.map(rgb => '#'+rgb.map(value => value.toString(16).padStart(2,'0')).join(''));
-}
-
 const pick = values => values[Math.floor(Math.random()*values.length)];
 
 export function chooseDaily(state,day,titles) {
-  if (state.daily?.day===day) return state;
-  const source=state.album.length ? state.album : state.photos;
+  const source=state.album?.length ? state.album : state.photos || [];
+  if (!source.length) return state.daily ? {...state,daily:null} : state;
+  if (state.daily?.day===day && state.daily.photo) return state;
   const recent=state.daily?.recent || [];
   const available=source.filter(photo => !recent.includes(photo.id));
   const oldest=recent.find(id => source.some(photo => photo.id===id));

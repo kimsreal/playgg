@@ -1,5 +1,5 @@
 import { phrases, photoTitles } from './data.js';
-import { readState, updateState, preparePhotos, extractColors, chooseDaily } from './photos.js';
+import { readState, updateState, preparePhotos, chooseDaily } from './photos.js?v=5';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -13,9 +13,9 @@ const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.get
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
 const scenes=import('./scene.js?v=4').catch(() => null);
-let state, draft, palette=[], pendingPhotos=[];
+let state, draft;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
-let renderedDay, currentPhotosTask;
+let renderedDay;
 
 function showError(message) {
   $('#app-error').text(message).prop('hidden',!message);
@@ -60,7 +60,7 @@ function show(pageId) {
   }
   if (pageId==='photo') void showDaily();
   if (pageId==='settings') {
-    $('#album-status').text(state.album.length ? '선택한 앨범 사진 '+state.album.length+'장' : '처음 등록한 사진을 사용하고 있어요.');
+    $('#album-status').text(state.album.length ? '선택한 앨범 사진 '+state.album.length+'장' : state.photos?.length ? '처음 등록한 사진을 사용하고 있어요.' : '추가한 사진이 없어요.');
     $('#clear-album').prop('hidden',!state.album.length);
   }
 }
@@ -88,8 +88,6 @@ function openProfile() {
   profileForm.reset();
   const profile=draft || state?.profile;
   modeDates={...profile?.dates};
-  $('#pet-photos').val('');
-  $('#onboarding-photos').prop('hidden',Boolean(state?.profile));
   $('#setup-error').text('');
   if (profile) {
     for (const key of ['name','species','birthday','mode']) profileForm.elements[key].value=profile[key];
@@ -99,7 +97,6 @@ function openProfile() {
   }
   profileForm.dataset.mode=profileForm.elements.mode.value;
   refreshModeLabel();
-  renderPhotoCount();
   show('setup');
 }
 
@@ -121,15 +118,11 @@ function readProfileForm() {
 
 function saveOnboarding(step,profile) {
   if (state?.profile) return Promise.resolve();
-  const onboarding={step,profile,photos:pendingPhotos,palette};
+  const onboarding={step,profile};
   const errorId=step==='avatar' ? 'avatar-error' : 'setup-error';
-  return updateState(current => current?.profile ? current : {...current,onboarding}).catch(() => {
+  return updateState(current => current?.profile ? current : {...current,onboarding:{...current?.onboarding,...onboarding}}).catch(() => {
     $('#'+errorId).text('입력한 내용을 이 브라우저에 저장하지 못했어요.');
   });
-}
-
-function renderPhotoCount() {
-  $('#photo-count').text(!state?.profile && pendingPhotos.length ? '선택한 사진 '+pendingPhotos.length+'장' : '');
 }
 
 $(profileForm).on('change','[name=mode]',event => {
@@ -144,37 +137,11 @@ $(profileForm).on('input change','input:not([type=radio]):not([type=file]),selec
   if (!state?.profile) void saveOnboarding('setup',readProfileForm());
 });
 
-$('#pet-photos').on('change', function () {
-  const files=Array.from(this.files);
-  this.value='';
-  if (!files.length) return;
-  this.disabled=true;
-  const button=profileForm.querySelector('[type=submit]');
-  button.disabled=true;
-  $('#photo-count').text('사진을 준비하고 있어요…');
-  const input=this;
-  currentPhotosTask=preparePhotos(files).then(async ({photos,skipped}) => {
-    pendingPhotos=[...new Map([...pendingPhotos,...photos].map(photo => [photo.id,photo])).values()];
-    if (photos.length) palette=[];
-    renderPhotoCount();
-    $('#setup-error').text(skipped ? '일부 사진을 열 수 없어요. 필요하면 JPEG 또는 PNG 사진을 더 골라 주세요.' : '');
-    await saveOnboarding('setup',readProfileForm());
-  }).finally(() => {
-    input.disabled=false;
-    button.disabled=false;
-  });
-});
-
 $(profileForm).on('submit',async event => {
   event.preventDefault();
-  await currentPhotosTask;
   const fields=Object.fromEntries(new FormData(profileForm));
   if (!fields.name.trim()) {
     $('#setup-error').text('반려동물 이름을 입력해 주세요.');
-    return;
-  }
-  if (!state?.profile && pendingPhotos.length<5) {
-    $('#setup-error').text('서로 다른 사진을 5장 이상 골라 주세요.');
     return;
   }
   draft=readProfileForm();
@@ -187,20 +154,8 @@ $(profileForm).on('submit',async event => {
       $('#setup-error').text('정보를 저장하지 못했어요. 다시 시도해 주세요.');
     }
   } else {
-    const submit=profileForm.querySelector('[type=submit]');
-    try {
-      submit.disabled=true;
-      if (!palette.length) {
-        palette=await extractColors(pendingPhotos);
-        draft.fur=palette[0] || defaults.fur;
-      }
-      openAvatar();
-      await saveOnboarding('avatar',draft);
-    } catch {
-      $('#setup-error').text('사진의 색을 읽지 못했어요. 다시 시도해 주세요.');
-    } finally {
-      submit.disabled=false;
-    }
+    openAvatar();
+    await saveOnboarding('avatar',draft);
   }
 });
 
@@ -212,23 +167,12 @@ function openAvatar() {
   $('#avatar-title').text(draft.name+'의 모습');
   $('#avatar-error').text('');
   for (const key of Object.keys(defaults)) avatarForm.elements[key].value=draft[key];
-  const colors=$('#colors').empty();
-  palette.forEach((color,index) => {
-    $('<button>',{type:'button',class:'swatch','aria-label':'털색 후보 '+(index+1),'aria-pressed':String(draft.fur===color)})
-      .css('background-color',color).on('click',() => {
-        avatarForm.elements.fur.value=color;
-        $(avatarForm).trigger('change');
-      }).appendTo(colors);
-  });
   show('avatar');
   void mountScene(byId('avatar-scene'),avatarProfile(),true);
 }
 
 $(avatarForm).on('change',() => {
   const profile=avatarProfile();
-  $('#colors .swatch').each(function (index) {
-    this.setAttribute('aria-pressed',String(palette[index]===profile.fur));
-  });
   void mountScene(byId('avatar-scene'),profile,true);
   void saveOnboarding('avatar',profile);
 });
@@ -250,10 +194,9 @@ $(avatarForm).on('submit',async event => {
   submit.disabled=true;
   try {
     state=await updateState(current => ({
-      ...current,profile,photos:current?.photos || pendingPhotos,album:current?.album || [],palette,onboarding:null
+      ...current,profile,photos:current?.photos || current?.onboarding?.photos || [],album:current?.album || [],onboarding:null
     }));
     draft=null;
-    pendingPhotos=[];
     show('home');
   } catch {
     $('#avatar-error').text('기기에 저장하지 못했어요. 저장 공간을 확인하고 다시 시도해 주세요.');
@@ -307,6 +250,15 @@ async function showDaily() {
     renderedDay=day;
     const {daily,profile}=state;
     if (photoUrl) URL.revokeObjectURL(photoUrl);
+    photoUrl=null;
+    const hasPhoto=Boolean(daily?.photo);
+    $('#photo-card').prop('hidden',!hasPhoto);
+    $('#photo-empty').prop('hidden',hasPhoto);
+    if (!hasPhoto) {
+      $('#photo-title').text('아직 사진이 없어요');
+      $('#daily-image').removeAttr('src').attr('alt','');
+      return;
+    }
     photoUrl=URL.createObjectURL(daily.photo.blob);
     $('#photo-title').text(daily.title.replaceAll('{이름}',() => profile.name));
     $('#daily-image').attr({src:photoUrl,alt:profile.name+'의 오늘 사진'});
@@ -342,7 +294,7 @@ $('#album-photos').on('change',async function () {
 $('#clear-album').on('click',async () => {
   try {
     state=await updateState(current => ({...current,album:[]}));
-    $('#album-status').text('오늘의 카드는 그대로 두고 다음 카드부터 처음 등록한 사진을 사용해요.');
+    $('#album-status').text(state.photos?.length ? '다음 카드부터 처음 등록한 사진을 사용해요.' : '앨범 사진 선택을 해제했어요.');
     $('#clear-album').prop('hidden',true);
   } catch {
     $('#album-status').text('설정을 저장하지 못했어요. 다시 시도해 주세요.');
@@ -387,13 +339,10 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').ca
 try {
   state=await readState();
   if (state?.profile) {
-    palette=state.palette || [];
     show('home');
   } else if (state?.onboarding) {
     const saved=state.onboarding;
     draft=saved.profile;
-    palette=saved.palette;
-    pendingPhotos=saved.photos;
     if (saved.step==='avatar') openAvatar();
     else openProfile();
   } else openProfile();

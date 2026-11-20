@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=4">
+  <link rel="stylesheet" href="./app/style.css?v=5">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=4"></script>
+  <script type="module" src="./app/main.js?v=5"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -23,7 +23,7 @@
       <button type="button" class="return-home" data-page="home" hidden>‹ 초원</button>
       <p class="kicker">처음 만나는 날</p>
       <h1>우리 공간을 만들어요</h1>
-      <p>로그인 없이 사용할 수 있어요. 입력 중인 정보와 사진은 이 브라우저에만 저장돼요.</p>
+      <p>로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
       <form id="profile-form">
         <fieldset><legend>어떤 이야기를 담을까요?</legend>
           <label class="choice"><input type="radio" name="mode" value="memory" required> 무지개다리를 건넜어요</label>
@@ -40,8 +40,6 @@
           <label>싫어하는 것<input name="dislikes" maxlength="240" placeholder="목욕, 청소기"></label>
         </div>
         <p class="small">여러 가지는 쉼표로 나눠 주세요.</p>
-        <label id="onboarding-photos">반려동물 사진 5장 이상 <input type="file" accept="image/*" multiple id="pet-photos"></label>
-        <p id="photo-count" class="small" aria-live="polite"></p>
         <p id="setup-error" role="alert"></p>
         <button class="primary" type="submit">아바타 꾸미기</button>
       </form>
@@ -58,8 +56,6 @@
           <label>무늬<select name="pattern"><option value="solid">단색</option><option value="spots">얼룩</option><option value="tuxedo">턱시도</option></select></label>
         </div>
         <label>털색 <input type="color" name="fur" value="#e8c198"></label>
-        <p class="small">사진에서 찾은 털색 후보</p>
-        <div id="colors" class="buttons"></div>
         <p id="avatar-error" role="alert"></p>
         <div class="buttons"><button type="button" id="avatar-back">뒤로</button><button class="primary" type="submit">초원으로 가기</button></div>
       </form>
@@ -103,8 +99,14 @@
       <button type="button" class="return-home" data-page="home">‹ 초원</button>
       <p class="kicker">오늘의 사진</p>
       <h1 id="photo-title"></h1>
-      <figure><img id="daily-image" alt=""></figure>
-      <p class="small">오늘은 이 사진을 함께 봐요.</p>
+      <div id="photo-card" hidden>
+        <figure><img id="daily-image" alt=""></figure>
+        <p class="small">오늘은 이 사진을 함께 봐요.</p>
+      </div>
+      <div id="photo-empty" hidden>
+        <p>원하는 사진을 추가하면 하루에 한 장씩 볼 수 있어요.</p>
+        <button type="button" data-page="settings">사진 설정 열기</button>
+      </div>
     </section>
     <section id="settings" hidden>
       <button type="button" class="return-home" data-page="home">‹ 초원</button>
@@ -114,10 +116,10 @@
       <h2>저장 공간</h2>
       <p>반려동물 정보와 사진은 이 브라우저에 저장돼요. 브라우저의 사이트 데이터를 지우면 저장한 내용도 사라져요.</p>
       <h2>오늘의 사진</h2>
-      <p>사진 앱의 반려동물 앨범에서 보여 줄 사진을 골라 주세요. 선택한 사진이 없으면 처음 등록한 사진을 사용해요.</p>
+      <p>사진 앱의 반려동물 앨범에서 보여 줄 사진을 골라 주세요. 추가한 사진은 이 브라우저에만 저장돼요.</p>
       <label>앨범 사진 선택<input type="file" id="album-photos" accept="image/*" multiple></label>
       <p id="album-status" class="small" role="status"></p>
-      <button type="button" id="clear-album">처음 등록한 사진 사용</button>
+      <button type="button" id="clear-album">앨범 사진 선택 해제</button>
       <h2>홈 화면에 설치</h2>
       <p>iPhone은 Safari의 공유 메뉴에서 ‘홈 화면에 추가’를, Android는 Chrome 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해 주세요.</p>
       <button type="button" id="install" hidden>안녕 설치</button>
