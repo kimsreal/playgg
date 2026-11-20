@@ -79,8 +79,7 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
             if (level===FOODS.length-1) {
               state='cleared';
               drop.disabled=true;
-              reset.hidden=false;
-              status.textContent='케이크를 완성했어요!';
+              reset.hidden=true;
               onClear();
               return;
             }

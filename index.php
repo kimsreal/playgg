@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=73">
+  <link rel="stylesheet" href="./app/style.css?v=74">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=73"></script>
+  <script type="module" src="./app/main.js?v=74"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -110,6 +110,12 @@
           <svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#heart"></use></svg>
           <svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#heart"></use></svg>
         </div>
+        <svg id="fallback-cake" aria-hidden="true" viewBox="0 0 40 36" hidden>
+          <path d="M4 14h32v15c0 7-32 7-32 0Z" fill="#e685a1"/>
+          <path d="M4 22c8 4 24 4 32 0v4c-8 4-24 4-32 0Z" fill="#ffe098"/>
+          <ellipse cx="20" cy="14" rx="16" ry="6" fill="#fff5dc"/>
+          <circle cx="20" cy="8" r="5" fill="#dc587b"/>
+        </svg>
         <span id="letter-envelope" aria-hidden="true" hidden><svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></span>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
@@ -156,30 +162,30 @@
         </div>
       </div>
     </section>
-    <section id="food-intro" hidden>
-      <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
+    <section id="food-intro" aria-label="먹이 합치기 안내" hidden>
       <div class="food-intro-content">
-        <h1>먹이 합치기</h1>
-        <div class="leaf-companion">
-          <img id="leaf-pet" alt="" width="78" height="78">
-          <p id="leaf-intro"></p>
-        </div>
-        <p>같은 먹이를 합쳐 케이크를 만들면 잎사귀 5개를 받아요.</p>
-        <p class="small food-order">해바라기씨 → 블루베리 → 당근 → 닭가슴살 → 고구마 → 단호박 → 연어 → 케이크</p>
+        <p>같은 먹이를 합쳐 케이크를 만들어봐요!<br>잎사귀 5개를 받을 수 있어요.</p>
         <button type="button" class="primary" data-page="leaf-game">시작하기</button>
       </div>
     </section>
     <section id="leaf-game" hidden>
-      <button type="button" class="page-back scene-icon" data-page="food-intro" aria-label="게임 설명으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1>먹이 합치기</h1>
       <p class="small" id="food-upcoming"></p>
-      <canvas id="food-board" width="300" height="300" aria-label="먹이 합치기 통"></canvas>
+      <div class="food-stage">
+        <canvas id="food-board" width="300" height="300" aria-label="먹이 합치기 통"></canvas>
+        <div id="food-success" hidden>
+          <strong role="status">성공!</strong>
+          <div id="food-confetti" aria-hidden="true"></div>
+        </div>
+      </div>
       <div class="food-controls">
         <label for="food-aim">떨어뜨릴 위치</label>
         <input id="food-aim" type="range" min="12" max="288" value="150">
         <button type="button" class="primary" id="food-drop">먹이 놓기</button>
       </div>
       <p id="food-status" class="small" role="status"></p>
+      <button type="button" class="primary" id="food-gift" hidden></button>
       <button type="button" id="food-retry" hidden>잎사귀 다시 받기</button>
       <button type="button" class="primary" id="food-reset" hidden>한 판 더 하기</button>
     </section>

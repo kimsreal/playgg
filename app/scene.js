@@ -279,12 +279,17 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
   });
   const letterOrigin=new T.Vector3();
   const letterTarget=new T.Vector3();
-  const treats={meat:createMeatTreat(),fish:createFishTreat()};
+  const cake=new T.Group();
+  mesh(cake,new T.CylinderGeometry(.26,.26,.23,32),material(0xe58ba4),0,-.025,0);
+  mesh(cake,new T.CylinderGeometry(.264,.264,.047,32),material(0xffdc9d),0,-.06,0);
+  mesh(cake,new T.CylinderGeometry(.265,.265,.055,32),material(0xfff0d6),0,.09,0);
+  mesh(cake,new T.SphereGeometry(.062,16,12),material(0xda557b),0,.17,0);
+  const treats={meat:createMeatTreat(),fish:createFishTreat(),cake};
   const items=new Map();
   let placedItem;
   for (const treat of Object.values(treats)) {
     treat.visible=false;
-    treat.rotation.x=-Math.PI/2;
+    if (treat!==cake) treat.rotation.x=-Math.PI/2;
     treat.rotation.z=.27;
     scene.add(treat);
   }
@@ -440,7 +445,8 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
       if (alive) {
         const kind=action.kind;
         if (move && ['greet','treat','liked'].includes(kind)) {
-          position.lerpVectors(initial,target,clamp(p/.65,0,1));
+          const arrival=kind==='treat' && action.object==='cake' ? .48 : .65;
+          position.lerpVectors(initial,target,clamp(p/arrival,0,1));
           stride=.46;
         }
         if (kind==='ball' && move) {
@@ -475,8 +481,18 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
         if (kind==='treat') {
           const model=treats[action.object];
           model.position.copy(treatPosition);
-          model.visible=p<.88;
-          if (p>.65) pet.head.rotation.x=.35+(move ? Math.sin(t*15)*.14 : 0);
+          const celebrating=model===cake && p>=.75;
+          model.visible=p<(model===cake ? .75 : .88);
+          if (model===cake) cake.scale.setScalar(move ? 1-T.MathUtils.smoothstep(p,.56,.75)*.9 : 1);
+          if (p>(model===cake ? .49 : .65) && !celebrating) pet.head.rotation.x=.35+(move ? Math.sin(t*15)*.14 : 0);
+          if (celebrating) {
+            const cheer=(p-.75)/.25;
+            pet.smile.visible=true;
+            if (profile.species!=='parrot' && profile.species!=='lizard') pet.mouth.visible=false;
+            pet.tail.rotation.y=move ? Math.sin(t*20)*.85 : .36;
+            if (move) pet.root.position.y=Math.abs(Math.sin(cheer*Math.PI*2))*.35;
+            floatHearts(heart,position,pet.head.position.y*pet.scale+.62,cheer,move);
+          }
         }
         const pettingContact=kind==='pet' && p>=.22 && p<=.9;
         if (pettingContact && heart) floatHearts(heart,position,pet.head.position.y*pet.scale+.62,(p-.22)/.68,move);
@@ -747,7 +763,7 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
         letterTarget.z+=Math.cos(heading)*.36;
         letterTarget.y+=.18;
       }
-      action={kind,object,elapsed:0,duration:kind==='letter' ? 3.7 : kind==='ball' ? 3.5 : kind==='treat' ? 2.75 : 2.05};
+      action={kind,object,elapsed:0,duration:kind==='letter' ? 3.7 : kind==='ball' ? 3.5 : kind==='treat' ? (object==='cake' ? 4.35 : 2.75) : 2.05};
       idleTime=0;
       initial.set(pet.root.position.x,0,pet.root.position.z);
       const locations={greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65]};

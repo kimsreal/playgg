@@ -1,4 +1,4 @@
-import {createFoodGame} from './food-game.js?v=72';
+import {createFoodGame} from './food-game.js?v=74';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
@@ -32,7 +32,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=67').catch(() => null);
+const scenes=import('./scene.js?v=74').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -340,7 +340,7 @@ rideButton.addEventListener('click',() => {
   updateRideButton();
 });
 
-async function mountScene(host,profile,preview,delivery=false) {
+async function mountScene(host,profile,preview,delivery=null) {
   const revision=++sceneRevision;
   scene?.dispose();
   scene=null;
@@ -351,7 +351,7 @@ async function mountScene(host,profile,preview,delivery=false) {
   const module=await scenes;
   if (revision!==sceneRevision) return;
   if (!module) {
-    if (delivery) deliverLetter();
+    if (delivery) deliverGift(delivery);
     return;
   }
   const ownerModel=preview ? null : await module.loadOwnerModel();
@@ -371,7 +371,7 @@ async function mountScene(host,profile,preview,delivery=false) {
   } catch {
     // The rest of the app still works on devices without WebGL.
   }
-  if (delivery) deliverLetter();
+  if (delivery) deliverGift(delivery);
 }
 
 const coastCost=50;
@@ -382,6 +382,33 @@ const coastBuy=byId('coast-buy');
 const foodReset=byId('food-reset');
 const foodRetry=byId('food-retry');
 const foodStatus=byId('food-status');
+const foodGift=byId('food-gift');
+const foodSuccess=byId('food-success');
+const foodConfetti=byId('food-confetti');
+
+function celebrateCake() {
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const colors=['#ff9cb5','#ffcf63','#8bc9ed','#a8dc92','#c7a6f0'];
+    foodConfetti.replaceChildren(...Array.from({length:26},(_,index) => {
+      const spark=document.createElement('span');
+      const angle=index*Math.PI*2/26;
+      const distance=55+(index%5)*13;
+      spark.style.setProperty('--x',Math.cos(angle)*distance+'px');
+      spark.style.setProperty('--y',Math.sin(angle)*distance+'px');
+      spark.style.setProperty('--confetti-color',colors[index%colors.length]);
+      spark.style.animationDelay=(index%4)*40+'ms';
+      return spark;
+    }));
+  }
+  foodSuccess.hidden=false;
+}
+
+function restartFoodGame() {
+  rewardPending=false;
+  foodRetry.hidden=foodGift.hidden=foodSuccess.hidden=true;
+  foodConfetti.replaceChildren();
+  foodGame.restart();
+}
 let rewardPending=false;
 
 let economyBusy=false;
@@ -447,6 +474,7 @@ const foodGame=createFoodGame({
   upcoming:byId('food-upcoming'),
   onClear() {
     rewardPending=true;
+    celebrateCake();
     void awardFoodGame();
   }
 });
@@ -465,7 +493,9 @@ async function awardFoodGame() {
     if (account!==session) return;
     rewardPending=false;
     state=updated;
-    foodStatus.textContent='케이크 완성! 잎사귀 '+foodReward+'개를 받았어요.';
+    foodStatus.textContent='잎사귀 '+foodReward+'개를 받았어요.';
+    foodGift.hidden=false;
+    if (page==='leaf-game') foodGift.focus();
   } catch {
     if (account===session) {
       foodStatus.textContent='잎사귀를 저장하지 못했어요. 다시 받아 주세요.';
@@ -479,6 +509,10 @@ async function awardFoodGame() {
 }
 
 foodRetry.addEventListener('click',() => void awardFoodGame());
+foodGift.addEventListener('click',() => {
+  restartFoodGame();
+  show('home','cake');
+});
 
 const music=byId('meadow-music');
 const musicToggle=byId('music-toggle');
@@ -526,7 +560,7 @@ document.addEventListener('click',() => {
   if (musicNeedsGesture) startMusic();
 });
 
-function show(pageId,delivery=false) {
+function show(pageId,delivery=null) {
   if (pageId!=='leaf-game') foodGame.pause();
   clearBall();
   page=pageId;
@@ -537,7 +571,8 @@ function show(pageId,delivery=false) {
   scene?.dispose();
   scene=null;
   clearTimeout(replyTimer);
-  $('#reply,#interaction,#letter-envelope').prop('hidden',true);
+  $('#reply,#interaction,#letter-envelope,#fallback-cake').prop('hidden',true);
+  for (const animation of byId('fallback-cake').getAnimations()) animation.cancel();
   for (const animation of byId('letter-envelope').getAnimations()) animation.cancel();
   showError('');
   $('main > section').prop('hidden',true);
@@ -567,11 +602,10 @@ function show(pageId,delivery=false) {
     byId('letter-form').querySelector('button').disabled=true;
   }
   if (pageId==='letter-history') void renderLetters();
-  if (pageId==='food-intro') {
-    byId('leaf-pet').src='./app/welcome-pets/'+state.profile.species+'.webp';
-    byId('leaf-intro').textContent=state.profile.name+'와 함께 먹이를 합쳐요.';
+  if (pageId==='leaf-game') {
+    foodGift.textContent=state.profile.name+'에게 주러가기';
+    foodGame.resume();
   }
-  if (pageId==='leaf-game') foodGame.resume();
   if (pageId==='account') renderAccount();
   if (pageId==='settings') {
     renderBalance();
@@ -897,7 +931,7 @@ letterForm.addEventListener('submit',async event => {
     await writeLocalState(previous => [letter,...(previous || [])],key);
     if (page==='letter-write' && sceneRevision===revision && letterKey()===key) {
       letterForm.reset();
-      show('home',true);
+      show('home','letter');
     }
   } catch {
     if (sceneRevision===revision) byId('letter-error').textContent='편지를 저장하지 못했어요. 다시 시도해 주세요.';
@@ -935,6 +969,32 @@ async function renderLetters() {
   } catch {
     if (sceneRevision===revision) status.textContent='편지를 불러오지 못했어요.';
   }
+}
+
+function deliverGift(kind) {
+  if (kind==='letter') {
+    deliverLetter();
+    return;
+  }
+  if (scene) {
+    scene.play('treat','cake');
+    return;
+  }
+  const cake=byId('fallback-cake');
+  cake.hidden=false;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced) homeScene.querySelector('.fallback-pet').animate([
+    {transform:'translate(-50%,-50%)'},
+    {transform:'translate(-39%,-42%) rotate(8deg)'},
+    {transform:'translate(-50%,-50%)'}
+  ],{duration:320,iterations:3});
+  const eating=cake.animate(reduced ? [{opacity:1},{opacity:1}] : [
+    {transform:'scale(1)'},{transform:'scale(1)',offset:.62},{transform:'scale(.1)',opacity:0}
+  ],{duration:1000});
+  eating.onfinish=() => {
+    cake.hidden=true;
+    showPlayReply('pet','heart');
+  };
 }
 
 function deliverLetter() {
@@ -1194,9 +1254,7 @@ function accountError(error) {
 }
 
 function enterSpace() {
-  rewardPending=false;
-  foodRetry.hidden=true;
-  foodGame.restart();
+  restartFoodGame();
   addingFriend=false;
   const saved=state?.onboarding;
   draft=saved?.profile || null;
@@ -1256,9 +1314,7 @@ $('#account-logout').on('click',function () {
   void runAccountAction(async () => {
     await changeAccount('logout');
     account=null;
-    rewardPending=false;
-    foodRetry.hidden=true;
-    foodGame.restart();
+    restartFoodGame();
     state=await readState();
     applyPreferences(guestPreferences());
     show('welcome');

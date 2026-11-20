@@ -776,18 +776,59 @@ section > .page-back { margin-bottom: 20px; }
   text-align: center;
   word-break: keep-all;
 }
-.food-intro-content .leaf-companion { justify-content: center; }
-.food-intro-content .food-order { margin-bottom: 20px; }
+.food-intro-content p { margin-bottom: 20px; }
 .food-intro-content button { min-width: 140px; }
-.leaf-companion {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+.food-stage { position: relative; width: min(100%,300px); margin-inline: auto; }
+#food-success {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  pointer-events: none;
 }
-.leaf-companion img { object-fit: contain; }
-.leaf-companion p { margin: 0; color: var(--muted-ink); }
-.food-order { color: #426653; }
+#food-success strong {
+  z-index: 1;
+  align-self: start;
+  margin-top: 28%;
+  padding: 6px 22px;
+  border-radius: var(--choice-radius);
+  background: #fff5cd;
+  color: #573a27;
+  box-shadow: 0 5px 18px #895c2826;
+  font-size: 1.75rem;
+}
+#food-confetti {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+}
+#food-confetti span {
+  position: absolute;
+  width: 7px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--confetti-color);
+  animation: cake-confetti 850ms cubic-bezier(.12,.65,.34,1) both;
+}
+@keyframes cake-confetti {
+  from { opacity: 0; transform: scale(.3); }
+  20% { opacity: 1; }
+  to { opacity: 0; transform: translate(var(--x),var(--y)) rotate(155deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #food-confetti { display: none; }
+}
+#fallback-cake {
+  position: absolute;
+  z-index: 2;
+  top: 53%;
+  left: calc(50% + 19px);
+  width: 36px;
+  height: 34px;
+  pointer-events: none;
+}
 #food-board {
   display: block;
   width: 100%;
