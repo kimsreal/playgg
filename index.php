@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=72">
+  <link rel="stylesheet" href="./app/style.css?v=73">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=72"></script>
+  <script type="module" src="./app/main.js?v=73"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -113,12 +113,28 @@
         <span id="letter-envelope" aria-hidden="true" hidden><svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></span>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
-      <output id="home-leaf-balance" aria-label="보유 잎사귀"></output>
-      <button type="button" class="primary" id="food-open" data-page="food-intro">먹이 합치기</button>
+      <output id="home-leaf-balance" aria-label="보유 잎사귀">
+        <svg class="balance-leaf" aria-hidden="true" viewBox="0 0 32 32">
+          <defs>
+            <linearGradient id="balance-leaf-body" x1="0%" y1="0%" x2="85%" y2="95%">
+              <stop offset="0" stop-color="#d7f49c"/>
+              <stop offset=".55" stop-color="#8cc560"/>
+              <stop offset="1" stop-color="#427c44"/>
+            </linearGradient>
+          </defs>
+          <path d="M28 3C21 7 12 3 6 11C1 18 5 26 12 26C23 27 30 17 28 3Z" fill="url(#balance-leaf-body)"/>
+          <path d="M7 22C7 14 15 9 24 8C20 12 12 12 7 22Z" fill="#e9ffc8" opacity=".65"/>
+          <path d="M4 29C10 20 16 18 24 11M12 20l-1-5m7 1 4 1" fill="none" stroke="#3f7843" stroke-width="1.45" stroke-linecap="round"/>
+        </svg>
+        <span id="home-leaf-count">0</span>
+      </output>
       <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
-        <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></button>
-        <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg></button>
-        <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#settings"></use></svg></button>
+        <div class="scene-shortcut-icons">
+          <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></button>
+          <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg></button>
+          <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#settings"></use></svg></button>
+        </div>
+        <button type="button" class="scene-icon" id="food-open" data-page="food-intro">먹이 합치기</button>
       </div>
       <div class="view-picker" role="group" aria-label="초원 시점">
         <button type="button" data-view="third" aria-pressed="true">3인칭</button>

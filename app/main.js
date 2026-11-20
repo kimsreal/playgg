@@ -393,7 +393,7 @@ function ownsCoast(current) {
 function renderBalance() {
   const balance=state?.leaves || 0;
   const unlocked=ownsCoast(state);
-  byId('home-leaf-balance').textContent='잎사귀 '+balance+'개';
+  byId('home-leaf-count').textContent=String(balance);
   byId('leaf-settings-balance').textContent='보유 잎사귀 '+balance+'개';
   byId('coast-unlock').hidden=unlocked;
   backgroundChoice.querySelector('[value=coast]').disabled=!unlocked;
