@@ -4,7 +4,7 @@ import {GLTFLoader} from './vendor/GLTFLoader.js';
 let model;
 export function loadOwnerModel() {
   if (!model) {
-    model=new GLTFLoader().loadAsync(new URL('./models/hood_character_detailed.glb',import.meta.url).href)
+    model=new GLTFLoader().loadAsync(new URL('./models/hood_character_refined_legs.glb',import.meta.url).href)
       .then(({scene}) => scene)
       .catch(() => {
         model=null;
@@ -16,7 +16,7 @@ export function loadOwnerModel() {
 
 export function buildOwnerModel(source,colors) {
   const root=new T.Group();
-  const ground=-.04;
+  const ground=.055;
   const scale=1.72/(3.78-ground);
   const upright=new T.Matrix4().makeRotationX(-Math.PI/2).premultiply(new T.Matrix4().makeScale(scale,scale,scale));
   upright.setPosition(0,-ground*scale,0);
@@ -37,13 +37,13 @@ export function buildOwnerModel(source,colors) {
     const side=name.endsWith('-1') ? 0 : 1;
     const isHead=/^(sculpted_hood|hood_face|face|eye|blush)/.test(name);
     const isArm=/^(puffy_sleeve|sleeve_rounding|wrist_cuff|tiny_hand)/.test(name);
-    const isLeg=/^(shorts_leg|rounded_leg)/.test(name);
+    const isLeg=/^(shorts_leg|sculpted_flat_foot_leg)/.test(name);
     const parent=isHead ? head : isArm ? arms[side] : isLeg ? legs[side] : root;
     const geometry=part.geometry.clone().applyMatrix4(part.matrixWorld).applyMatrix4(upright);
     geometry.translate(-parent.position.x,-parent.position.y,-parent.position.z);
     if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
     const swatch=name.startsWith('shorts') ? colors.pants
-      : /^(face$|tiny_hand|rounded_leg|blush)/.test(name) ? colors.skin
+      : /^(face$|tiny_hand|sculpted_flat_foot_leg|blush)/.test(name) ? colors.skin
       : name.startsWith('eye') ? null : colors.hoodie;
     const shade=new T.MeshStandardMaterial({roughness:.64,vertexColors:!swatch});
     if (swatch) {

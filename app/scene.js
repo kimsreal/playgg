@@ -3,9 +3,9 @@ import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
 import { meadow } from './data.js';
-import {buildOwnerModel} from './owner-model.js?v=41';
+import {buildOwnerModel} from './owner-model.js?v=42';
 import {ownerColors as cleanColors} from './owner-colors.js';
-export {loadOwnerModel} from './owner-model.js?v=41';
+export {loadOwnerModel} from './owner-model.js?v=42';
 
 const material = color => new T.MeshStandardMaterial({color,flatShading:true});
 function mesh(scene, geometry, shade, x,y,z) {
