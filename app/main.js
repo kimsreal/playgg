@@ -28,7 +28,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=23').catch(() => null);
+const scenes=import('./scene.js?v=24').catch(() => null);
 let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
@@ -349,10 +349,10 @@ $(avatarForm).on('submit',async event => {
   }
 });
 
-function play(action,icon) {
-  scene?.play(action);
+function play(action,icon,treat) {
+  scene?.play(action,treat);
   clearTimeout(replyTimer);
-  const reply=$('#reply').empty().append(makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
+  const reply=$('#reply').empty().append(treat ? treatImage(treat) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
   if (!scene && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const effect=action==='disliked' ? 'translate(-65%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';
     byId('home-scene').querySelector('.fallback-pet').animate([
@@ -362,8 +362,12 @@ function play(action,icon) {
   replyTimer=setTimeout(() => reply.prop('hidden',true),2700);
 }
 
+function treatImage(kind) {
+  return $('<img>',{class:'treat-icon',src:'./app/treat-'+kind+'.png',alt:''});
+}
+
 function interaction(panel) {
-  const container=$('#interaction-options').empty();
+  const container=$('#interaction-options').empty().toggleClass('treat-options',panel==='treats');
   const add=(label,action,reply,icon) => {
     const button=$('<button>',{type:'button',text:label});
     if (icon) button.addClass('with-icon').prepend(makeIcon(icon));
@@ -377,8 +381,12 @@ function interaction(panel) {
     phrases.forEach(([label,icons,action]) => add(label,action,icons));
   } else if (panel==='treats') {
     $('#interaction-title').text('간식 고르기');
-    add('고기 간식','treat','bone','bone');
-    add('생선 간식','treat','fish','fish');
+    for (const [kind,label,reply] of [['meat','고기 간식','bone'],['fish','생선 간식','fish']]) {
+      $('<button>',{type:'button','aria-label':label,title:label}).append(treatImage(kind)).on('click',() => {
+        $('#interaction').prop('hidden',true);
+        play('treat',reply,kind);
+      }).appendTo(container);
+    }
   } else {
     $('#interaction-title').text('아이템 놓기');
     for (const like of state.profile.likes) add(like,'liked','sparkles','heart');

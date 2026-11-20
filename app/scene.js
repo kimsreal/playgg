@@ -1,5 +1,6 @@
 import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=9';
+import { createMeatTreat, createFishTreat } from './treats.js';
 import { meadow } from './data.js';
 
 const material = color => new T.MeshStandardMaterial({color,flatShading:true});
@@ -181,6 +182,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   scene.add(pet.root);
   const toy = mesh(scene,new T.IcosahedronGeometry(.22,1),material(0xec997d),0,0,0);
   toy.visible=false;
+  const treats={meat:createMeatTreat(),fish:createFishTreat()};
+  for (const treat of Object.values(treats)) {
+    treat.visible=false;
+    treat.rotation.x=-Math.PI/2;
+    treat.rotation.z=.27;
+    scene.add(treat);
+  }
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const ray = new T.Raycaster();
   let frame=0, action=null, idleTime=0;
@@ -250,6 +258,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const walk=move ? Math.sin(t*10) : 0;
     if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
     toy.visible=false;
+    for (const treat of Object.values(treats)) treat.visible=false;
     if (heart) heart.visible=false;
     pet.root.scale.setScalar(pet.scale);
     pet.root.position.y=0;
@@ -282,9 +291,9 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
           position.lerpVectors(returning ? target : initial,returning ? arrival : target,progress);
           stride=.46;
         }
-        if (['ball','treat','liked','disliked'].includes(kind)) {
+        if (['ball','liked','disliked'].includes(kind)) {
           toy.visible=true;
-          const toyColors={ball:0xf1a79c,treat:0xaa654b,liked:0xe8bb64,disliked:0x9aaecd};
+          const toyColors={ball:0xf1a79c,liked:0xe8bb64,disliked:0x9aaecd};
           toy.material.color.set(toyColors[kind]);
           if (kind==='ball' && move && p>=.54) {
             const angle=pet.root.rotation.y;
@@ -297,10 +306,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
             toy.position.lerpVectors(arrival,target,f);
             toy.position.y=.18+Math.sin(f*Math.PI)*1.25;
           }
-          if (kind==='treat' && p>.65) {
-            pet.head.rotation.x=.35+(move ? Math.sin(t*15)*.14 : 0);
-            toy.visible=p<.88;
-          }
+        }
+        if (kind==='treat') {
+          const model=treats[action.treat];
+          model.position.copy(target);
+          model.position.y=.18;
+          model.visible=p<.88;
+          if (p>.65) pet.head.rotation.x=.35+(move ? Math.sin(t*15)*.14 : 0);
         }
         if (kind==='pet' && heart) {
           heart.visible=true;
@@ -412,8 +424,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         overview.lookAt(overviewTarget);
       }
     },
-    play(kind) {
-      action={kind,elapsed:0,duration:kind==='ball' ? 3.1 : kind==='treat' ? 2.75 : 2.05};
+    play(kind,treat='meat') {
+      action={kind,treat,elapsed:0,duration:kind==='ball' ? 3.1 : kind==='treat' ? 2.75 : 2.05};
       idleTime=0;
       initial.set(pet.root.position.x,0,pet.root.position.z);
       const locations={ball:[2.65,0,-1.2],greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65],disliked:[initial.x+.55,0,initial.z+.7]};
