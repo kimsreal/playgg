@@ -236,12 +236,14 @@ section > .page-back { margin-bottom: 20px; }
 
 .view-picker {
   position: absolute;
+  z-index: 1;
   top: calc(var(--edge-top) + 53px);
   right: var(--edge-right);
   display: flex;
   gap: 4px;
 }
 .view-picker button {
+  touch-action: manipulation;
   min-width: 44px;
   min-height: 44px;
   padding: 4px 7px;

@@ -29,7 +29,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=35').catch(() => null);
+const scenes=import('./scene.js?v=37').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -98,7 +98,7 @@ homeScene.addEventListener('pointermove',event => {
   }
   viewDrag.x=event.clientX;
   viewDrag.y=event.clientY;
-  if (scene) {
+  if (scene && homeScene.classList.contains('has-webgl')) {
     scene.dragView(dx,dy);
   } else {
     fallbackPanX=Math.max(-85,Math.min(85,fallbackPanX+dx*.55));
@@ -123,7 +123,7 @@ homeScene.addEventListener('click',event => {
 },true);
 
 homeScene.addEventListener('click',event => {
-  if (scene || event.target.closest('button')) return;
+  if (homeScene.classList.contains('has-webgl') || event.target.closest('button')) return;
   const island=homeScene.querySelector('.meadow-island').getBoundingClientRect();
   const view=homeScene.getBoundingClientRect();
   const x=(event.clientX-island.left)/island.width;
@@ -159,14 +159,18 @@ async function mountScene(host,profile,preview) {
   fallback.replaceChildren(makeIcon(speciesInfo[profile.species][0]));
   const module=await scenes;
   if (revision!==sceneRevision || !module) return;
+  const setGraphicsAvailable=available => {
+    if (revision!==sceneRevision) return;
+    fallback.hidden=available;
+    host.classList.toggle('has-webgl',available);
+    if (!preview) rideButton.hidden=!available;
+  };
   try {
-    scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{preview,perspective,ownerGender});
-    fallback.hidden=true;
-    host.classList.add('has-webgl');
-    if (!preview) {
-      scene.play('greet');
-      rideButton.hidden=false;
-    }
+    scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{
+      preview,perspective,ownerGender,onGraphicsChange:setGraphicsAvailable
+    });
+    setGraphicsAvailable(true);
+    if (!preview) scene.play('greet');
   } catch {
     // The rest of the app still works on devices without WebGL.
   }
@@ -410,7 +414,7 @@ function play(action,icon,object) {
   scene?.play(action,object);
   clearTimeout(replyTimer);
   const reply=$('#reply').empty().append(action==='treat' && object ? objectImage(object) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
-  if (!scene && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!homeScene.classList.contains('has-webgl') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const effect=action==='disliked' ? 'translate(-125%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';
     byId('home-scene').querySelector('.fallback-pet').animate([
       {transform:'translate(-50%,-50%)'},{transform:effect},{transform:'translate(-50%,-50%)'}
@@ -600,7 +604,15 @@ function checkDay() {
 }
 document.addEventListener('visibilitychange',checkDay);
 setInterval(checkDay,60000);
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+if ('serviceWorker' in navigator) {
+  const registration=navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).catch(() => null);
+  document.addEventListener('visibilitychange',() => {
+    if (!document.hidden) void registration.then(worker => worker?.update()).catch(() => {});
+  });
+}
+window.addEventListener('pageshow',event => {
+  if (event.persisted && page==='home') applyPerspective();
+});
 
 byId('start-welcome').addEventListener('click',async event => {
   const button=event.currentTarget;

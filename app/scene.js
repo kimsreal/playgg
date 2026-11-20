@@ -210,9 +210,10 @@ function createOwner(scene,gender) {
   return {root,head,arms,legs,shadow};
 }
 
-export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third',ownerGender='default'}={}) {
-  const renderer = new T.WebGLRenderer({antialias:true,alpha:!preview});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third',ownerGender='default',onGraphicsChange}={}) {
+  const touchScreen=matchMedia('(pointer: coarse)').matches;
+  const renderer = new T.WebGLRenderer({antialias:!touchScreen,alpha:!preview});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,touchScreen ? 1.35 : 1.7));
   renderer.setClearColor(theme.sky,preview ? 1 : 0);
   renderer.domElement.setAttribute('aria-hidden','true');
   host.prepend(renderer.domElement);
@@ -239,14 +240,16 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     eyeTarget.set(position.x+Math.sin(heading)*3,eye.position.y+Math.tan(eyePitch)*3,position.z+Math.cos(heading)*3);
     eye.lookAt(eyeTarget);
   };
+  let graphicsAvailable=true;
   const setPerspective=view => {
     if (!owner) return;
     const first=view==='first';
     owner.root.visible=!first;
     owner.shadow.visible=!first;
     camera=first ? eye : overview;
+    if (first) updateEyeCamera();
+    if (graphicsAvailable && size()) renderer.render(scene,camera);
   };
-  setPerspective(perspective);
   const shadow=mesh(scene,new T.CircleGeometry(.74,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.17}),0,.009,0);
   shadow.rotation.x=-Math.PI/2;
   const pet = createAvatar(profile);
@@ -307,9 +310,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     marker.rotation.x=-Math.PI/2;
     marker.visible=false;
   }
+  let viewportWidth,viewportHeight;
   const size = () => {
     const {clientWidth:w,clientHeight:h}=host;
-    if (!w || !h) return;
+    if (!w || !h) return false;
+    if (w===viewportWidth && h===viewportHeight) return true;
+    viewportWidth=w;
+    viewportHeight=h;
     renderer.setSize(w,h,false);
     const extent=preview ? 1.28 : Math.max(3.7,5.15*h/w);
     overview.left=-extent*w/h; overview.right=extent*w/h;
@@ -317,8 +324,10 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     overview.near=.1; overview.far=60;
     overview.updateProjectionMatrix();
     eye.aspect=w/h;
-    eye.fov=w<h*.65 ? 65 : 54;
+    const portraitFov=T.MathUtils.radToDeg(2*Math.atan(Math.tan(T.MathUtils.degToRad(23))/eye.aspect));
+    eye.fov=T.MathUtils.clamp(portraitFov,54,83);
     eye.updateProjectionMatrix();
+    return true;
   };
   const observer=new ResizeObserver(size);
   observer.observe(host);
@@ -530,6 +539,26 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     renderer.render(scene,camera);
     frame=requestAnimationFrame(animate);
   };
+  const canvas=renderer.domElement;
+  const onLost=event => {
+    event.preventDefault();
+    graphicsAvailable=false;
+    cancelAnimationFrame(frame);
+    canvas.hidden=true;
+    onGraphicsChange?.(false);
+  };
+  const onRestored=() => {
+    graphicsAvailable=true;
+    viewportWidth=viewportHeight=undefined;
+    canvas.hidden=false;
+    previousTime=performance.now();
+    size();
+    onGraphicsChange?.(true);
+    frame=requestAnimationFrame(animate);
+  };
+  canvas.addEventListener('webglcontextlost',onLost);
+  canvas.addEventListener('webglcontextrestored',onRestored);
+  setPerspective(perspective);
   frame=requestAnimationFrame(animate);
   const tap = event => {
     const rect=renderer.domElement.getBoundingClientRect();
@@ -602,6 +631,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     },
     dispose() {
       cancelAnimationFrame(frame);
+      canvas.removeEventListener('webglcontextlost',onLost);
+      canvas.removeEventListener('webglcontextrestored',onRestored);
       observer.disconnect();
       const materials=new Set();
       scene.traverse(part => {
