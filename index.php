@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=24">
+  <link rel="stylesheet" href="./app/style.css?v=25">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=24"></script>
+  <script type="module" src="./app/main.js?v=25"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -134,6 +134,20 @@
       <ul class="settings-list">
         <li data-setting="반려동물 정보와 모드 바꾸기 이름 생일 기일 다시 만나기"><button type="button" class="settings-row" id="edit-profile"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#user-round"></use></svg><span>반려동물 정보와 모드 바꾸기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></button></li>
         <li data-setting="아바타 꾸미기 색 몸 귀 꼬리 무늬"><button type="button" class="settings-row" id="edit-avatar"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#sparkles"></use></svg><span>아바타 꾸미기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></button></li>
+        <li data-setting="주인 아바타 성별 남성 여성 기본">
+          <details>
+            <summary class="settings-row"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#user-round"></use></svg><span>주인 아바타</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></summary>
+            <div class="settings-detail">
+              <label for="owner-gender">성별</label>
+              <select id="owner-gender">
+                <option value="default">선택 안 함</option>
+                <option value="male">남성</option>
+                <option value="female">여성</option>
+              </select>
+              <p class="small" id="owner-gender-status" role="status"></p>
+            </div>
+          </details>
+        </li>
         <li data-setting="다른 친구랑 놀기 반려동물 추가 선택 전환"><button type="button" class="settings-row" data-page="friends"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#paw-print"></use></svg><span>다른 친구랑 놀기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></button></li>
         <li data-setting="오늘의 사진 갤러리 앨범 선택 해제">
           <details>

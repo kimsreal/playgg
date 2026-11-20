@@ -28,14 +28,17 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=24').catch(() => null);
+const scenes=import('./scene.js?v=25').catch(() => null);
 let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
 
 let perspective='third';
+let ownerGender='default';
 try {
   if (localStorage.getItem('annyeong-perspective')==='first') perspective='first';
+  const savedGender=localStorage.getItem('annyeong-owner-gender');
+  if (savedGender==='male' || savedGender==='female') ownerGender=savedGender;
 } catch {
   // The current view can still be changed when browser storage is unavailable.
 }
@@ -55,6 +58,18 @@ $('.view-picker button').on('click',function () {
     localStorage.setItem('annyeong-perspective',perspective);
   } catch {
     // The active scene has already switched.
+  }
+});
+
+const genderSelect=byId('owner-gender');
+genderSelect.value=ownerGender;
+genderSelect.addEventListener('change',() => {
+  ownerGender=genderSelect.value;
+  try {
+    localStorage.setItem('annyeong-owner-gender',ownerGender);
+    $('#owner-gender-status').text('저장했어요.');
+  } catch {
+    $('#owner-gender-status').text('이번 접속에 적용했어요.');
   }
 });
 
@@ -133,7 +148,7 @@ async function mountScene(host,profile,preview) {
   const module=await scenes;
   if (revision!==sceneRevision || !module) return;
   try {
-    scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{preview,perspective});
+    scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{preview,perspective,ownerGender});
     fallback.hidden=true;
     host.classList.add('has-webgl');
     if (!preview) scene.play('greet');

@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.min.js';
-import { createAvatar } from './avatar.js?v=9';
+import { createAvatar } from './avatar.js?v=25';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import { meadow } from './data.js';
 
@@ -92,15 +92,22 @@ function makeIsland(scene,theme) {
   return clouds;
 }
 
-function createOwner(scene) {
+function createOwner(scene,gender) {
   const root=new T.Group();
-  const blue=material(0x6ebfff);
-  const trousers=material(0x647d9d);
-  const skin=material(0xe4b393);
-  const hair=material(0x59463d);
-  const shoes=material(0xf7f5ee);
+  const satin=color => new T.MeshStandardMaterial({color,roughness:.47});
+  const blue=satin(0x6ebfff);
+  const trim=satin(0xb7e5ff);
+  const trousers=satin(0x647d9d);
+  const skin=satin(0xe4b393);
+  const hair=satin(0x59463d);
+  const hairLight=satin(0x705341);
+  const ink=satin(0x3a2c2b);
+  const lips=satin(0xa9615d);
+  const blush=satin(0xe89887);
+  const shoes=satin(0xf7f5ee);
+  const sole=satin(0xc9d6dc);
   const oval=(parent,shade,x,y,z,sx,sy,sz) => {
-    const part=mesh(parent,new T.SphereGeometry(1,12,8),shade,x,y,z);
+    const part=mesh(parent,new T.SphereGeometry(1,20,14),shade,x,y,z);
     part.scale.set(sx,sy,sz);
     return part;
   };
@@ -109,25 +116,49 @@ function createOwner(scene) {
   root.add(head);
   oval(head,skin,0,0,0,.24,.26,.22);
   oval(head,hair,0,.115,-.035,.25,.178,.226);
-  oval(head,hair,-.107,.154,.105,.156,.102,.12);
+  if (gender==='female') {
+    oval(head,hair,0,-.034,-.095,.263,.275,.174);
+    for (const side of [-1,1]) oval(head,hair,side*.209,-.05,-.022,.092,.22,.117).rotation.z=-side*.1;
+    oval(head,hairLight,.091,.156,.117,.159,.081,.106).rotation.z=-.36;
+  } else {
+    oval(head,hairLight,-.107,.154,.105,.156,.102,.12).rotation.z=gender==='male' ? -.35 : .14;
+    oval(head,hair,.082,.172,.1,.153,.079,.126).rotation.z=.22;
+  }
+  oval(head,skin,0,-.029,.212,.039,.05,.042);
+  const smile=new T.QuadraticBezierCurve3(
+    new T.Vector3(-.052,-.091,.203),new T.Vector3(0,-.132,.217),new T.Vector3(.052,-.091,.203)
+  );
+  mesh(head,new T.TubeGeometry(smile,12,.008,6,false),lips,0,0,0);
   const legs=[];
   for (const side of [-1,1]) {
-    oval(head,hair,side*.087,.005,.199,.024,.032,.017);
+    oval(head,ink,side*.083,.008,.205,.026,.036,.016);
+    oval(head,shoes,side*.083-.007,.019,.22,.009,.011,.005);
+    oval(head,blush,side*.137,-.061,.173,.041,.022,.012);
+    oval(head,hair,side*.084,.061,.207,.035,.01,.008).rotation.z=side*.11;
     oval(head,skin,side*.235,-.029,0,.045,.066,.048);
     const leg=new T.Group();
     leg.position.set(side*.105,.58,0);
     root.add(leg);
     oval(leg,trousers,0,-.248,0,.12,.275,.12);
-    oval(leg,shoes,side*.007,-.478,.064,.122,.097,.171);
+    oval(leg,sole,side*.007,-.514,.064,.125,.057,.174);
+    oval(leg,shoes,side*.007,-.465,.064,.12,.083,.165);
+    oval(leg,sole,0,-.405,.133,.067,.012,.027);
     legs.push(leg);
   }
   oval(root,blue,0,.857,0,.267,.34,.186);
+  oval(root,skin,0,1.177,0,.079,.103,.079);
+  oval(root,trim,0,1.117,.069,.115,.039,.088);
+  oval(root,trim,0,.787,.173,.109,.084,.027);
+  const pocket=oval(root,blue,0,.808,.19,.091,.057,.02);
+  pocket.rotation.x=.12;
   const arms=[-1,1].map(side => {
     const arm=new T.Group();
     arm.position.set(side*.232,1.04,0);
     arm.rotation.z=side*.18;
     oval(arm,blue,side*.034,-.128,0,.09,.175,.09);
+    oval(arm,trim,side*.057,-.224,.004,.087,.035,.087);
     oval(arm,skin,side*.062,-.277,.011,.071,.084,.068);
+    oval(arm,skin,side*.019,-.26,.061,.033,.049,.034);
     root.add(arm);
     return arm;
   });
@@ -139,7 +170,7 @@ function createOwner(scene) {
   return {root,head,arms,legs,shadow};
 }
 
-export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third'}={}) {
+export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third',ownerGender='default'}={}) {
   const renderer = new T.WebGLRenderer({antialias:true,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
   renderer.setClearColor(theme.sky,preview ? 1 : 0);
@@ -159,7 +190,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
   const clouds=preview ? null : makeIsland(scene,theme);
-  const owner=preview ? null : createOwner(scene);
+  const owner=preview ? null : createOwner(scene,ownerGender);
   const eyeTarget=new T.Vector3();
   const updateEyeCamera=() => {
     const position=owner.root.position;

@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.min.js';
 
-const material = color => new T.MeshStandardMaterial({color, flatShading:true});
+const material = color => new T.MeshStandardMaterial({color, roughness:.42});
 function piece(parent, geometry, shade, x, y, z, scale = [1,1,1]) {
   const mesh = new T.Mesh(geometry, shade);
   mesh.position.set(x,y,z);
@@ -9,7 +9,14 @@ function piece(parent, geometry, shade, x, y, z, scale = [1,1,1]) {
   return mesh;
 }
 const sphere = (parent, shade, x,y,z,scale) =>
-  piece(parent,new T.SphereGeometry(1,12,8),shade,x,y,z,scale);
+  piece(parent,new T.SphereGeometry(1,22,14),shade,x,y,z,scale);
+
+function glossyEye(head,dark,shine,x,y,z,shape) {
+  const eye=sphere(head,dark,x,y,z,shape);
+  sphere(eye,shine,-.27,.35,.86,[.24,.22,.2]);
+  sphere(eye,shine,.25,-.2,.9,[.1,.095,.12]);
+  return eye;
+}
 
 function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
   const bird=profile.species==='parrot';
@@ -32,8 +39,7 @@ function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
   const eyes=[];
   for (const side of [-1,1]) {
     sphere(head,bird ? pale : shade,side*.236,.045,.237,[.102,.104,.078]);
-    eyes.push(sphere(head,dark,side*.244,.045,.301,[.052,.073,.032]));
-    sphere(head,pale,side*.247,.071,.326,[.018,.018,.012]);
+    eyes.push(glossyEye(head,dark,pale,side*.244,.045,.301,[.052,.073,.032]));
   }
   const mouth=bird
     ? sphere(head,beak,0,-.075,.345,[.13,.12,.157])
@@ -49,7 +55,10 @@ function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
       const ridgeHeight=profile.ears==='upright' ? .15 : .07;
       piece(root,new T.ConeGeometry(.064,ridgeHeight,4),shade,0,.69-(i*.024),.1-i*.15);
     }
-    for (const side of [-1,1]) sphere(head,dark,side*.12,-.03,.474,[.021,.019,.015]);
+    for (const side of [-1,1]) {
+      sphere(head,dark,side*.12,-.03,.474,[.021,.019,.015]);
+      for (let scale=0;scale<3;scale++) sphere(head,shade,side*(.253+scale*.043),-.05-scale*.026,.311-scale*.03,[.027,.016,.017]);
+    }
   }
   const legs=[];
   for (const side of [-1,1]) {
@@ -61,11 +70,18 @@ function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
         joint.position.set(side*.33,.76,-.08);
         const wing=sphere(joint,shade,side*.07,-.068,-.088,[.134,.34,.233]);
         wing.rotation.x=.35;
+        for (let plume=0;plume<3;plume++) {
+          const feather=sphere(joint,plume===1 ? fur : shade,side*(.126+plume*.012),-.096-plume*.041,-.173-plume*.019,[.085,.071,.2]);
+          feather.rotation.x=.42+plume*.08;
+        }
         joint.rotation.z=-side*.12;
       } else {
         joint.position.set(side*(bird?.15:.31),bird?.32:.28,front?.31:-.37);
         sphere(joint,bird ? beak : shade,side*.045,-.08,0,[.098,.15,.105]);
         sphere(joint,bird ? beak : fur,side*.082,-.19,.085,[.105,.069,.146]);
+        for (let toe=-1;toe<=1;toe++) {
+          sphere(joint,bird ? beak : pale,side*.082+toe*.045,-.215,.184,[.029,.029,.064]);
+        }
       }
     }
   }
@@ -128,18 +144,23 @@ export function createAvatar(profile) {
     if (cat && profile.ears === 'upright') {
       piece(head,new T.ConeGeometry(.105,.27,4),pink,side*.34,.38,.105).rotation.z = -side*.27;
     }
-    eyes.push(sphere(head,dark,side*.22,.045,.409,[.058,.073,.04]));
-    sphere(head,dark,side*.22+.015,.064,.443,[.018,.018,.012]).material = pale;
+    eyes.push(glossyEye(head,dark,pale,side*.22,.045,.409,[.058,.073,.04]));
+    const eyebrow=sphere(head,shade,side*.224,.163,.394,[.068,.021,.021]);
+    eyebrow.rotation.z=side*.15;
     if (hamster) sphere(head,pale,side*.265,-.145,.34,[.237,.185,.17]);
     if (cat) {
       for (const offset of [-1,1]) {
-        const whisker = piece(head,new T.BoxGeometry(.24,.014,.014),shade,side*.42,-.09+offset*.045,.37);
+        const whisker = sphere(head,pale,side*.42,-.09+offset*.045,.37,[.13,.009,.009]);
         whisker.rotation.z = side*offset*.16;
       }
     }
   }
   sphere(head,pale,0,-.13,.358,[.25,.17,.17]);
   sphere(head,dark,0,-.08,.506,[cat || hamster ? .064 : .099,.061,.049]);
+  sphere(head,pale,-.021,-.061,.544,[.021,.009,.006]);
+  for (const side of [-1,1]) {
+    for (let dot=0;dot<3;dot++) sphere(head,shade,side*(.123+dot*.031),-.12-dot*.018,.498-dot*.012,[.013,.012,.01]);
+  }
   const mouth = sphere(head,pink,0,-.205,.49,[.07,.045,.032]);
   const legs = [];
   for (const x of [-.32,.32]) {
@@ -148,7 +169,11 @@ export function createAvatar(profile) {
       leg.position.set(x,.48,z);
       root.add(leg);
       sphere(leg,fur,0,-.19,0,[.144,.25,.15]);
-      sphere(leg,profile.pattern === 'tuxedo' ? pale : fur,0,-.36,.06,[.15,.12,.19]);
+      const pawColor=profile.pattern === 'tuxedo' ? pale : fur;
+      sphere(leg,pawColor,0,-.36,.06,[.15,.12,.19]);
+      for (let toe=-1;toe<=1;toe++) {
+        sphere(leg,pawColor,toe*.072,-.374,.197,[.05,.056,.068]);
+      }
       legs.push(leg);
     }
   }
