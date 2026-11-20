@@ -1,18 +1,41 @@
 const WIDTH=360;
 const HEIGHT=340;
 const LIMIT=62;
-const RADII=[16,27,42,57];
-const COLORS=['#e9c994','#ffd3b2','#dfa2bb','#ffe0e4'];
+const FOODS=[
+  ['해바라기씨',12,'#e9c994'],
+  ['블루베리',16,'#b3b6e5'],
+  ['당근',22,'#ffd0a1'],
+  ['닭가슴살',29,'#f0bfaa'],
+  ['고구마',37,'#dfa2bb'],
+  ['단호박',46,'#f1ca83'],
+  ['연어',56,'#f5babc'],
+  ['케이크',68,'#ffe0e4']
+];
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
-export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
+export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) {
   const ctx=canvas.getContext('2d');
   const pieces=[];
   let state='playing';
   let frame, previousTime, cooldown=0, overflow=0;
+  let queued=0;
+  let bag=[2,1,0,0,1,1,0];
+
+  function nextFood() {
+    if (!bag.length) {
+      bag=[0,0,0,1,1,1,2,2];
+      for (let i=bag.length-1;i>0;i--) {
+        const j=Math.floor(Math.random()*(i+1));
+        [bag[i],bag[j]]=[bag[j],bag[i]];
+      }
+    }
+    queued=bag.pop();
+    upcoming.textContent='놓을 먹이 · '+FOODS[queued][0];
+  }
+  upcoming.textContent='놓을 먹이 · '+FOODS[queued][0];
 
   function spawn(level,x,y,vx=0,vy=0) {
-    const r=RADII[level];
+    const r=FOODS[level][1];
     pieces.push({level,r,x:clamp(x,r,WIDTH-r),y:Math.min(y,HEIGHT-r),vx,vy,age:0});
   }
 
@@ -54,7 +77,7 @@ export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
             pieces.splice(i,1);
             spawn(level,(a.x+b.x)/2,(a.y+b.y)/2,(a.vx+b.vx)*.35,Math.min(0,(a.vy+b.vy)*.3));
             merged=true;
-            if (level===RADII.length-1) {
+            if (level===FOODS.length-1) {
               state='cleared';
               drop.disabled=true;
               reset.hidden=false;
@@ -106,20 +129,79 @@ export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
     ctx.scale(r,r);
     const glow=ctx.createRadialGradient(-.25,-.35,.08,0,0,1);
     glow.addColorStop(0,'#fff8eb');
-    glow.addColorStop(1,COLORS[level]);
+    glow.addColorStop(1,FOODS[level][2]);
     ellipse(0,0,.985,.985,glow);
     if (level===0) {
       ellipse(0,0,.38,.68,'#514543',.4);
       ellipse(-.08,-.08,.09,.49,'#bc9d72',.4);
       ellipse(.11,.04,.06,.36,'#896e59',.4);
     } else if (level===1) {
-      ellipse(.03,.02,.63,.38,'#c46e55',-.53);
-      ellipse(0,-.08,.59,.34,'#f59a77',-.53);
-      ellipse(-.16,-.25,.24,.055,'#ffc6a7',-.53);
+      ellipse(0,.09,.54,.51,'#56528f');
+      ellipse(-.05,-.06,.48,.43,'#737bbb');
+      ellipse(-.23,-.25,.18,.09,'#a4b5e3',-.45);
+      ellipse(.15,-.24,.15,.09,'#363a69',.3);
     } else if (level===2) {
+      ctx.fillStyle='#db7233';
+      ctx.beginPath();
+      ctx.moveTo(-.56,.5);
+      ctx.quadraticCurveTo(-.53,.09,.1,-.39);
+      ctx.quadraticCurveTo(.42,-.56,.53,-.18);
+      ctx.quadraticCurveTo(.39,.24,-.56,.5);
+      ctx.fill();
+      ellipse(.41,-.43,.11,.26,'#63965d',-.5);
+      ellipse(.59,-.42,.1,.26,'#79a568',.54);
+      ellipse(.02,.05,.11,.03,'#aa4c29',.7);
+      ellipse(.24,-.11,.13,.035,'#aa4c29',.7);
+    } else if (level===3) {
+      function breast(y,color) {
+        ctx.fillStyle=color;
+        ctx.beginPath();
+        ctx.moveTo(-.67,y+.24);
+        ctx.bezierCurveTo(-.75,y-.05,-.46,y-.51,-.05,y-.54);
+        ctx.bezierCurveTo(.45,y-.63,.64,y-.19,.65,y+.09);
+        ctx.bezierCurveTo(.65,y+.24,.34,y+.22,.07,y+.36);
+        ctx.bezierCurveTo(-.35,y+.54,-.57,y+.48,-.67,y+.24);
+        ctx.fill();
+      }
+      breast(.08,'#a95941');
+      const roasted=ctx.createLinearGradient(-.2,-.55,.35,.39);
+      roasted.addColorStop(0,'#ffe4be');
+      roasted.addColorStop(.55,'#eeb18b');
+      roasted.addColorStop(1,'#d58a66');
+      breast(0,roasted);
+      ctx.lineCap='round';
+      for (let i=0;i<4;i++) {
+        const x=-.40+i*.20;
+        ctx.strokeStyle=i===0 || i===3 ? '#fff0ce' : '#b96c50';
+        ctx.lineWidth=i===0 || i===3 ? .027 : .043;
+        ctx.beginPath();
+        ctx.moveTo(x-.08,-.24-Math.sin(i)*.10);
+        ctx.quadraticCurveTo(x+.17,-.07,x+.12,.20-i*.035);
+        ctx.stroke();
+      }
+      ellipse(-.28,-.26,.18,.05,'#ffebc9',-.46);
+    } else if (level===4) {
       ellipse(-.1,.07,.66,.31,'#884565',-.52);
       ellipse(.36,-.17,.28,.34,'#a65977',-.43);
       ellipse(.39,-.19,.22,.27,'#f6be62',-.43);
+    } else if (level===5) {
+      ellipse(0,.08,.65,.44,'#6e8c58');
+      ellipse(-.2,.04,.36,.42,'#8aa560');
+      ellipse(.24,.04,.34,.42,'#819553');
+      ellipse(0,.01,.30,.48,'#a3ae69');
+      ellipse(.05,-.44,.08,.12,'#576944',.35);
+    } else if (level===6) {
+      ellipse(0,.08,.69,.38,'#b75455',-.36);
+      ellipse(0,0,.66,.34,'#f18478',-.36);
+      ctx.strokeStyle='#ffd4bf';
+      ctx.lineWidth=.045;
+      for (let i=0;i<3;i++) {
+        const x=-.31+i*.26;
+        ctx.beginPath();
+        ctx.moveTo(x-.08,-.13-i*.075);
+        ctx.quadraticCurveTo(x+.11,-.03,x+.14,.16-i*.083);
+        ctx.stroke();
+      }
     } else {
       ellipse(0,.46,.66,.13,'#b37177');
       ctx.fillStyle='#e992a3';
@@ -141,7 +223,8 @@ export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
     ctx.lineTo(WIDTH,LIMIT);
     ctx.stroke();
     ctx.setLineDash([]);
-    const x=Number(aim.value);
+    const r=FOODS[queued][1];
+    const x=clamp(Number(aim.value),r,WIDTH-r);
     if (state==='playing') {
       ctx.strokeStyle='#7bab83';
       ctx.setLineDash([4,5]);
@@ -150,7 +233,7 @@ export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
       ctx.lineTo(x,HEIGHT);
       ctx.stroke();
       ctx.setLineDash([]);
-      if (!cooldown) food({x,y:22,r:RADII[0],level:0});
+      if (!cooldown) food({x,y:26,r,level:queued});
     }
     for (const piece of pieces) food(piece);
   }
@@ -174,14 +257,15 @@ export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
 
   function dropFood() {
     if (state!=='playing' || cooldown>0) return;
-    spawn(0,Number(aim.value),22);
+    spawn(queued,Number(aim.value),26);
+    nextFood();
     cooldown=.46;
     drop.disabled=true;
   }
 
   canvas.addEventListener('click',event => {
     const rect=canvas.getBoundingClientRect();
-    aim.value=clamp((event.clientX-rect.left)/rect.width*WIDTH,16,WIDTH-16);
+    aim.value=clamp((event.clientX-rect.left)/rect.width*WIDTH,12,WIDTH-12);
     dropFood();
   });
   drop.addEventListener('click',dropFood);
@@ -190,6 +274,8 @@ export function createFoodGame({canvas,aim,drop,reset,status,onClear}) {
     state='playing';
     cooldown=overflow=0;
     aim.value=WIDTH/2;
+    bag=[2,1,0,0,1,1,0];
+    nextFood();
     drop.disabled=false;
     reset.hidden=true;
     status.textContent='';

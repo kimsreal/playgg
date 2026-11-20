@@ -1,4 +1,4 @@
-import {createFoodGame} from './food-game.js';
+import {createFoodGame} from './food-game.js?v=71';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
@@ -443,6 +443,7 @@ const foodGame=createFoodGame({
   drop:byId('food-drop'),
   reset:foodReset,
   status:foodStatus,
+  upcoming:byId('food-upcoming'),
   onClear() {
     rewardPending=true;
     void awardFoodGame();

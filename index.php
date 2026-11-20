@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./app/style.css?v=70">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=70"></script>
+  <script type="module" src="./app/main.js?v=71"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -147,12 +147,13 @@
         <p id="leaf-intro"></p>
       </div>
       <p>같은 먹이를 합쳐 케이크를 만들면 잎사귀 50개를 받아요.</p>
-      <p class="small food-order">해바라기씨 → 닭가슴살 → 고구마 → 케이크</p>
+      <p class="small food-order">해바라기씨 → 블루베리 → 당근 → 닭가슴살 → 고구마 → 단호박 → 연어 → 케이크</p>
       <p class="small" id="leaf-game-balance"></p>
+      <p class="small" id="food-upcoming"></p>
       <canvas id="food-board" width="360" height="340" aria-label="먹이 합치기 통"></canvas>
       <div class="food-controls">
         <label for="food-aim">떨어뜨릴 위치</label>
-        <input id="food-aim" type="range" min="16" max="344" value="180">
+        <input id="food-aim" type="range" min="12" max="348" value="180">
         <button type="button" class="primary" id="food-drop">먹이 놓기</button>
       </div>
       <p id="food-status" class="small" role="status"></p>
