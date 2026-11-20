@@ -248,13 +248,7 @@ input[type=radio] { accent-color: var(--sky); }
 #home[data-view="first"] .meadow-fallback,
 #home[data-view="first"] #home-scene .fallback-pet {
   translate: calc(var(--view-x, 0px) + var(--pan-x, 0px)) calc(var(--view-y, 0px) + var(--pan-y, 0px));
-  transition: translate .65s ease;
 }
 @media (prefers-reduced-motion: reduce) {
-  .fallback-owner,
-  #home[data-view="first"] .meadow-fallback,
-  #home[data-view="first"] #home-scene .fallback-pet { transition: none; }
+  .fallback-owner { transition: none; }
 }
-
-#home-scene.is-looking .meadow-fallback,
-#home-scene.is-looking .fallback-pet { transition: none; }

@@ -14,7 +14,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=15').catch(() => null);
+const scenes=import('./scene.js?v=16').catch(() => null);
 let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
@@ -58,7 +58,8 @@ homeScene.addEventListener('pointermove',event => {
   const dx=event.clientX-viewDrag.x;
   const dy=event.clientY-viewDrag.y;
   if (!viewDrag.active) {
-    if (Math.hypot(dx,dy)<7) return;
+    const threshold=event.pointerType==='touch' ? 3 : 2;
+    if (Math.hypot(dx,dy)<threshold) return;
     viewDrag.active=true;
     skipSceneClick=true;
     homeScene.setPointerCapture(event.pointerId);

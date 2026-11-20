@@ -160,6 +160,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const clouds=preview ? null : makeIsland(scene,theme);
   const owner=preview ? null : createOwner(scene);
   const eyeTarget=new T.Vector3();
+  const updateEyeCamera=() => {
+    const position=owner.root.position;
+    const heading=owner.root.rotation.y;
+    eye.position.set(position.x,1.46,position.z);
+    eyeTarget.set(position.x+Math.sin(heading)*3,eye.position.y+Math.tan(eyePitch)*3,position.z+Math.cos(heading)*3);
+    eye.lookAt(eyeTarget);
+  };
   const setPerspective=view => {
     if (!owner) return;
     const first=view==='first';
@@ -317,10 +324,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       owner.arms[0].rotation.x=reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : -stride*.7;
       owner.arms[1].rotation.x=walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0;
       owner.head.rotation.x=reaching ? .13 : 0;
-      eye.position.set(position.x,1.46,position.z);
-      const heading=owner.root.rotation.y;
-      eyeTarget.set(position.x+Math.sin(heading)*3,eye.position.y+Math.tan(eyePitch)*3,position.z+Math.cos(heading)*3);
-      eye.lookAt(eyeTarget);
+      if (camera===eye) updateEyeCamera();
     }
     if (heart?.visible) heart.quaternion.copy(camera.quaternion);
     shadow.position.x=pet.root.position.x;
@@ -364,6 +368,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       if (camera===eye) {
         owner.root.rotation.y-=dx*sensitivity;
         eyePitch=clamp(eyePitch+dy*sensitivity,-1.15,.72);
+        updateEyeCamera();
       } else {
         orbit.theta-=dx*sensitivity;
         orbit.phi=clamp(orbit.phi-dy*sensitivity,.52,1.31);
