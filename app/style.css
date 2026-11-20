@@ -193,6 +193,39 @@ section > .page-back { margin-bottom: 20px; }
   --edge-bottom: max(14px, env(safe-area-inset-bottom));
 }
 #home-scene { position: absolute; inset: 0; height: auto; border-radius: 0; background: linear-gradient(to bottom, #6ebfff 0%, #a9dbff 31%, #e3f4ff 65%, var(--white) 96%); }
+#home[data-background="coast"] #home-scene {
+  background: linear-gradient(to bottom, #7f81be 0%, #d69bb5 23%, #ffd497 41%, #bdaabf 42%, #83aebd 66%, #d0e3dc 100%);
+}
+.coast-sunset { display: none; }
+#home[data-background="coast"] .coast-sunset {
+  display: block;
+  position: absolute;
+  z-index: -1;
+  left: 68%;
+  top: 20%;
+  width: clamp(64px, 12vmin, 126px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff0b6;
+  box-shadow: 0 0 70px 27px #ffd8aab0;
+  pointer-events: none;
+}
+#home[data-background="coast"] .has-webgl .coast-sunset { z-index: -2; }
+#home[data-background="coast"] .meadow-island {
+  background: radial-gradient(ellipse at 30% 34%, #ffe4af, #e9ba84);
+  box-shadow: 0 4px #fff2d8, 0 11px #bc936d, 0 17px 0 3px #a9dcd8a6;
+}
+#home[data-background="coast"] .meadow-island > * { visibility: hidden; }
+#background-choice {
+  display: block;
+  margin-top: 5px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--choice-radius);
+  background: var(--white);
+  color: var(--ink);
+}
 #home-scene::before { content: none; }
 #home-scene .bubble { top: 41%; }
 .scene-shortcuts { display: flex; gap: 6px; position: absolute; top: var(--edge-top); right: var(--edge-right); }

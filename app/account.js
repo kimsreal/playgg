@@ -40,6 +40,7 @@ export function accountSettings(state) {
   return {
     active:friends[0]?.id || null,
     friends:friends.map(({id,profile}) => ({id,profile})).sort((a,b) => a.id.localeCompare(b.id)),
+    background:state?.background==='coast' ? 'coast' : 'meadow',
     perspective:state?.perspective || 'third',
     ownerColors:ownerColors(state?.ownerColors)
   };
@@ -54,7 +55,7 @@ export function mergeAccount(settings,local) {
     daily:previous.get(id)?.daily || null
   }));
   const active=friends.find(friend => friend.id===settings.active);
-  const preferences={perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
+  const preferences={background:settings.background==='coast' ? 'coast' : 'meadow',perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
   if (!active) return {...preferences,onboarding:local?.onboarding || null};
   return {
     ...preferences,friendId:active.id,profile:active.profile,photos:active.photos,album:active.album,

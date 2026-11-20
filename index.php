@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=66">
+  <link rel="stylesheet" href="./app/style.css?v=67">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=66"></script>
+  <script type="module" src="./app/main.js?v=67"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -95,6 +95,7 @@
     </section>
     <section id="home" aria-label="초원" hidden>
       <div class="scene" id="home-scene">
+        <span class="coast-sunset" aria-hidden="true"></span>
         <div class="meadow-fallback" aria-hidden="true">
           <div class="meadow-clouds"></div>
           <div class="meadow-island">
@@ -206,6 +207,19 @@
       <p id="mode-copy" class="small" hidden></p>
       <p id="occasion" class="occasion" role="status" hidden></p>
       <ul class="settings-list">
+        <li data-setting="배경 공간 초원 바다 노을 테마">
+          <details>
+            <summary class="settings-row"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg><span>배경</span><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#chevron-right"></use></svg></summary>
+            <div class="settings-detail">
+              <label for="background-choice">공간 테마</label>
+              <select id="background-choice">
+                <option value="meadow">초원</option>
+                <option value="coast">노을 바다</option>
+              </select>
+              <p class="small" id="background-status" role="status" hidden></p>
+            </div>
+          </details>
+        </li>
         <li data-setting="배경음악 음악 소리 사운드">
           <button type="button" class="settings-row" id="music-toggle" role="switch" aria-checked="false" aria-label="배경음악">
             <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18V6l12-3v12M9 9l12-3"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="18" cy="15" rx="3" ry="2"/></svg>

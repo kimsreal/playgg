@@ -183,6 +183,7 @@ function cleanSettings($settings): array
         'active' => $active,
         'perspective' => choice($settings['perspective'] ?? 'third', ['first', 'third']),
         'ownerColors' => $colors,
+        'background' => choice($settings['background'] ?? 'meadow', ['meadow', 'coast']),
     ];
 }
 

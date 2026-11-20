@@ -3,7 +3,7 @@ import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=40';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=67';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -31,13 +31,14 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=62').catch(() => null);
+const scenes=import('./scene.js?v=67').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
 
 let perspective='third';
+let background='meadow';
 let ownerColors=cleanOwnerColors();
 let account=null;
 let accountReturnPage='welcome';
@@ -46,6 +47,7 @@ let writes=Promise.resolve();
 
 function applyPreferences(settings) {
   perspective=settings.perspective;
+  background=settings.background==='coast' ? 'coast' : 'meadow';
   ownerColors=cleanOwnerColors(settings.ownerColors);
   syncOwnerColorInputs();
 }
@@ -53,6 +55,7 @@ function applyPreferences(settings) {
 function guestPreferences() {
   try {
     return {
+      background:localStorage.getItem('annyeong-background'),
       perspective:localStorage.getItem('annyeong-perspective')==='first' ? 'first' : 'third',
       ownerColors:cleanOwnerColors(JSON.parse(localStorage.getItem('annyeong-owner-colors')))
     };
@@ -360,7 +363,7 @@ async function mountScene(host,profile,preview,delivery=false) {
   };
   try {
     scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{
-      preview,perspective,ownerModel,ownerColors,onGraphicsChange:setGraphicsAvailable,onBallReady:showCatchBall
+      preview,perspective,background,ownerModel,ownerColors,onGraphicsChange:setGraphicsAvailable,onBallReady:showCatchBall
     });
     setGraphicsAvailable(true);
     if (!preview && !delivery) scene.play('greet');
@@ -369,6 +372,32 @@ async function mountScene(host,profile,preview,delivery=false) {
   }
   if (delivery) deliverLetter();
 }
+
+const backgroundChoice=byId('background-choice');
+const backgroundStatus=byId('background-status');
+backgroundChoice.addEventListener('change',async () => {
+  const selected=backgroundChoice.value;
+  const session=account;
+  backgroundChoice.disabled=true;
+  backgroundStatus.hidden=true;
+  try {
+    if (session) {
+      const updated=await updateState(current => ({...current,background:selected}));
+      if (account!==session) return;
+      state=updated;
+    } else localStorage.setItem('annyeong-background',selected);
+    background=selected;
+    if (page==='home' && byId('home').dataset.background!==selected) show('home');
+  } catch {
+    if (account===session) {
+      backgroundChoice.value=background;
+      backgroundStatus.textContent='배경을 저장하지 못했어요. 다시 시도해 주세요.';
+      backgroundStatus.hidden=false;
+    }
+  } finally {
+    backgroundChoice.disabled=false;
+  }
+});
 
 const music=byId('meadow-music');
 const musicToggle=byId('music-toggle');
@@ -437,6 +466,8 @@ function show(pageId,delivery=false) {
   window.scrollTo(0,0);
   if (pageId==='home') {
     startMusic();
+    byId('home').dataset.background=background;
+    byId('home').setAttribute('aria-label',background==='coast' ? '노을 바다' : '초원');
     applyPerspective();
     void mountScene(byId('home-scene'),state.profile,false,delivery);
   }
@@ -455,6 +486,8 @@ function show(pageId,delivery=false) {
   if (pageId==='letter-history') void renderLetters();
   if (pageId==='account') renderAccount();
   if (pageId==='settings') {
+    backgroundChoice.value=background;
+    backgroundStatus.hidden=true;
     byId('settings-search').value='';
     filterSettings();
     renderDates();
@@ -1117,7 +1150,7 @@ accountForm.addEventListener('submit',event => {
   const action=accountMode;
   void runAccountAction(async () => {
     const guestSeed=action==='register' ? state : undefined;
-    if (action==='register') fields.settings=accountSettings({...state,perspective,ownerColors});
+    if (action==='register') fields.settings=accountSettings({...state,perspective,background,ownerColors});
     try {
       const session=await changeAccount(action,fields);
       await enterAccount(session,guestSeed);

@@ -2,6 +2,7 @@ import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
+import {coast,makeCoast} from './coast.js';
 import { meadow } from './data.js';
 import {buildOwnerModel} from './owner-model.js?v=43';
 import {ownerColors as cleanColors} from './owner-colors.js';
@@ -209,7 +210,9 @@ function createOwner(scene,source,colors) {
   return {...owner,shadow};
 }
 
-export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third',ownerModel,ownerColors,onGraphicsChange,onBallReady}={}) {
+export function createScene(host,profile,onPet,{preview=false,background='meadow',perspective='third',ownerModel,ownerColors,onGraphicsChange,onBallReady}={}) {
+  const seaside=background==='coast' && !preview;
+  const theme=seaside ? coast : meadow;
   const touchScreen=matchMedia('(pointer: coarse)').matches;
   const renderer = new T.WebGLRenderer({antialias:!touchScreen,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,touchScreen ? 1.35 : 1.7));
@@ -229,7 +232,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const sunlight = new T.DirectionalLight(0xffefd5,2);
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
-  const clouds=preview ? null : makeIsland(scene,theme);
+  const animateCoast=seaside ? makeCoast(scene,theme) : null;
+  const clouds=preview || seaside ? null : makeIsland(scene,theme);
   const owner=preview ? null : createOwner(scene,ownerModel,cleanColors(ownerColors));
   const eyeTarget=new T.Vector3();
   const updateEyeCamera=() => {
@@ -399,6 +403,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const move=!reduced.matches;
     const walk=move ? Math.sin(t*(hamster ? 24 : 10)) : 0;
     if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
+    animateCoast?.(move ? t : 0);
     toy.visible=false;
     envelope.visible=false;
     if (placedItem) placedItem.visible=false;
