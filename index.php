@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=6">
+  <link rel="stylesheet" href="./app/style.css?v=9">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=7"></script>
+  <script type="module" src="./app/main.js?v=9"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -21,8 +21,8 @@
   <main>
     <section id="setup" hidden>
       <button type="button" class="return-home" data-page="home" hidden>‹ 초원</button>
-      <p class="kicker">처음 만나는 날</p>
-      <h1>우리 공간을 만들어요</h1>
+      <p class="kicker" id="setup-kicker">처음 만나는 날</p>
+      <h1 id="setup-title">우리 공간을 만들어요</h1>
       <p>로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
       <form id="profile-form">
         <fieldset><legend>어떤 이야기를 담을까요?</legend>
@@ -32,7 +32,7 @@
         </fieldset>
         <div class="fields">
           <label>이름<input name="name" maxlength="24" required></label>
-          <label>종류<select name="species"><option value="dog">강아지</option><option value="cat">고양이</option></select></label>
+          <label>종류<select name="species"><option value="dog">강아지</option><option value="cat">고양이</option><option value="hamster">햄스터</option><option value="parrot">앵무새</option><option value="lizard">도마뱀</option></select></label>
           <label>생일<input type="date" name="birthday" required></label>
           <label id="event-field"><span id="event-label">기일 또는 다시 만날 날짜</span><input type="date" name="event" required></label>
         </div>
@@ -52,11 +52,11 @@
       <form id="avatar-form">
         <div class="fields">
           <label>체형<select name="size"><option value="small">소형</option><option value="medium" selected>중형</option><option value="large">대형</option></select></label>
-          <label>귀 모양<select name="ears"><option value="upright">선 귀</option><option value="folded">접힌 귀</option></select></label>
+          <label><span id="avatar-ear-label">귀 모양</span><select name="ears"><option value="upright">선 귀</option><option value="folded">접힌 귀</option></select></label>
           <label>꼬리 모양<select name="tail"><option value="short">짧은 꼬리</option><option value="long">긴 꼬리</option><option value="curled">말린 꼬리</option></select></label>
           <label>무늬<select name="pattern"><option value="solid">단색</option><option value="spots">얼룩</option><option value="tuxedo">턱시도</option></select></label>
         </div>
-        <label>털색 <input type="color" name="fur" value="#e8c198"></label>
+        <label><span id="avatar-color-label">털색</span> <input type="color" name="fur" value="#e8c198"></label>
         <p id="avatar-error" role="alert"></p>
         <div class="buttons"><button type="button" id="avatar-back">뒤로</button><button class="primary" type="submit">초원으로 가기</button></div>
       </form>
@@ -87,6 +87,7 @@
           <div class="interaction-heading"><h2 id="interaction-title"></h2><button type="button" id="close-interaction" class="scene-icon" aria-label="선택 닫기">×</button></div>
           <div id="interaction-options" class="buttons"></div>
         </div>
+        <button type="button" class="scene-friends" data-page="friends">🐾 다른 친구랑 놀기</button>
         <div class="scene-actions" role="group" aria-label="함께 놀기">
           <button type="button" data-action="pet"><span aria-hidden="true">♡</span>쓰다듬기</button>
           <button type="button" data-panel="treats"><span aria-hidden="true">🍖</span>간식</button>
@@ -95,6 +96,12 @@
           <button type="button" data-panel="talk"><span aria-hidden="true">☏</span>말 걸기</button>
         </div>
       </div>
+    </section>
+    <section id="friends" hidden>
+      <button type="button" class="return-home" data-page="home">‹ 초원</button>
+      <h1>다른 친구랑 놀기</h1>
+      <ul id="friend-list" class="friend-list"></ul>
+      <button type="button" class="primary" id="add-friend">반려동물 추가</button>
     </section>
     <section id="photo" hidden>
       <button type="button" class="return-home" data-page="home">‹ 초원</button>

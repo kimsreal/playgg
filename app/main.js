@@ -1,4 +1,5 @@
 import { phrases, photoTitles } from './data.js';
+import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
 import { readState, updateState, preparePhotos, chooseDaily } from './photos.js?v=5';
 
 const $=window.jQuery;
@@ -7,13 +8,14 @@ const launchDelay=new Promise(resolve => setTimeout(resolve,matchMedia('(prefers
 const profileForm=byId('profile-form');
 const avatarForm=byId('avatar-form');
 const defaults={size:'medium',ears:'folded',tail:'long',fur:'#e8c198',pattern:'solid'};
-const glyphs={dog:'🐶',cat:'🐱'};
+const speciesInfo={dog:['🐶','강아지'],cat:['🐱','고양이'],hamster:['🐹','햄스터'],parrot:['🦜','앵무새'],lizard:['🦎','도마뱀']};
+const speciesColors={hamster:'#e3b275',parrot:'#8ebd6a',lizard:'#8cb78b'};
 const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=4').catch(() => null);
-let state, draft;
+const scenes=import('./scene.js?v=9').catch(() => null);
+let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
 
@@ -28,7 +30,7 @@ async function mountScene(host,profile,preview) {
   const fallback=host.querySelector('.fallback-pet');
   fallback.hidden=false;
   host.classList.remove('has-webgl');
-  fallback.textContent=glyphs[profile.species];
+  fallback.textContent=speciesInfo[profile.species][0];
   const module=await scenes;
   if (revision!==sceneRevision || !module) return;
   try {
@@ -53,6 +55,7 @@ function show(pageId) {
   $('#'+pageId).prop('hidden',false);
   document.body.classList.toggle('meadow-open',pageId==='home');
   $('#setup .return-home').prop('hidden',!state?.profile);
+  if (pageId==='friends') renderFriends();
   window.scrollTo(0,0);
   if (pageId==='home') {
     renderHome();
@@ -87,7 +90,10 @@ function renderHome() {
 
 function openProfile() {
   profileForm.reset();
-  const profile=draft || state?.profile;
+  const profile=draft || (addingFriend ? null : state?.profile);
+  $('#setup-kicker').text(addingFriend || state?.profile ? '우리 공간' : '처음 만나는 날');
+  $('#setup-title').text(addingFriend ? '새 친구를 소개해 주세요' : state?.profile ? '반려동물 정보' : '우리 공간을 만들어요');
+  $('#setup .return-home').text(addingFriend ? '‹ 친구 목록' : '‹ 초원').attr('data-page',addingFriend ? 'friends' : 'home');
   modeDates={...profile?.dates};
   $('#setup-error').text('');
   if (profile) {
@@ -115,7 +121,7 @@ function refreshModeLabel() {
 function readProfileForm() {
   const fields=Object.fromEntries(new FormData(profileForm));
   return {
-    ...defaults,...state?.profile,...draft,
+    ...defaults,...(addingFriend ? null : state?.profile),...draft,
     name:fields.name.trim(),species:fields.species,mode:fields.mode || '',
     birthday:fields.birthday,dates:fields.event===undefined || !fields.mode ? {...modeDates} : {...modeDates,[fields.mode]:fields.event},
     likes:tags(fields.likes),dislikes:tags(fields.dislikes)
@@ -151,15 +157,18 @@ $(profileForm).on('submit',async event => {
     return;
   }
   draft=readProfileForm();
-  if (state?.profile) {
+  if (state?.profile && !addingFriend) {
+    const id=activeFriendId(state);
+    const profile=draft;
     try {
-      state=await updateState(current => ({...current,profile:draft}));
+      state=await updateState(current => updateFriend(current,id,() => ({profile})));
       draft=null;
       show('home');
     } catch {
       $('#setup-error').text('정보를 저장하지 못했어요. 다시 시도해 주세요.');
     }
   } else {
+    if (draft.fur===defaults.fur && speciesColors[draft.species]) draft.fur=speciesColors[draft.species];
     openAvatar();
     await saveOnboarding('avatar',draft);
   }
@@ -172,6 +181,12 @@ function avatarProfile() {
 function openAvatar() {
   $('#avatar-title').text(draft.name+'의 모습');
   $('#avatar-error').text('');
+  const earLabels={parrot:['머리 깃','세운 깃','접힌 깃'],lizard:['머리 능선','또렷한 능선','낮은 능선']};
+  const [label,upright,folded]=earLabels[draft.species] || ['귀 모양','선 귀','접힌 귀'];
+  $('#avatar-ear-label').text(label);
+  $(avatarForm.elements.ears.options[0]).text(upright);
+  $(avatarForm.elements.ears.options[1]).text(folded);
+  $('#avatar-color-label').text(draft.species==='parrot' ? '깃털색' : draft.species==='lizard' ? '몸 색깔' : '털색');
   for (const key of Object.keys(defaults)) avatarForm.elements[key].value=draft[key];
   show('avatar');
   void mountScene(byId('avatar-scene'),avatarProfile(),true);
@@ -184,7 +199,7 @@ $(avatarForm).on('change',() => {
 });
 $('#avatar-back').on('click',() => {
   draft=avatarProfile();
-  if (state?.profile) {
+  if (state?.profile && !addingFriend) {
     draft=null;
     show('settings');
   } else {
@@ -196,13 +211,18 @@ $('#avatar-back').on('click',() => {
 $(avatarForm).on('submit',async event => {
   event.preventDefault();
   const profile=avatarProfile();
+  const id=state?.profile ? activeFriendId(state) : null;
+  const newId=addingFriend ? crypto.randomUUID() : null;
   const submit=avatarForm.querySelector('[type=submit]');
   submit.disabled=true;
   try {
-    state=await updateState(current => ({
-      ...current,profile,photos:current?.photos || current?.onboarding?.photos || [],album:current?.album || [],onboarding:null
-    }));
+    state=await updateState(current => {
+      if (newId) return addFriend(current,newId,profile);
+      if (id) return updateFriend(current,id,() => ({profile}));
+      return {...current,profile,photos:current?.photos || current?.onboarding?.photos || [],album:current?.album || [],onboarding:null};
+    });
     draft=null;
+    addingFriend=false;
     show('home');
   } catch {
     $('#avatar-error').text('기기에 저장하지 못했어요. 저장 공간을 확인하고 다시 시도해 주세요.');
@@ -249,10 +269,13 @@ function interaction(panel) {
 }
 
 async function showDaily() {
+  const id=activeFriendId(state);
   const day=dayKey();
   try {
-    state=await updateState(current => chooseDaily(current,day,photoTitles));
-    if (page!=='photo') return;
+    state=await updateState(current => updateFriend(current,id,friend => ({
+      daily:chooseDaily(friend,day,photoTitles).daily
+    })));
+    if (page!=='photo' || activeFriendId(state)!==id) return;
     renderedDay=day;
     const {daily,profile}=state;
     if (photoUrl) URL.revokeObjectURL(photoUrl);
@@ -278,6 +301,7 @@ $('#album-photos').on('change',async function () {
   this.value='';
   if (!files.length) return;
   this.disabled=true;
+  const id=activeFriendId(state);
   $('#clear-album').prop('disabled',true);
   $('#album-status').text('사진을 준비하고 있어요…');
   try {
@@ -286,7 +310,8 @@ $('#album-photos').on('change',async function () {
       $('#album-status').text('사진을 열 수 없어요. JPEG 또는 PNG 사진을 골라 주세요.');
       return;
     }
-    state=await updateState(current => ({...current,album:photos}));
+    state=await updateState(current => updateFriend(current,id,() => ({album:photos})));
+    if (page!=='settings' || activeFriendId(state)!==id) return;
     $('#album-status').text('앨범 사진 '+photos.length+'장 저장했어요.'+(skipped ? ' 일부 사진은 열 수 없었어요.' : ''));
     $('#clear-album').prop('hidden',false);
   } catch {
@@ -299,7 +324,9 @@ $('#album-photos').on('change',async function () {
 
 $('#clear-album').on('click',async () => {
   try {
-    state=await updateState(current => ({...current,album:[]}));
+    const id=activeFriendId(state);
+    state=await updateState(current => updateFriend(current,id,() => ({album:[]})));
+    if (page!=='settings' || activeFriendId(state)!==id) return;
     $('#album-status').text(state.photos?.length ? '다음 카드부터 처음 등록한 사진을 사용해요.' : '앨범 사진 선택을 해제했어요.');
     $('#clear-album').prop('hidden',true);
   } catch {
@@ -307,9 +334,41 @@ $('#clear-album').on('click',async () => {
   }
 });
 
+function renderFriends() {
+  const list=$('#friend-list').empty();
+  const active=activeFriendId(state);
+  for (const {id,profile} of listFriends(state)) {
+    const [icon,kind]=speciesInfo[profile.species];
+    const entry=$('<li>').appendTo(list);
+    const button=$('<button>',{type:'button'}).appendTo(entry);
+    if (id===active) button.attr('aria-current','true');
+    $('<span>',{class:'friend-glyph','aria-hidden':'true',text:icon}).appendTo(button);
+    $('<span>',{class:'friend-name',text:profile.name}).appendTo(button);
+    $('<span>',{class:'small',text:id===active ? kind+' · 함께 있는 친구' : kind}).appendTo(button);
+    button.on('click',async () => {
+      $('#friend-list button,#add-friend').prop('disabled',true);
+      try {
+        if (id!==activeFriendId(state)) state=await updateState(current => switchFriend(current,id));
+        show('home');
+      } catch {
+        showError('친구를 불러오지 못했어요. 다시 시도해 주세요.');
+      } finally {
+        $('#friend-list button,#add-friend').prop('disabled',false);
+      }
+    });
+  }
+}
+
+$('#add-friend').on('click',() => {
+  addingFriend=true;
+  draft=null;
+  openProfile();
+});
+
 $(document).on('click','button[data-page]',function () {
   if (!state?.profile) return;
   draft=null;
+  addingFriend=false;
   show(this.dataset.page);
 });
 $(document).on('click','button[data-panel]',function () { interaction(this.dataset.panel); });

@@ -11,6 +11,92 @@ function piece(parent, geometry, shade, x, y, z, scale = [1,1,1]) {
 const sphere = (parent, shade, x,y,z,scale) =>
   piece(parent,new T.SphereGeometry(1,12,8),shade,x,y,z,scale);
 
+function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
+  const bird=profile.species==='parrot';
+  const body=sphere(root,fur,0,bird?.68:.36,-.13,bird ? [.39,.56,.38] : [.4,.32,.67]);
+  if (profile.pattern==='tuxedo') {
+    sphere(root,pale,0,bird?.68:.34,bird?.18:.37,bird ? [.28,.38,.13] : [.29,.17,.19]);
+  }
+  if (profile.pattern==='spots') {
+    for (const side of [-1,1]) {
+      sphere(body,shade,side*.82,.24,.11,[.24,.33,.3]);
+      sphere(body,shade,side*.58,.62,-.37,[.22,.25,.24]);
+    }
+  }
+
+  const head=new T.Group();
+  head.position.set(0,bird?1.2:.64,.37);
+  root.add(head);
+  sphere(head,fur,0,0,0,bird ? [.36,.35,.36] : [.43,.29,.39]);
+  const beak=bird ? material(0xe9a654) : null;
+  const eyes=[];
+  for (const side of [-1,1]) {
+    sphere(head,bird ? pale : shade,side*.236,.045,.237,[.102,.104,.078]);
+    eyes.push(sphere(head,dark,side*.244,.045,.301,[.052,.073,.032]));
+    sphere(head,pale,side*.247,.071,.326,[.018,.018,.012]);
+  }
+  const mouth=bird
+    ? sphere(head,beak,0,-.075,.345,[.13,.12,.157])
+    : sphere(head,pale,0,-.081,.283,[.28,.129,.235]);
+  if (bird) {
+    const plumeHeight=profile.ears==='upright' ? .21 : .1;
+    for (let i=0;i<3;i++) {
+      const feather=sphere(head,shade,(i-1)*.082,.29+i*.014,-.057,[.066,plumeHeight,.074]);
+      feather.rotation.x=-.4-i*.22;
+    }
+  } else {
+    for (let i=0;i<5;i++) {
+      const ridgeHeight=profile.ears==='upright' ? .15 : .07;
+      piece(root,new T.ConeGeometry(.064,ridgeHeight,4),shade,0,.69-(i*.024),.1-i*.15);
+    }
+    for (const side of [-1,1]) sphere(head,dark,side*.12,-.03,.474,[.021,.019,.015]);
+  }
+  const legs=[];
+  for (const side of [-1,1]) {
+    for (const front of [false,true]) {
+      const joint=new T.Group();
+      root.add(joint);
+      legs.push(joint);
+      if (bird && front) {
+        joint.position.set(side*.33,.76,-.08);
+        const wing=sphere(joint,shade,side*.07,-.068,-.088,[.134,.34,.233]);
+        wing.rotation.x=.35;
+        joint.rotation.z=-side*.12;
+      } else {
+        joint.position.set(side*(bird?.15:.31),bird?.32:.28,front?.31:-.37);
+        sphere(joint,bird ? beak : shade,side*.045,-.08,0,[.098,.15,.105]);
+        sphere(joint,bird ? beak : fur,side*.082,-.19,.085,[.105,.069,.146]);
+      }
+    }
+  }
+
+  const tail=new T.Group();
+  tail.position.set(0,bird?.48:.29,-.59);
+  root.add(tail);
+  const length={short:.25,long:.94,curled:.68}[profile.tail];
+  const curl=profile.tail==='curled';
+  if (bird) {
+    for (let i=-1;i<=1;i++) {
+      const feather=sphere(tail,i===0 ? shade : fur,i*.082,-length*.18,-length*.44,[.073,.065,length*.62]);
+      feather.rotation.y=i*(curl ? .48 : .18);
+      feather.rotation.x=-.3;
+    }
+  } else {
+    const curve=new T.CatmullRomCurve3([
+      new T.Vector3(0,0,0),new T.Vector3(.1,-.07,-length*.34),
+      new T.Vector3(curl?.33:.13,-.12,-length*.74),new T.Vector3(curl?.44:.025,-.12,-length)
+    ]);
+    for (let i=0;i<9;i++) {
+      const point=curve.getPoint(i/8);
+      const width=.138-i*.013;
+      sphere(tail,i%3===0 ? shade : fur,point.x,point.y,point.z,[width,width*.71,width*1.32]);
+    }
+  }
+  const scale={small:.79,medium:1,large:1.2}[profile.size];
+  root.scale.setScalar(scale);
+  return {root,head,tail,legs,eyes,mouth,scale};
+}
+
 export function createAvatar(profile) {
   const root = new T.Group();
   const fur = material(profile.fur);
@@ -18,8 +104,12 @@ export function createAvatar(profile) {
   const dark = material(0x3c2c25);
   const pink = material(0xf08f91);
   const shade = material(new T.Color(profile.fur).multiplyScalar(.73));
+  if (profile.species==='parrot' || profile.species==='lizard') {
+    return createFeatheredOrScaled(profile,root,fur,pale,dark,shade);
+  }
   const cat = profile.species === 'cat';
-  const body = sphere(root,fur,0,.64,-.12,[.51,.49,.72]);
+  const hamster=profile.species==='hamster';
+  const body = sphere(root,fur,0,.64,-.12,hamster ? [.59,.56,.55] : [.51,.49,.72]);
   if (profile.pattern === 'tuxedo') sphere(root,pale,0,.66,.43,[.34,.37,.23]);
   if (profile.pattern === 'spots') {
     sphere(body,shade,.72,.13,.18,[.34,.48,.43]);
@@ -28,10 +118,10 @@ export function createAvatar(profile) {
   const head = new T.Group();
   head.position.set(0,1.12,.49);
   root.add(head);
-  sphere(head,fur,0,0,0,[.56,.48,.46]);
+  sphere(head,fur,0,0,0,hamster ? [.56,.49,.47] : [.56,.48,.46]);
   const eyes = [];
   for (const side of [-1,1]) {
-    const ear = profile.ears === 'folded'
+    const ear = hamster ? sphere(head,pink,side*.35,profile.ears==='folded'?.31:.42,.02,[.15,.15,.09]) : profile.ears === 'folded'
       ? sphere(head,shade,side*.45,.27,.02,[.18,.3,.14])
       : piece(head,new T.ConeGeometry(.2,cat?.46:.38,5),shade,side*.33,.38,-.015);
     ear.rotation.z = -side*.27;
@@ -40,6 +130,7 @@ export function createAvatar(profile) {
     }
     eyes.push(sphere(head,dark,side*.22,.045,.409,[.058,.073,.04]));
     sphere(head,dark,side*.22+.015,.064,.443,[.018,.018,.012]).material = pale;
+    if (hamster) sphere(head,pale,side*.265,-.145,.34,[.237,.185,.17]);
     if (cat) {
       for (const offset of [-1,1]) {
         const whisker = piece(head,new T.BoxGeometry(.24,.014,.014),shade,side*.42,-.09+offset*.045,.37);
@@ -48,7 +139,7 @@ export function createAvatar(profile) {
     }
   }
   sphere(head,pale,0,-.13,.358,[.25,.17,.17]);
-  sphere(head,dark,0,-.08,.506,[cat?.064:.099,.061,.049]);
+  sphere(head,dark,0,-.08,.506,[cat || hamster ? .064 : .099,.061,.049]);
   const mouth = sphere(head,pink,0,-.205,.49,[.07,.045,.032]);
   const legs = [];
   for (const x of [-.32,.32]) {
@@ -69,8 +160,8 @@ export function createAvatar(profile) {
     long: [[0,0,0],[.08,.28,-.36],[.05,.54,-.6],[.02,.69,-.81]],
     curled: [[0,0,0],[.08,.32,-.22],[.05,.59,-.34],[.02,.67,-.17],[0,.55,-.06]]
   };
-  const curve = new T.CatmullRomCurve3(points[profile.tail].map(value => new T.Vector3(...value)));
-  piece(tail,new T.TubeGeometry(curve,12,cat?.072:.11,7,false),fur,0,0,0);
+  const curve = new T.CatmullRomCurve3(points[profile.tail].map(value => new T.Vector3(...value).multiplyScalar(hamster ? .38 : 1)));
+  piece(tail,new T.TubeGeometry(curve,12,hamster ? .066 : cat ? .072 : .11,7,false),fur,0,0,0);
   const scale = {small:.79,medium:1,large:1.2}[profile.size];
   root.scale.setScalar(scale);
   return {root,head,tail,legs,eyes,mouth,scale};

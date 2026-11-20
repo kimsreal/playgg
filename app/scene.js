@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.min.js';
-import { createAvatar } from './avatar.js';
+import { createAvatar } from './avatar.js?v=9';
 import { meadow } from './data.js';
 
 const material = color => new T.MeshStandardMaterial({color,flatShading:true});
