@@ -131,6 +131,7 @@ function createOwner(scene) {
     return arm;
   });
   root.position.set(2.35,0,2.58);
+  root.rotation.y=Math.atan2(-root.position.x,-root.position.z);
   scene.add(root);
   const shadow=mesh(scene,new T.CircleGeometry(.32,20),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.16}),root.position.x,.009,root.position.z);
   shadow.rotation.x=-Math.PI/2;
@@ -300,14 +301,11 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       }
     }
     if (owner) {
-      const petPosition=pet.root.position;
       const position=owner.root.position;
       const distance=position.distanceTo(ownerTarget);
       const walking=distance>.008;
       if (walking) position.lerp(ownerTarget,move ? Math.min(1,elapsed*2.45/distance) : 1);
       else if (marker.visible) marker.visible=false;
-      const heading=walking && distance>.05 ? ownerTarget : petPosition;
-      owner.root.rotation.y=Math.atan2(heading.x-position.x,heading.z-position.z);
       const stride=walking && move ? Math.sin(t*13)*.37 : 0;
       owner.legs[0].rotation.x=stride;
       owner.legs[1].rotation.x=-stride;
@@ -317,11 +315,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       owner.arms[1].rotation.x=walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0;
       owner.head.rotation.x=reaching ? .13 : 0;
       eye.position.set(position.x,1.46,position.z);
-      eyeTarget.set(petPosition.x,.72,petPosition.z);
-      if (Math.hypot(eyeTarget.x-position.x,eyeTarget.z-position.z)<.4) {
-        eyeTarget.x=position.x+Math.sin(owner.root.rotation.y)*.4;
-        eyeTarget.z=position.z+Math.cos(owner.root.rotation.y)*.4;
-      }
+      const heading=owner.root.rotation.y;
+      eyeTarget.set(position.x+Math.sin(heading)*3,.49,position.z+Math.cos(heading)*3);
       eye.lookAt(eyeTarget);
     }
     if (heart?.visible) heart.quaternion.copy(camera.quaternion);
@@ -339,9 +334,21 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       onPet();
       return;
     }
-    if (!owner || !ray.ray.intersectPlane(ground,hit) || hit.length()>theme.radius) return;
-    ownerTarget.copy(hit).clampLength(0,theme.radius-.25);
-    ownerTarget.y=0;
+    if (!owner) return;
+    const position=owner.root.position;
+    if (!ray.ray.intersectPlane(ground,hit) || hit.length()>theme.radius) {
+      if (camera===eye) {
+        ownerTarget.copy(position);
+        marker.visible=false;
+        owner.root.rotation.y=Math.atan2(ray.ray.direction.x,ray.ray.direction.z);
+      }
+      return;
+    }
+    hit.clampLength(0,theme.radius-.25);
+    hit.y=0;
+    if (hit.distanceToSquared(position)<.0001) return;
+    owner.root.rotation.y=Math.atan2(hit.x-position.x,hit.z-position.z);
+    ownerTarget.copy(hit);
     marker.position.set(ownerTarget.x,.025,ownerTarget.z);
     marker.visible=true;
   };
