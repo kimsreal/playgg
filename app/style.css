@@ -426,6 +426,14 @@ section > .page-back { margin-bottom: 20px; }
   aspect-ratio: 1.46;
   margin-bottom: 12px;
 }
+.welcome-pets::before {
+  content: "";
+  position: absolute;
+  inset: -20px calc(50% - 235px) 0;
+  background: linear-gradient(to bottom, #fff0 36%, #fff),
+              linear-gradient(150deg, #fce8ee, #e8f7f0 70%);
+  pointer-events: none;
+}
 .welcome-pet {
   position: absolute;
   display: grid;
