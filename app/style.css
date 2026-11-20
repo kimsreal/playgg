@@ -482,6 +482,49 @@ section > .page-back { margin-bottom: 20px; }
   padding-top: 20px;
 }
 .welcome-actions button { min-height: 48px; border-radius: 999px; }
+.welcome-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+@media (min-width: 820px) {
+  .app:has(#welcome:not([hidden])) {
+    max-width: 1200px;
+    margin: max(0px, calc((100dvh - 700px) / 2)) auto 0;
+  }
+  .app:has(#welcome:not([hidden])) > main { padding: 0; }
+  #welcome {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: stretch;
+    min-height: clamp(420px, calc(100dvh - 48px), 652px);
+    padding: 0;
+    text-align: left;
+  }
+  .welcome-pets {
+    align-self: stretch;
+    width: 100%;
+    aspect-ratio: auto;
+    margin: 0;
+    background: linear-gradient(145deg, #fce8ee, #edf2fb 50%, #e8f7f0);
+  }
+  .welcome-pets::before { content: none; }
+  .welcome-pet--dog { --top: 31%; }
+  .welcome-pet--cat { --top: 16%; }
+  .welcome-pet--parrot { --top: 17%; }
+  .welcome-pet--hamster { --top: 61%; }
+  .welcome-pet--lizard { --top: 58%; }
+  .welcome-content {
+    justify-content: center;
+    align-items: flex-start;
+    padding: 48px clamp(28px, 4vw, 64px);
+  }
+  #welcome h1 { font-size: clamp(30px, 4vw, 54px); }
+  #welcome .welcome-copy { font-size: clamp(12px, 1.25vw, 16px); }
+  .welcome-actions { margin-top: 18px; padding-top: 0; }
+}
 #welcome-error:empty { display: none; }
 #welcome #welcome-error { color: #87432f; }
 
