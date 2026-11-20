@@ -8,19 +8,19 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=3">
+  <link rel="stylesheet" href="./app/style.css?v=4">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=3"></script>
+  <script type="module" src="./app/main.js?v=4"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
   <img src="./app/icon-drawing-192.png" alt="" width="192" height="192" fetchpriority="high">
 </div>
 <div class="app" id="app" hidden>
-  <header class="top"><a href="./" aria-label="안녕 홈">안녕<span aria-hidden="true"> ✿</span></a><button type="button" data-page="settings" class="settings" hidden>설정</button></header>
   <main>
     <section id="setup" hidden>
+      <button type="button" class="return-home" data-page="home" hidden>‹ 초원</button>
       <p class="kicker">처음 만나는 날</p>
       <h1>우리 공간을 만들어요</h1>
       <p>로그인 없이 사용할 수 있어요. 입력 중인 정보와 사진은 이 브라우저에만 저장돼요.</p>
@@ -65,30 +65,49 @@
       </form>
     </section>
     <section id="home" hidden>
-      <p class="kicker">우리 둘만의 초원</p>
-      <h1 id="greeting"></h1>
-      <p id="mode-copy"></p>
-      <p id="occasion" class="occasion" role="status" hidden></p>
       <div class="scene" id="home-scene">
+        <div class="meadow-fallback" aria-hidden="true">
+          <div class="meadow-clouds"></div>
+          <div class="meadow-island">
+            <span class="tree tree-a">🌳</span><span class="tree tree-b">🌳</span>
+            <span class="flowers flowers-a">✿ ✦ ✿</span><span class="flowers flowers-b">✦ ✿ ✦</span>
+          </div>
+        </div>
         <button type="button" class="fallback-pet" data-action="pet" aria-label="아바타 쓰다듬기"></button>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
-      <div class="buttons actions">
-        <button type="button" data-action="pet">♡ 쓰다듬기</button>
-        <button type="button" data-panel="treats">간식</button>
-        <button type="button" data-action="ball">공놀이</button>
-        <button type="button" data-panel="items">아이템</button>
-        <button type="button" data-panel="talk">말 걸기</button>
+      <div class="scene-greeting">
+        <h1 id="greeting"></h1>
+        <p id="mode-copy"></p>
+        <p id="occasion" class="occasion" role="status" hidden></p>
       </div>
-      <div id="interaction" hidden><h2 id="interaction-title"></h2><div id="interaction-options" class="buttons"></div></div>
+      <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
+        <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><span aria-hidden="true">🖼︎</span></button>
+        <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><span aria-hidden="true">⚙︎</span></button>
+      </div>
+      <div class="scene-controls">
+        <div id="interaction" hidden>
+          <div class="interaction-heading"><h2 id="interaction-title"></h2><button type="button" id="close-interaction" class="scene-icon" aria-label="선택 닫기">×</button></div>
+          <div id="interaction-options" class="buttons"></div>
+        </div>
+        <div class="scene-actions" role="group" aria-label="함께 놀기">
+          <button type="button" data-action="pet"><span aria-hidden="true">♡</span>쓰다듬기</button>
+          <button type="button" data-panel="treats"><span aria-hidden="true">🍖</span>간식</button>
+          <button type="button" data-action="ball"><span aria-hidden="true">⚾</span>공놀이</button>
+          <button type="button" data-panel="items"><span aria-hidden="true">✦</span>아이템</button>
+          <button type="button" data-panel="talk"><span aria-hidden="true">☏</span>말 걸기</button>
+        </div>
+      </div>
     </section>
     <section id="photo" hidden>
+      <button type="button" class="return-home" data-page="home">‹ 초원</button>
       <p class="kicker">오늘의 사진</p>
       <h1 id="photo-title"></h1>
       <figure><img id="daily-image" alt=""></figure>
       <p class="small">오늘은 이 사진을 함께 봐요.</p>
     </section>
     <section id="settings" hidden>
+      <button type="button" class="return-home" data-page="home">‹ 초원</button>
       <p class="kicker">우리 공간</p>
       <h1>설정</h1>
       <div class="buttons"><button type="button" id="edit-profile">반려동물 정보와 모드 바꾸기</button><button type="button" id="edit-avatar">아바타 꾸미기</button></div>
@@ -105,7 +124,6 @@
     </section>
     <p id="app-error" role="alert" hidden></p>
   </main>
-  <nav aria-label="주 메뉴" hidden><button type="button" data-page="home">초원</button><button type="button" data-page="photo">오늘의 사진</button><button type="button" data-page="settings">설정</button></nav>
 </div>
 </body>
 </html>

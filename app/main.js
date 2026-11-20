@@ -12,7 +12,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js').catch(() => null);
+const scenes=import('./scene.js?v=4').catch(() => null);
 let state, draft, palette=[], pendingPhotos=[];
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay, currentPhotosTask;
@@ -27,12 +27,14 @@ async function mountScene(host,profile,preview) {
   scene=null;
   const fallback=host.querySelector('.fallback-pet');
   fallback.hidden=false;
+  host.classList.remove('has-webgl');
   fallback.textContent=glyphs[profile.species];
   const module=await scenes;
   if (revision!==sceneRevision || !module) return;
   try {
     scene=module.createScene(host,profile,preview ? null : () => play('pet','💕'),{preview});
     fallback.hidden=true;
+    host.classList.add('has-webgl');
     if (!preview) scene.play('greet');
   } catch {
     // The rest of the app still works on devices without WebGL.
@@ -49,8 +51,8 @@ function show(pageId) {
   showError('');
   $('main > section').prop('hidden',true);
   $('#'+pageId).prop('hidden',false);
-  $('nav,.settings').prop('hidden',!state?.profile);
-  $('nav button').removeAttr('aria-current').filter('[data-page="'+pageId+'"]').attr('aria-current','page');
+  document.body.classList.toggle('meadow-open',pageId==='home');
+  $('#setup .return-home').prop('hidden',!state?.profile);
   window.scrollTo(0,0);
   if (pageId==='home') {
     renderHome();
@@ -353,6 +355,7 @@ $(document).on('click','button[data-page]',function () {
   show(this.dataset.page);
 });
 $(document).on('click','button[data-panel]',function () { interaction(this.dataset.panel); });
+$('#close-interaction').on('click',() => $('#interaction').prop('hidden',true));
 $(document).on('click','button[data-action]',function () {
   play(this.dataset.action,this.dataset.action==='ball' ? '⚽' : '💕');
 });

@@ -9,45 +9,103 @@ function mesh(scene, geometry, shade, x,y,z) {
   scene.add(part);
   return part;
 }
-function makeIsland(scene,theme) {
-  mesh(scene,new T.CylinderGeometry(theme.radius,theme.radius*.99,.21,42),material(theme.grass),0,-.11,0);
-  mesh(scene,new T.CylinderGeometry(theme.radius*.99,theme.radius*.77,.77,42),material(theme.earth),0,-.58,0);
-  const bark = material(0xa98466);
-  const leaves = material(0x719d68);
-  theme.trees.forEach(([x,z],i) => {
-    mesh(scene,new T.CylinderGeometry(.12,.19,1,7),bark,x,.5,z);
-    mesh(scene,new T.IcosahedronGeometry(.76+i*.06,1),leaves,x,1.31,z).scale.y=1.19;
+function scatter(scene, geometry, instances) {
+  const batch = new T.InstancedMesh(geometry,material(0xffffff),instances.length);
+  const transform = new T.Object3D();
+  instances.forEach(({position,scale,color,rotation=0}, index) => {
+    transform.position.set(...position);
+    transform.scale.set(...scale);
+    transform.rotation.set(0,rotation,0);
+    transform.updateMatrix();
+    batch.setMatrixAt(index,transform.matrix);
+    batch.setColorAt(index,new T.Color(color));
   });
-  const petals = [material(0xf4c3cb),material(0xffefaf),material(0xfffaf0)];
-  theme.flowers.forEach(([x,z],i) => {
-    for (let j=0;j<4;j++) {
-      const dx=Math.sin(j*2)*.25, dz=Math.cos(j*2)*.24;
-      mesh(scene,new T.CylinderGeometry(.018,.025,.21,5),leaves,x+dx,.11,z+dz);
-      mesh(scene,new T.IcosahedronGeometry(.105,0),petals[(i+j)%3],x+dx,.25,z+dz);
+  scene.add(batch);
+}
+function makeIsland(scene,theme) {
+  const {radius,grass,earth,trees,flowers}=theme;
+  mesh(scene,new T.CylinderGeometry(radius,radius*.98,.22,48),material(grass),0,-.115,0);
+  mesh(scene,new T.CylinderGeometry(radius*.98,radius*.89,.33,48),material(0x98a675),0,-.38,0);
+  mesh(scene,new T.CylinderGeometry(radius*.89,radius*.71,.52,48),material(earth),0,-.805,0);
+  const shade=new T.MeshBasicMaterial({color:0x476f50,transparent:true,opacity:.13});
+  const bark=material(0xa98466);
+  const foliage=[], grassBlades=[], stones=[], blooms=[], stems=[], pavers=[];
+  const leafColors=[0x81ac6a,0xa3c47a,0x729d67];
+  const grassColors=[0x83af65,0x9abe73,0xc4dba0,0xa7c77d];
+  const petalColors=[0xf3aec7,0xffe6a0,0xfffbda,0xcab7eb];
+  trees.forEach(([x,z],index) => {
+    const treeShadow=mesh(scene,new T.CircleGeometry(.72,15),shade,x+.17,.008,z+.12);
+    treeShadow.rotation.x=-Math.PI/2;
+    treeShadow.scale.set(1.22,.75,1);
+    mesh(scene,new T.CylinderGeometry(.11,.19,1.24,7),bark,x,.62,z);
+    for (let i=0;i<6;i++) {
+      const angle=i*2.4;
+      const size=i===0 ? .69 : .44+(i%3)*.055;
+      foliage.push({position:[x+Math.cos(angle)*.42,1.24+i*.105+(index%2)*.16,z+Math.sin(angle)*.39],
+        scale:[size,size*1.05,size],color:leafColors[(i+index)%leafColors.length],rotation:angle});
     }
   });
-  const cloud = material(0xfffdf1);
-  for (let i=0;i<7;i++) {
-    const side=i<4 ? -1 : 1;
-    mesh(scene,new T.IcosahedronGeometry(.66,1),cloud,side*4.6+(i%4)*.46,3.65+Math.sin(i)*.25,-4.9).scale.set(1,.48,.58);
+  flowers.forEach(([x,z],i) => {
+    for (let j=0;j<6;j++) {
+      const px=x+Math.sin(j*2.4)*(.18+j*.034);
+      const pz=z+Math.cos(j*2.4)*(.19+j*.027);
+      const height=.15+(j%3)*.05;
+      stems.push({position:[px,height/2,pz],scale:[.018,height,.018],color:0x739c65});
+      blooms.push({position:[px,height,pz],scale:[.102,.056,.102],color:petalColors[(i+j)%petalColors.length]});
+      blooms.push({position:[px,height+.04,pz],scale:[.039,.025,.039],color:0xeec96a});
+    }
+  });
+  for (let i=0;i<145;i++) {
+    const angle=i*2.39996;
+    const distance=radius*.92*Math.sqrt((i+.5)/145);
+    const x=Math.cos(angle)*distance, z=Math.sin(angle)*distance;
+    if (Math.abs(x-.42*Math.sin(z))<.77) continue;
+    const height=.115+(i%6)*.035;
+    grassBlades.push({position:[x,height*.39,z],scale:[.045,height,.055],color:grassColors[i%grassColors.length],rotation:angle});
+    if (i%8===0 && distance>2.3) {
+      const size=.15+(i%5)*.025;
+      stones.push({position:[x,.041,z],scale:[size,.08,size*.78],color:i%3 ? 0xb2bda2 : 0xc5c6b0,rotation:angle});
+    }
   }
+  for (let i=0;i<13;i++) {
+    const z=-3.75+i*.62;
+    const x=.42*Math.sin(z);
+    pavers.push({position:[x,.004,z],scale:[.24+(i%3)*.036,.011,.17+(i%2)*.035],
+      color:i%3 ? 0xdde0b1 : 0xe2d9ac,rotation:i*.7});
+  }
+  scatter(scene,new T.IcosahedronGeometry(1,1),foliage);
+  scatter(scene,new T.ConeGeometry(1,1,3),grassBlades);
+  scatter(scene,new T.IcosahedronGeometry(1,0),stones);
+  scatter(scene,new T.IcosahedronGeometry(1,0),pavers);
+  scatter(scene,new T.CylinderGeometry(1,1,1,4),stems);
+  scatter(scene,new T.IcosahedronGeometry(1,0),blooms);
+  const cloud=material(0xfff8e8);
+  const clouds=new T.Group();
+  for (const [x,y,z] of [[-5.6,4.35,-4.5],[3.95,4.2,-5.15],[-3.15,5.4,-7.8],[6.2,4.85,-6.9]]) {
+    for (let i=0;i<5;i++) {
+      const size=.42+(2-Math.abs(2-i))*.12;
+      mesh(clouds,new T.IcosahedronGeometry(size,1),cloud,x+i*.39,y+Math.sin(i*.8)*.19,z).scale.set(1.1,.55,.72);
+    }
+  }
+  scene.add(clouds);
+  return clouds;
 }
 
 export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) {
-  const renderer = new T.WebGLRenderer({antialias:true,alpha:false});
+  const renderer = new T.WebGLRenderer({antialias:true,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
-  renderer.setClearColor(theme.sky);
+  renderer.setClearColor(theme.sky,preview ? 1 : 0);
   renderer.domElement.setAttribute('aria-hidden','true');
   host.prepend(renderer.domElement);
   const scene = new T.Scene();
   const camera = new T.OrthographicCamera();
   camera.position.set(preview ? 2 : 5.8,preview ? 2.3 : 7.8,preview ? 5 : 12);
-  camera.lookAt(0,preview ? .76 : .25,0);
+  camera.lookAt(0,preview ? .76 : .45,0);
   scene.add(new T.HemisphereLight(0xfffcf5,0xc5c6ac,2.2));
   const sunlight = new T.DirectionalLight(0xffefd5,2);
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
-  if (!preview) makeIsland(scene,theme);
+  const clouds=preview ? null : makeIsland(scene,theme);
   const shadow=mesh(scene,new T.CircleGeometry(.74,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.17}),0,.009,0);
   shadow.rotation.x=-Math.PI/2;
   const pet = createAvatar(profile);
@@ -62,7 +120,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) 
     const {clientWidth:w,clientHeight:h}=host;
     if (!w || !h) return;
     renderer.setSize(w,h,false);
-    const extent=preview ? 1.28 : Math.max(3.7,5.4*h/w);
+    const extent=preview ? 1.28 : Math.max(3.7,5.15*h/w);
     camera.left=-extent*w/h; camera.right=extent*w/h;
     camera.top=extent; camera.bottom=-extent;
     camera.near=.1; camera.far=60;
@@ -94,6 +152,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) 
     const p=alive ? clamp((now-action.started)/(until-action.started),0,1) : 0;
     const move=!reduced.matches;
     const walk=move ? Math.sin(t*10) : 0;
+    if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
     toy.visible=false;
     if (heart) heart.visible=false;
     pet.root.scale.setScalar(pet.scale);
