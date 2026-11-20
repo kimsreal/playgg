@@ -8,12 +8,13 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=61">
+  <link rel="stylesheet" href="./app/style.css?v=63">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=62"></script>
+  <script type="module" src="./app/main.js?v=63"></script>
 </head>
 <body>
+<audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
   <img src="./app/icon-drawing-192.png" alt="" width="192" height="192" fetchpriority="high">
 </div>
@@ -194,6 +195,13 @@
       <p id="mode-copy" class="small" hidden></p>
       <p id="occasion" class="occasion" role="status" hidden></p>
       <ul class="settings-list">
+        <li data-setting="배경음악 음악 소리 사운드">
+          <button type="button" class="settings-row" id="music-toggle" role="switch" aria-checked="false" aria-label="배경음악">
+            <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18V6l12-3v12M9 9l12-3"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="18" cy="15" rx="3" ry="2"/></svg>
+            <span>배경음악</span><span class="music-switch" aria-hidden="true"></span>
+          </button>
+          <p id="music-status" class="small" role="status" hidden></p>
+        </li>
         <li data-setting="계정 로그인 회원가입 로그아웃"><button type="button" class="settings-row" data-open-account><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#user-round"></use></svg><span>계정</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#chevron-right"></use></svg></button></li>
         <li data-setting="반려동물 정보와 모드 바꾸기 이름 생일 기일 다시 만나기"><button type="button" class="settings-row" id="edit-profile"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#user-round"></use></svg><span>반려동물 정보와 모드 바꾸기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#chevron-right"></use></svg></button></li>
         <li data-setting="아바타 꾸미기 색 몸 귀 꼬리 무늬"><button type="button" class="settings-row" id="edit-avatar"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#sparkles"></use></svg><span>아바타 꾸미기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#chevron-right"></use></svg></button></li>

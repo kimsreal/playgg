@@ -374,6 +374,27 @@ section > .page-back { margin-bottom: 20px; }
   border-radius: var(--choice-radius);
   cursor: pointer;
 }
+#music-toggle { grid-template-columns: 20px minmax(0, 1fr) 40px; }
+.music-switch {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: #cad9e3;
+}
+.music-switch::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--white);
+}
+#music-toggle[aria-checked="true"] .music-switch { background: var(--focus); }
+#music-toggle[aria-checked="true"] .music-switch::before { transform: translateX(16px); }
+#music-status { margin: 0 9px 10px 42px; }
 .settings-row:hover { background: var(--sky-soft); }
 .settings-row:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .settings-row > .ui-icon:first-child { color: var(--focus); }

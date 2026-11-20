@@ -370,6 +370,52 @@ async function mountScene(host,profile,preview,delivery=false) {
   if (delivery) deliverLetter();
 }
 
+const music=byId('meadow-music');
+const musicToggle=byId('music-toggle');
+const musicStatus=byId('music-status');
+const musicKey='annyeong-background-music';
+let musicEnabled=false, musicAttempt, musicNeedsGesture=false;
+try { musicEnabled=localStorage.getItem(musicKey)==='on'; } catch {}
+musicToggle.setAttribute('aria-checked',String(musicEnabled));
+
+function startMusic() {
+  if (!musicEnabled || !music.paused || musicAttempt) return;
+  musicNeedsGesture=false;
+  const attempt=music.play();
+  musicAttempt=attempt;
+  attempt.then(() => {
+    if (musicAttempt===attempt) musicStatus.hidden=true;
+  },error => {
+    if (musicAttempt!==attempt || !musicEnabled) return;
+    musicNeedsGesture=error.name==='NotAllowedError';
+    if (!musicNeedsGesture && error.name!=='AbortError') {
+      musicStatus.textContent='배경음악을 불러오지 못했어요. 껐다가 다시 켜 주세요.';
+      musicStatus.hidden=false;
+    }
+  }).finally(() => {
+    if (musicAttempt===attempt) musicAttempt=null;
+  });
+}
+
+musicToggle.addEventListener('click',() => {
+  musicEnabled=!musicEnabled;
+  musicToggle.setAttribute('aria-checked',String(musicEnabled));
+  musicStatus.hidden=true;
+  try { localStorage.setItem(musicKey,musicEnabled ? 'on' : 'off'); } catch {}
+  if (musicEnabled) {
+    if (music.error) music.load();
+    startMusic();
+  } else {
+    musicAttempt=null;
+    musicNeedsGesture=false;
+    music.pause();
+  }
+});
+
+document.addEventListener('click',() => {
+  if (musicNeedsGesture) startMusic();
+});
+
 function show(pageId,delivery=false) {
   clearBall();
   page=pageId;
@@ -390,6 +436,7 @@ function show(pageId,delivery=false) {
   if (pageId==='friends') renderFriends();
   window.scrollTo(0,0);
   if (pageId==='home') {
+    startMusic();
     applyPerspective();
     void mountScene(byId('home-scene'),state.profile,false,delivery);
   }
