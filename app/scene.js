@@ -149,7 +149,10 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const eye = new T.PerspectiveCamera(54,1,.055,60);
   let camera=overview;
   overview.position.set(preview ? 2 : 5.8,preview ? 2.3 : 7.8,preview ? 5 : 12);
-  overview.lookAt(0,preview ? .76 : .45,0);
+  const overviewTarget=new T.Vector3(0,preview ? .76 : .45,0);
+  overview.lookAt(overviewTarget);
+  const orbit=new T.Spherical().setFromVector3(overview.position.clone().sub(overviewTarget));
+  let eyePitch=Math.atan2(.49-1.46,3);
   scene.add(new T.HemisphereLight(0xfffcf5,0xc5c6ac,2.2));
   const sunlight = new T.DirectionalLight(0xffefd5,2);
   sunlight.position.set(-4,8,5);
@@ -316,7 +319,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       owner.head.rotation.x=reaching ? .13 : 0;
       eye.position.set(position.x,1.46,position.z);
       const heading=owner.root.rotation.y;
-      eyeTarget.set(position.x+Math.sin(heading)*3,.49,position.z+Math.cos(heading)*3);
+      eyeTarget.set(position.x+Math.sin(heading)*3,eye.position.y+Math.tan(eyePitch)*3,position.z+Math.cos(heading)*3);
       eye.lookAt(eyeTarget);
     }
     if (heart?.visible) heart.quaternion.copy(camera.quaternion);
@@ -355,6 +358,19 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   if (onPet) renderer.domElement.addEventListener('click',tap);
   return {
     setPerspective,
+    dragView(dx,dy) {
+      if (!owner) return;
+      const sensitivity=.007;
+      if (camera===eye) {
+        owner.root.rotation.y-=dx*sensitivity;
+        eyePitch=clamp(eyePitch+dy*sensitivity,-1.15,.72);
+      } else {
+        orbit.theta-=dx*sensitivity;
+        orbit.phi=clamp(orbit.phi-dy*sensitivity,.52,1.31);
+        overview.position.setFromSpherical(orbit).add(overviewTarget);
+        overview.lookAt(overviewTarget);
+      }
+    },
     play(kind) {
       const now=performance.now();
       action={kind,started:now};

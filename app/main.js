@@ -14,7 +14,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=14').catch(() => null);
+const scenes=import('./scene.js?v=15').catch(() => null);
 let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
@@ -45,6 +45,51 @@ $('.view-picker button').on('click',function () {
 });
 
 const homeScene=byId('home-scene');
+let viewDrag, skipSceneClick=false;
+let fallbackPanX=0, fallbackPanY=0;
+
+homeScene.addEventListener('pointerdown',event => {
+  if (!event.isPrimary || event.button!==0) return;
+  skipSceneClick=false;
+  viewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,active:false};
+});
+homeScene.addEventListener('pointermove',event => {
+  if (!viewDrag || viewDrag.id!==event.pointerId) return;
+  const dx=event.clientX-viewDrag.x;
+  const dy=event.clientY-viewDrag.y;
+  if (!viewDrag.active) {
+    if (Math.hypot(dx,dy)<7) return;
+    viewDrag.active=true;
+    skipSceneClick=true;
+    homeScene.setPointerCapture(event.pointerId);
+    homeScene.classList.add('is-looking');
+  }
+  viewDrag.x=event.clientX;
+  viewDrag.y=event.clientY;
+  if (scene) {
+    scene.dragView(dx,dy);
+  } else {
+    fallbackPanX=Math.max(-85,Math.min(85,fallbackPanX+dx*.55));
+    fallbackPanY=Math.max(-45,Math.min(45,fallbackPanY+dy*.42));
+    homeScene.style.setProperty('--pan-x',fallbackPanX+'px');
+    homeScene.style.setProperty('--pan-y',fallbackPanY+'px');
+  }
+});
+function endViewDrag(event) {
+  if (viewDrag?.id!==event.pointerId) return;
+  viewDrag=null;
+  homeScene.classList.remove('is-looking');
+}
+for (const type of ['pointerup','pointercancel','lostpointercapture','pointerleave']) {
+  homeScene.addEventListener(type,endViewDrag);
+}
+homeScene.addEventListener('click',event => {
+  if (!skipSceneClick || event.detail===0) return;
+  skipSceneClick=false;
+  event.preventDefault();
+  event.stopPropagation();
+},true);
+
 homeScene.addEventListener('click',event => {
   if (scene || event.target.closest('button')) return;
   const island=homeScene.querySelector('.meadow-island').getBoundingClientRect();

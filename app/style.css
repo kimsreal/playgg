@@ -234,7 +234,11 @@ input[type=radio] { accent-color: var(--sky); }
 #home[data-view="first"] .meadow-island { top: 48%; width: min(125vw, 110dvh, 1050px); aspect-ratio: 3; }
 #home[data-view="first"] #home-scene .fallback-pet { top: 57%; font-size: clamp(60px, 19vw, 105px); }
 
-#home-scene, #home-scene canvas { cursor: pointer; }
+#home-scene, #home-scene canvas { cursor: grab; touch-action: none; user-select: none; }
+#home-scene.is-looking, #home-scene.is-looking canvas, #home-scene.is-looking button { cursor: grabbing; }
+#home-scene .meadow-fallback,
+#home-scene .fallback-owner,
+#home-scene .fallback-pet { translate: var(--pan-x, 0px) var(--pan-y, 0px); }
 .fallback-owner {
   left: var(--owner-x, 66%);
   top: var(--owner-y, 57%);
@@ -243,7 +247,7 @@ input[type=radio] { accent-color: var(--sky); }
 }
 #home[data-view="first"] .meadow-fallback,
 #home[data-view="first"] #home-scene .fallback-pet {
-  translate: var(--view-x, 0px) var(--view-y, 0px);
+  translate: calc(var(--view-x, 0px) + var(--pan-x, 0px)) calc(var(--view-y, 0px) + var(--pan-y, 0px));
   transition: translate .65s ease;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -251,3 +255,6 @@ input[type=radio] { accent-color: var(--sky); }
   #home[data-view="first"] .meadow-fallback,
   #home[data-view="first"] #home-scene .fallback-pet { transition: none; }
 }
+
+#home-scene.is-looking .meadow-fallback,
+#home-scene.is-looking .fallback-pet { transition: none; }
