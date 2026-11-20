@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.min.js';
-import { createAvatar } from './avatar.js?v=29';
+import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
 import { meadow } from './data.js';
@@ -325,6 +325,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   size();
   const initial=new T.Vector3();
   const target=new T.Vector3();
+  const escape=new T.Vector3();
+  const itemDirection=new T.Vector3();
   const arrival=new T.Vector3(0,0,1.65);
   const ballGrip=new T.Vector3();
   const petStep=new T.Vector3();
@@ -372,6 +374,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     for (const leg of pet.legs) leg.rotation.x=0;
     for (const eye of pet.eyes) eye.scale.y=.073;
     pet.mouth.visible=true;
+    pet.smile.visible=false;
     if (!preview) {
       const position=pet.root.position;
       const previousX=position.x;
@@ -437,11 +440,18 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
           pet.tail.rotation.y=move ? Math.sin(t*18)*.85 : .3;
           pet.root.position.y=move ? Math.abs(Math.sin(p*Math.PI*2))*(hamster ? .06 : .22) : 0;
         }
+        if (kind==='liked' && p>=.35) {
+          pet.smile.visible=true;
+          if (profile.species!=='parrot' && profile.species!=='lizard') pet.mouth.visible=false;
+        }
         if (kind==='disliked') {
-          pet.head.rotation.y=.85;
-          const retreatZ=initial.z-.34;
-          const limit=Math.sqrt(Math.max(0,theme.radius**2-position.x**2));
-          position.z=T.MathUtils.lerp(initial.z,Math.max(-limit,retreatZ),move ? Math.sin(p*Math.PI) : 0);
+          pet.head.rotation.y=move ? .62*(1-clamp(p/.36,0,1)) : .62;
+          if (move) {
+            const progress=T.MathUtils.smoothstep(p,.08,.79);
+            position.x=T.MathUtils.lerp(initial.x,escape.x,progress);
+            position.z=T.MathUtils.lerp(initial.z,escape.z,progress);
+            stride=.59;
+          }
         }
         if (kind==='belly') {
           pet.legs[1].rotation.x=-.7+(move ? Math.sin(t*12)*.33 : 0);
@@ -454,7 +464,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       }
       const dx=position.x-previousX;
       const dz=position.z-previousZ;
-      if (dx*dx+dz*dz>1e-8 && action?.kind!=='disliked') {
+      if (dx*dx+dz*dz>1e-8) {
         const heading=Math.atan2(dx,dz);
         const turn=heading-pet.root.rotation.y;
         pet.root.rotation.y+=Math.atan2(Math.sin(turn),Math.cos(turn))*(1-Math.exp(-elapsed*11));
@@ -580,8 +590,15 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       action={kind,object,elapsed:0,duration:kind==='ball' ? 3.1 : kind==='treat' ? 2.75 : 2.05};
       idleTime=0;
       initial.set(pet.root.position.x,0,pet.root.position.z);
-      const locations={ball:[2.65,0,-1.2],greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65],disliked:[initial.x+.55,0,initial.z+.7]};
+      const locations={ball:[2.65,0,-1.2],greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65]};
       target.set(...(locations[kind] || [0,0,0]));
+      if (kind==='disliked') {
+        const heading=pet.root.rotation.y;
+        itemDirection.set(Math.sin(heading),0,Math.cos(heading));
+        if (initial.lengthSq()>3.24) itemDirection.copy(initial).normalize();
+        target.copy(initial).addScaledVector(itemDirection,.64).clampLength(0,theme.radius-.05);
+        escape.copy(initial).addScaledVector(itemDirection,-2.1).clampLength(0,theme.radius-.25);
+      }
     },
     dispose() {
       cancelAnimationFrame(frame);

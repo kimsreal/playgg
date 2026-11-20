@@ -18,6 +18,17 @@ function glossyEye(head,dark,shine,x,y,z,shape) {
   return eye;
 }
 
+function makeSmile(head,shade,width,y,z,depth) {
+  const curve=new T.QuadraticBezierCurve3(
+    new T.Vector3(-width,y,z-depth),
+    new T.Vector3(0,y-.11,z+depth),
+    new T.Vector3(width,y,z-depth)
+  );
+  const smile=piece(head,new T.TubeGeometry(curve,18,.012,7,false),shade,0,0,0);
+  smile.visible=false;
+  return smile;
+}
+
 function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
   const bird=profile.species==='parrot';
   const body=sphere(root,fur,0,bird?.68:.36,-.13,bird ? [.39,.56,.38] : [.4,.32,.67]);
@@ -44,6 +55,7 @@ function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
   const mouth=bird
     ? sphere(head,beak,0,-.075,.345,[.13,.12,.157])
     : sphere(head,pale,0,-.081,.283,[.28,.129,.235]);
+  const smile=bird ? makeSmile(head,dark,.088,-.094,.49,.015) : makeSmile(head,dark,.16,-.105,.49,.024);
   if (bird) {
     const plumeHeight=profile.ears==='upright' ? .21 : .1;
     for (let i=0;i<3;i++) {
@@ -110,7 +122,7 @@ function createFeatheredOrScaled(profile, root, fur, pale, dark, shade) {
   }
   const scale={small:.79,medium:1,large:1.2}[profile.size];
   root.scale.setScalar(scale);
-  return {root,head,tail,legs,eyes,mouth,scale};
+  return {root,head,tail,legs,eyes,mouth,smile,scale};
 }
 
 export function createAvatar(profile) {
@@ -163,6 +175,7 @@ export function createAvatar(profile) {
     for (let dot=0;dot<3;dot++) sphere(head,shade,side*(.123+dot*.031),-.12-dot*.018,.498-dot*.012,[.013,.012,.01]);
   }
   const mouth = sphere(head,pink,0,-.205,.49,[.07,.045,.032]);
+  const smile=makeSmile(head,dark,.139,-.158,.513,.036);
   const legs = [];
   for (const x of [-.32,.32]) {
     for (const z of [-.45,.31]) {
@@ -197,5 +210,5 @@ export function createAvatar(profile) {
   piece(tail,new T.TubeGeometry(curve,12,hamster ? .066 : cat ? .072 : .11,7,false),fur,0,0,0);
   const scale = {small:.79,medium:1,large:1.2}[profile.size];
   root.scale.setScalar(scale);
-  return {root,head,tail,legs,eyes,mouth,scale};
+  return {root,head,tail,legs,eyes,mouth,smile,scale};
 }

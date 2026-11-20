@@ -29,7 +29,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=34').catch(() => null);
+const scenes=import('./scene.js?v=35').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -409,9 +409,9 @@ function play(action,icon,object) {
   }
   scene?.play(action,object);
   clearTimeout(replyTimer);
-  const reply=$('#reply').empty().append(object ? objectImage(object) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
+  const reply=$('#reply').empty().append(action==='treat' && object ? objectImage(object) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
   if (!scene && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const effect=action==='disliked' ? 'translate(-65%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';
+    const effect=action==='disliked' ? 'translate(-125%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';
     byId('home-scene').querySelector('.fallback-pet').animate([
       {transform:'translate(-50%,-50%)'},{transform:effect},{transform:'translate(-50%,-50%)'}
     ],{duration:550});
@@ -444,8 +444,8 @@ function interaction(panel) {
     add('생선 간식','treat','fish','fish');
   } else {
     $('#interaction-title').text('아이템 놓기');
-    for (const like of state.profile.likes) add(like,'liked','sparkles',itemShape(like));
-    for (const dislike of state.profile.dislikes) add(dislike,'disliked','smile',itemShape(dislike));
+    for (const like of state.profile.likes) add(like,'liked','smile',itemShape(like));
+    for (const dislike of state.profile.dislikes) add(dislike,'disliked','paw-print',itemShape(dislike));
     if (!container.children().length) $('<p>').text('설정에서 좋아하는 것과 싫어하는 것을 추가할 수 있어요.').appendTo(container);
   }
   $('#interaction').prop('hidden',false);
