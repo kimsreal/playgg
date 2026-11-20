@@ -94,78 +94,116 @@ function makeIsland(scene,theme) {
 
 function createOwner(scene,gender) {
   const root=new T.Group();
-  const satin=color => new T.MeshStandardMaterial({color,roughness:.47});
-  const blue=satin(0x6ebfff);
-  const trim=satin(0xb7e5ff);
-  const trousers=satin(0x647d9d);
-  const skin=satin(0xe4b393);
-  const hair=satin(0x59463d);
-  const hairLight=satin(0x705341);
-  const ink=satin(0x3a2c2b);
-  const lips=satin(0xa9615d);
-  const blush=satin(0xe89887);
-  const shoes=satin(0xf7f5ee);
-  const sole=satin(0xc9d6dc);
+  const finish=(color,roughness=.5) => new T.MeshStandardMaterial({color,roughness});
+  const hoodie=finish(0x526879,.66);
+  const ribbing=finish(0x475a68,.7);
+  const seam=finish(0x3c4f5d,.72);
+  const cords=finish(0x708999,.65);
+  const trousers=finish(0x405564,.72);
+  const skin=finish(0xeabea1,.58);
+  const warmSkin=finish(0xd5917f,.66);
+  const hair=finish(0x414c59,.41);
+  const eyeBase=finish(0x637084,.47);
+  const ink=finish(0x262732,.3);
+  const reflection=finish(0x8895a6,.38);
+  const lips=finish(0x9e655b,.72);
+  const boots=finish(0x353e50,.35);
+  const sole=finish(0x2e3745,.6);
+  const ovalGeometry=new T.SphereGeometry(1,28,20);
   const oval=(parent,shade,x,y,z,sx,sy,sz) => {
-    const part=mesh(parent,new T.SphereGeometry(1,20,14),shade,x,y,z);
+    const part=mesh(parent,ovalGeometry,shade,x,y,z);
     part.scale.set(sx,sy,sz);
     return part;
   };
+  const line=(parent,shade,points,radius) => {
+    const curve=new T.CatmullRomCurve3(points.map(point => new T.Vector3(...point)));
+    return mesh(parent,new T.TubeGeometry(curve,18,radius,7,false),shade,0,0,0);
+  };
   const head=new T.Group();
-  head.position.y=1.44;
+  head.position.y=1.39;
   root.add(head);
-  oval(head,skin,0,0,0,.24,.26,.22);
-  oval(head,hair,0,.115,-.035,.25,.178,.226);
-  if (gender==='female') {
-    oval(head,hair,0,-.034,-.095,.263,.275,.174);
-    for (const side of [-1,1]) oval(head,hair,side*.209,-.05,-.022,.092,.22,.117).rotation.z=-side*.1;
-    oval(head,hairLight,.091,.156,.117,.159,.081,.106).rotation.z=-.36;
-  } else {
-    oval(head,hairLight,-.107,.154,.105,.156,.102,.12).rotation.z=gender==='male' ? -.35 : .14;
-    oval(head,hair,.082,.172,.1,.153,.079,.126).rotation.z=.22;
+  oval(head,skin,0,-.027,0,.321,.317,.269);
+
+  const cap=new T.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI-.001);
+  const vertices=cap.attributes.position;
+  for(let row=0;row<=24;row++){
+    for(let column=0;column<=48;column++){
+      const azimuth=column/48*Math.PI*2;
+      const front=Math.max(0,Math.sin(azimuth));
+      const side=Math.cos(azimuth);
+      const part=Math.exp(-((side-.035)**2)/.007);
+      const fringe=gender==='male' ? .14*side : .055*side;
+      const rim=1.94-.76*front-.20*part*front+fringe*front;
+      const polar=row/24*rim;
+      const ring=Math.sin(polar);
+      const index=row*49+column;
+      vertices.setXYZ(index,-Math.cos(azimuth)*ring*.337,Math.cos(polar)*.314+.017,Math.sin(azimuth)*ring*.282-.014);
+    }
   }
-  oval(head,skin,0,-.029,.212,.039,.05,.042);
-  const smile=new T.QuadraticBezierCurve3(
-    new T.Vector3(-.052,-.091,.203),new T.Vector3(0,-.132,.217),new T.Vector3(.052,-.091,.203)
-  );
-  mesh(head,new T.TubeGeometry(smile,12,.008,6,false),lips,0,0,0);
+  cap.computeVertexNormals();
+  mesh(head,cap,hair,0,0,0);
+  if(gender==='female'){
+    for(const side of [-1,1]) {
+      const lock=oval(head,hair,side*.245,-.193,-.118,.101,.192,.104);
+      lock.rotation.z=side*.42;
+    }
+  }
+
+  for(const side of [-1,1]) {
+    const ear=oval(head,skin,side*.318,-.085,-.003,.092,.089,.062);
+    ear.rotation.z=side*-.27;
+    oval(head,warmSkin,side*.346,-.083,.045,.045,.034,.012).rotation.z=side*-.27;
+    const eye=oval(head,eyeBase,side*.137,-.077,.228,.091,.058,.034);
+    eye.rotation.z=side*-.12;
+    oval(eye,ink,side*.10,.06,.61,.74,.88,.52);
+    oval(eye,reflection,-.27,.34,.93,.30,.17,.11);
+    line(head,lips,[
+      [side*.059,-.067,.254],[side*.108,-.022,.252],[side*.168,-.023,.234],[side*.215,-.046,.211]
+    ],.008);
+    oval(head,warmSkin,side*.191,-.143,.201,.057,.023,.012).rotation.z=side*.11;
+  }
+  oval(head,skin,0,-.109,.25,.038,.043,.036);
+  line(head,lips,[[-.037,-.182,.216],[0,-.189,.225],[.037,-.181,.216]],.006);
+
+  oval(root,skin,0,1.16,0,.112,.131,.105);
+  oval(root,hoodie,0,.82,-.015,.255,.322,.181);
+  oval(root,hoodie,0,1.072,-.096,.236,.147,.153);
+  const collar=mesh(root,new T.TorusGeometry(.154,.039,10,28),ribbing,0,1.082,.016);
+  collar.rotation.x=Math.PI/2.38;
+  oval(root,ribbing,0,.586,-.001,.233,.058,.175);
+  oval(root,seam,0,.717,.157,.155,.084,.031);
+  oval(root,hoodie,0,.719,.17,.141,.07,.027);
+  for(const side of [-1,1]){
+    line(root,cords,[[side*.084,1.066,.151],[side*.071,.953,.171],[side*.065,.896+side*.027,.182]],.01);
+    oval(root,cords,side*.065,.896+side*.027,.184,.016,.025,.016);
+  }
+
   const legs=[];
-  for (const side of [-1,1]) {
-    oval(head,ink,side*.083,.008,.205,.026,.036,.016);
-    oval(head,shoes,side*.083-.007,.019,.22,.009,.011,.005);
-    oval(head,blush,side*.137,-.061,.173,.041,.022,.012);
-    oval(head,hair,side*.084,.061,.207,.035,.01,.008).rotation.z=side*.11;
-    oval(head,skin,side*.235,-.029,0,.045,.066,.048);
+  const arms=[];
+  for(const side of [-1,1]){
     const leg=new T.Group();
-    leg.position.set(side*.105,.58,0);
+    leg.position.set(side*.118,.59,0);
     root.add(leg);
-    oval(leg,trousers,0,-.248,0,.12,.275,.12);
-    oval(leg,sole,side*.007,-.514,.064,.125,.057,.174);
-    oval(leg,shoes,side*.007,-.465,.064,.12,.083,.165);
-    oval(leg,sole,0,-.405,.133,.067,.012,.027);
     legs.push(leg);
-  }
-  oval(root,blue,0,.857,0,.267,.34,.186);
-  oval(root,skin,0,1.177,0,.079,.103,.079);
-  oval(root,trim,0,1.117,.069,.115,.039,.088);
-  oval(root,trim,0,.787,.173,.109,.084,.027);
-  const pocket=oval(root,blue,0,.808,.19,.091,.057,.02);
-  pocket.rotation.x=.12;
-  const arms=[-1,1].map(side => {
+    oval(leg,trousers,0,-.222,.003,.125,.273,.121);
+    oval(leg,sole,side*.011,-.534,.054,.133,.052,.177);
+    oval(leg,boots,side*.011,-.463,.054,.132,.106,.177);
+    line(leg,sole,[[-.061,-.431,.175],[0,-.421,.199],[.061,-.431,.175]],.007);
+
     const arm=new T.Group();
-    arm.position.set(side*.232,1.04,0);
-    arm.rotation.z=side*.18;
-    oval(arm,blue,side*.034,-.128,0,.09,.175,.09);
-    oval(arm,trim,side*.057,-.224,.004,.087,.035,.087);
-    oval(arm,skin,side*.062,-.277,.011,.071,.084,.068);
-    oval(arm,skin,side*.019,-.26,.061,.033,.049,.034);
+    arm.position.set(side*.214,1.002,-.005);
+    arm.rotation.z=side*.13;
     root.add(arm);
-    return arm;
-  });
+    arms.push(arm);
+    oval(arm,hoodie,side*.04,-.151,0,.098,.207,.097);
+    oval(arm,ribbing,side*.056,-.308,.006,.103,.05,.101);
+    oval(arm,skin,side*.061,-.367,.014,.073,.084,.072);
+    oval(arm,skin,side*.013,-.351,.062,.034,.051,.036);
+  }
   root.position.set(2.35,0,2.58);
   root.rotation.y=Math.atan2(-root.position.x,-root.position.z);
   scene.add(root);
-  const shadow=mesh(scene,new T.CircleGeometry(.32,20),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.16}),root.position.x,.009,root.position.z);
+  const shadow=mesh(scene,new T.CircleGeometry(.36,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.16}),root.position.x,.009,root.position.z);
   shadow.rotation.x=-Math.PI/2;
   return {root,head,arms,legs,shadow};
 }
