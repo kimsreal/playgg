@@ -184,6 +184,8 @@ function cleanSettings($settings): array
         'perspective' => choice($settings['perspective'] ?? 'third', ['first', 'third']),
         'ownerColors' => $colors,
         'background' => choice($settings['background'] ?? 'meadow', ['meadow', 'coast']),
+        'coastUnlocked' => ($settings['coastUnlocked'] ?? false) === true || ($settings['background'] ?? null) === 'coast',
+        'leaves' => is_int($settings['leaves'] ?? null) ? max(0, min(999999, $settings['leaves'])) : 0,
     ];
 }
 

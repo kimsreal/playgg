@@ -732,3 +732,44 @@ section > .page-back { margin-bottom: 20px; }
   pointer-events: none;
 }
 #letter-envelope .ui-icon { width: 24px; height: 24px; }
+
+.leaf-companion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.leaf-companion img { object-fit: contain; }
+.leaf-companion p { margin: 0; color: var(--muted-ink); }
+.leaf-game-counts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block: 14px;
+  color: var(--muted-ink);
+}
+#leaf-board {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 8px;
+  padding: 12px;
+  border-radius: 22px;
+  background: #eef7e7;
+}
+#leaf-board button {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 16px;
+  background: #c5e0ad;
+  color: #44693e;
+}
+#leaf-board button:hover { background: #d3e8c0; }
+#leaf-board button:disabled { opacity: 1; cursor: default; }
+#leaf-board button[data-reveal="leaf"] { background: #fff1b8; }
+#leaf-board button[data-reveal="empty"] { background: #e1edda; }
+#leaf-board .ui-icon { width: 24px; height: 24px; }
+#leaf-game-status { margin-block: 12px; }
+.coast-unlock { margin-top: 14px; }

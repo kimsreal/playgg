@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=68">
+  <link rel="stylesheet" href="./app/style.css?v=69">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=67"></script>
+  <script type="module" src="./app/main.js?v=69"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -114,6 +114,7 @@
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
       <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
+        <button type="button" class="scene-icon" data-page="leaf-game" aria-label="잎사귀 찾기" title="잎사귀 찾기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#leaf"></use></svg></button>
         <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></button>
         <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg></button>
         <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#settings"></use></svg></button>
@@ -137,6 +138,21 @@
           <button type="button" id="ride" aria-pressed="false" hidden aria-label="합체" title="합체"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10" cy="4.5" r="2"/><path d="m9.5 7-1 4.8 3.4 1.1-.4 3m-1.1-7.8 2.8 2.1H16M3 10l2.7 3.4 2.8-.4m4.5 0H15l1.6-3.9L19 11l2.5.7v2.4l-3.4 1.1-1 5.3h-2m0-4.3H8l-1.3 4.3H4.5l.7-5.6 1-1.3"/></svg></button>
         </div>
       </div>
+    </section>
+    <section id="leaf-game" hidden>
+      <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <h1>잎사귀 찾기</h1>
+      <div class="leaf-companion">
+        <img id="leaf-pet" alt="" width="78" height="78">
+        <p id="leaf-intro"></p>
+      </div>
+      <p>풀숲을 하나씩 눌러 숨은 잎사귀 5개를 찾아요.</p>
+      <div class="leaf-game-counts">
+        <span id="leaf-round-count"></span><span id="leaf-game-balance"></span>
+      </div>
+      <div id="leaf-board" role="group" aria-label="살펴볼 풀숲"></div>
+      <p id="leaf-game-status" class="small" role="status"></p>
+      <button type="button" class="primary" id="leaf-next" hidden>다른 풀숲에서 찾기</button>
     </section>
     <section id="letters" hidden>
       <button type="button" class="page-back scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
@@ -216,6 +232,12 @@
                 <option value="meadow">초원</option>
                 <option value="coast">노을 바다</option>
               </select>
+              <p class="small" id="leaf-settings-balance"></p>
+              <div id="coast-unlock" class="coast-unlock">
+                <p class="small">노을 바다 · 잎사귀 50개</p>
+                <button type="button" id="coast-buy" class="primary">노을 바다 열기</button>
+                <button type="button" data-page="leaf-game">잎사귀 찾으러 가기</button>
+              </div>
               <p class="small" id="background-status" role="status" hidden></p>
             </div>
           </details>

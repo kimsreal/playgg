@@ -3,7 +3,7 @@ import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=67';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=69';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -55,7 +55,7 @@ function applyPreferences(settings) {
 function guestPreferences() {
   try {
     return {
-      background:localStorage.getItem('annyeong-background'),
+      background:state?.background ?? localStorage.getItem('annyeong-background'),
       perspective:localStorage.getItem('annyeong-perspective')==='first' ? 'first' : 'third',
       ownerColors:cleanOwnerColors(JSON.parse(localStorage.getItem('annyeong-owner-colors')))
     };
@@ -373,30 +373,130 @@ async function mountScene(host,profile,preview,delivery=false) {
   if (delivery) deliverLetter();
 }
 
+const coastCost=50;
 const backgroundChoice=byId('background-choice');
 const backgroundStatus=byId('background-status');
-backgroundChoice.addEventListener('change',async () => {
-  const selected=backgroundChoice.value;
+const coastBuy=byId('coast-buy');
+const leafBoard=byId('leaf-board');
+const leafNext=byId('leaf-next');
+const leafStatus=byId('leaf-game-status');
+const roundLeafCount=5;
+let leafRound;
+let economyBusy=false;
+
+function ownsCoast(current) {
+  return current?.coastUnlocked===true || current?.background==='coast' || background==='coast';
+}
+
+function renderBalance() {
+  const balance=state?.leaves || 0;
+  const unlocked=ownsCoast(state);
+  byId('leaf-game-balance').textContent='보유 잎사귀 '+balance+'개';
+  byId('leaf-settings-balance').textContent='보유 잎사귀 '+balance+'개';
+  byId('coast-unlock').hidden=unlocked;
+  backgroundChoice.querySelector('[value=coast]').disabled=!unlocked;
+  coastBuy.disabled=economyBusy || balance<coastCost;
+}
+
+async function changeBackground(selected,buy=false) {
+  if (economyBusy) return;
   const session=account;
+  economyBusy=true;
   backgroundChoice.disabled=true;
   backgroundStatus.hidden=true;
+  renderBalance();
   try {
-    if (session) {
-      const updated=await updateState(current => ({...current,background:selected}));
-      if (account!==session) return;
-      state=updated;
-    } else localStorage.setItem('annyeong-background',selected);
+    const updated=await updateState(current => {
+      const unlocked=ownsCoast(current);
+      const price=buy && !unlocked ? coastCost : 0;
+      if ((current?.leaves || 0)<price || (selected==='coast' && !unlocked && !buy)) throw new Error('locked');
+      return {...current,background:selected,coastUnlocked:unlocked || buy,leaves:(current?.leaves || 0)-price};
+    });
+    if (account!==session) return;
+    state=updated;
     background=selected;
+    if (buy) {
+      backgroundStatus.textContent='노을 바다를 열었어요.';
+      backgroundStatus.hidden=false;
+    }
     if (page==='home' && byId('home').dataset.background!==selected) show('home');
   } catch {
     if (account===session) {
-      backgroundChoice.value=background;
       backgroundStatus.textContent='배경을 저장하지 못했어요. 다시 시도해 주세요.';
       backgroundStatus.hidden=false;
     }
   } finally {
+    economyBusy=false;
     backgroundChoice.disabled=false;
+    backgroundChoice.value=background;
+    renderBalance();
   }
+}
+
+backgroundChoice.addEventListener('change',() => void changeBackground(backgroundChoice.value));
+coastBuy.addEventListener('click',() => void changeBackground('coast',true));
+
+function startLeafRound() {
+  if (economyBusy) return;
+  const patches=Array.from({length:12},(_,index) => index);
+  for (let i=patches.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [patches[i],patches[j]]=[patches[j],patches[i]];
+  }
+  const round={leaves:new Set(patches.slice(0,roundLeafCount)),found:0};
+  leafRound=round;
+  leafStatus.textContent='';
+  leafNext.hidden=true;
+  byId('leaf-round-count').textContent='찾은 잎사귀 0 / '+roundLeafCount;
+  leafBoard.replaceChildren(...patches.map((_,index) => {
+    const tile=document.createElement('button');
+    tile.type='button';
+    tile.setAttribute('aria-label',(index+1)+'번째 풀숲 살펴보기');
+    tile.append(makeIcon('leaf'));
+    tile.addEventListener('click',() => void revealPatch(round,index,tile));
+    return tile;
+  }));
+  renderBalance();
+}
+
+async function revealPatch(round,index,tile) {
+  if (economyBusy || tile.disabled || round.found===roundLeafCount) return;
+  const found=round.leaves.has(index);
+  if (found) {
+    economyBusy=true;
+    try {
+      const session=account;
+      const updated=await updateState(current => ({
+        ...current,coastUnlocked:ownsCoast(current),leaves:Math.min(999999,(current?.leaves || 0)+1)
+      }));
+      if (account!==session) return;
+      state=updated;
+      round.found++;
+    } catch {
+      if (page==='leaf-game') leafStatus.textContent='잎사귀를 저장하지 못했어요. 다시 눌러 주세요.';
+      return;
+    } finally {
+      economyBusy=false;
+      renderBalance();
+    }
+  }
+  if (leafRound!==round) return;
+  tile.disabled=true;
+  tile.dataset.reveal=found ? 'leaf' : 'empty';
+  tile.setAttribute('aria-label',found ? '잎사귀를 찾은 풀숲' : '살펴본 풀숲');
+  if (!found) tile.replaceChildren();
+  byId('leaf-round-count').textContent='찾은 잎사귀 '+round.found+' / '+roundLeafCount;
+  const complete=round.found===roundLeafCount;
+  leafStatus.textContent=complete ? '잎사귀를 모두 찾았어요!' : found ? '잎사귀를 하나 찾았어요.' : '이 풀숲은 살펴봤어요.';
+  if (complete) {
+    leafNext.hidden=false;
+    if (page==='leaf-game') leafNext.focus();
+  } else if (page==='leaf-game') [...leafBoard.children].find(button => !button.disabled)?.focus();
+}
+
+leafNext.addEventListener('click',() => {
+  startLeafRound();
+  leafBoard.firstElementChild?.focus();
 });
 
 const music=byId('meadow-music');
@@ -484,8 +584,15 @@ function show(pageId,delivery=false) {
     byId('letter-form').querySelector('button').disabled=true;
   }
   if (pageId==='letter-history') void renderLetters();
+  if (pageId==='leaf-game') {
+    byId('leaf-pet').src='./app/welcome-pets/'+state.profile.species+'.webp';
+    byId('leaf-intro').textContent=state.profile.name+'와 함께 잎사귀를 찾아요.';
+    if (!leafRound) startLeafRound();
+    renderBalance();
+  }
   if (pageId==='account') renderAccount();
   if (pageId==='settings') {
+    renderBalance();
     backgroundChoice.value=background;
     backgroundStatus.hidden=true;
     byId('settings-search').value='';
@@ -1105,6 +1212,7 @@ function accountError(error) {
 }
 
 function enterSpace() {
+  leafRound=null;
   addingFriend=false;
   const saved=state?.onboarding;
   draft=saved?.profile || null;
@@ -1164,6 +1272,7 @@ $('#account-logout').on('click',function () {
   void runAccountAction(async () => {
     await changeAccount('logout');
     account=null;
+    leafRound=null;
     state=await readState();
     applyPreferences(guestPreferences());
     show('welcome');
