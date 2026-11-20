@@ -1,3 +1,4 @@
+import {ownerColors} from './owner-colors.js';
 import {listFriends} from './friends.js';
 
 let csrf;
@@ -40,7 +41,7 @@ export function accountSettings(state) {
     active:friends[0]?.id || null,
     friends:friends.map(({id,profile}) => ({id,profile})).sort((a,b) => a.id.localeCompare(b.id)),
     perspective:state?.perspective || 'third',
-    ownerGender:state?.ownerGender || 'default'
+    ownerColors:ownerColors(state?.ownerColors)
   };
 }
 
@@ -53,7 +54,7 @@ export function mergeAccount(settings,local) {
     daily:previous.get(id)?.daily || null
   }));
   const active=friends.find(friend => friend.id===settings.active);
-  const preferences={perspective:settings.perspective,ownerGender:settings.ownerGender,welcomed:true};
+  const preferences={perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
   if (!active) return {...preferences,onboarding:local?.onboarding || null};
   return {
     ...preferences,friendId:active.id,profile:active.profile,photos:active.photos,album:active.album,

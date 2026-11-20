@@ -1,8 +1,9 @@
+import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=40';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -30,14 +31,14 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=38').catch(() => null);
+const scenes=import('./scene.js?v=40').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
 
 let perspective='third';
-let ownerGender='default';
+let ownerColors=cleanOwnerColors();
 let account=null;
 let accountReturnPage='welcome';
 let accountMode='login';
@@ -45,19 +46,18 @@ let writes=Promise.resolve();
 
 function applyPreferences(settings) {
   perspective=settings.perspective;
-  ownerGender=settings.ownerGender;
-  byId('owner-gender').value=ownerGender;
+  ownerColors=cleanOwnerColors(settings.ownerColors);
+  syncOwnerColorInputs();
 }
 
 function guestPreferences() {
   try {
-    const gender=localStorage.getItem('annyeong-owner-gender');
     return {
       perspective:localStorage.getItem('annyeong-perspective')==='first' ? 'first' : 'third',
-      ownerGender:gender==='male' || gender==='female' ? gender : 'default'
+      ownerColors:cleanOwnerColors(JSON.parse(localStorage.getItem('annyeong-owner-colors')))
     };
   } catch {
-    return {perspective:'third',ownerGender:'default'};
+    return {perspective:'third',ownerColors:cleanOwnerColors()};
   }
 }
 
@@ -115,22 +115,39 @@ $('.view-picker button').on('click',async function () {
   }
 });
 
-const genderSelect=byId('owner-gender');
-genderSelect.addEventListener('change',async () => {
-  ownerGender=genderSelect.value;
-  const value=ownerGender;
+const ownerColorForm=byId('owner-color-form');
+const ownerColorFields=ownerColorForm.querySelector('fieldset');
+
+function syncOwnerColorInputs() {
+  for (const [part,color] of Object.entries(ownerColors)) {
+    ownerColorForm.elements.namedItem(part).value=color;
+  }
+  byId('owner-color-status').textContent='';
+}
+
+ownerColorForm.addEventListener('submit',async event => {
+  event.preventDefault();
+  const colors=cleanOwnerColors(Object.fromEntries(new FormData(ownerColorForm)));
+  const session=account;
+  const status=byId('owner-color-status');
+  ownerColorFields.disabled=true;
   try {
-    if (account) state=await updateState(current => ({...current,ownerGender:value}));
-    else localStorage.setItem('annyeong-owner-gender',value);
-    $('#owner-gender-status').text('저장했어요.');
-  } catch {
-    if (account) {
-      ownerGender=state?.ownerGender || 'default';
-      genderSelect.value=ownerGender;
-      $('#owner-gender-status').text('계정에 저장하지 못했어요. 다시 시도해 주세요.');
+    if (session) {
+      const updated=await updateState(current => ({...current,ownerColors:colors}));
+      if (account!==session) return;
+      state=updated;
     } else {
-      $('#owner-gender-status').text('이번 접속에 적용했어요.');
+      localStorage.setItem('annyeong-owner-colors',JSON.stringify(colors));
     }
+    ownerColors=colors;
+    status.textContent='저장했어요.';
+  } catch {
+    if (account===session) {
+      if (!session) ownerColors=colors;
+      status.textContent=session ? '계정에 저장하지 못했어요. 다시 시도해 주세요.' : '이번 접속에 적용했어요.';
+    }
+  } finally {
+    ownerColorFields.disabled=false;
   }
 });
 
@@ -278,6 +295,8 @@ async function mountScene(host,profile,preview) {
   fallback.replaceChildren(makeIcon(speciesInfo[profile.species][0]));
   const module=await scenes;
   if (revision!==sceneRevision || !module) return;
+  const ownerModel=preview ? null : await module.loadOwnerModel();
+  if (revision!==sceneRevision) return;
   const setGraphicsAvailable=available => {
     if (revision!==sceneRevision) return;
     fallback.hidden=available;
@@ -286,7 +305,7 @@ async function mountScene(host,profile,preview) {
   };
   try {
     scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{
-      preview,perspective,ownerGender,onGraphicsChange:setGraphicsAvailable
+      preview,perspective,ownerModel,ownerColors,onGraphicsChange:setGraphicsAvailable
     });
     setGraphicsAvailable(true);
     if (!preview) scene.play('greet');
@@ -824,7 +843,7 @@ accountForm.addEventListener('submit',event => {
   const action=accountMode;
   void runAccountAction(async () => {
     const guestSeed=action==='register' ? state : undefined;
-    if (action==='register') fields.settings=accountSettings({...state,perspective,ownerGender});
+    if (action==='register') fields.settings=accountSettings({...state,perspective,ownerColors});
     try {
       const session=await changeAccount(action,fields);
       await enterAccount(session,guestSeed);

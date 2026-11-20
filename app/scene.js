@@ -3,6 +3,9 @@ import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
 import { meadow } from './data.js';
+import {buildOwnerModel} from './owner-model.js';
+import {ownerColors as cleanColors} from './owner-colors.js';
+export {loadOwnerModel} from './owner-model.js';
 
 const material = color => new T.MeshStandardMaterial({color,flatShading:true});
 function mesh(scene, geometry, shade, x,y,z) {
@@ -93,17 +96,17 @@ function makeIsland(scene,theme) {
   return clouds;
 }
 
-function createOwner(scene,gender) {
+function fallbackOwner(colors) {
   const root=new T.Group();
   const finish=(color,roughness=.5) => new T.MeshStandardMaterial({color,roughness});
-  const hoodie=finish(0x526879,.66);
-  const ribbing=finish(0x475a68,.7);
-  const seam=finish(0x3c4f5d,.72);
-  const cords=finish(0x708999,.65);
-  const trousers=finish(0x405564,.72);
-  const skin=finish(0xeabea1,.58);
+  const hoodie=finish(colors.hoodie,.66);
+  const ribbing=finish(colors.hoodie,.7);
+  const seam=finish(colors.hoodie,.72);
+  const cords=finish(colors.hoodie,.65);
+  const trousers=finish(colors.pants,.72);
+  const skin=finish(colors.skin,.58);
   const warmSkin=finish(0xd5917f,.66);
-  const hair=finish(0x414c59,.41);
+  const hair=finish(colors.hoodie,.64);
   const eyeBase=finish(0x637084,.47);
   const ink=finish(0x262732,.3);
   const reflection=finish(0x8895a6,.38);
@@ -133,7 +136,7 @@ function createOwner(scene,gender) {
       const front=Math.max(0,Math.sin(azimuth));
       const side=Math.cos(azimuth);
       const part=Math.exp(-((side-.035)**2)/.007);
-      const fringe=gender==='male' ? .14*side : .055*side;
+      const fringe=.055*side;
       const rim=1.94-.76*front-.20*part*front+fringe*front;
       const polar=row/24*rim;
       const ring=Math.sin(polar);
@@ -143,16 +146,6 @@ function createOwner(scene,gender) {
   }
   cap.computeVertexNormals();
   mesh(head,cap,hair,0,0,0);
-  if (gender==='female') {
-    oval(head,hair,0,-.315,-.177,.298,.335,.112);
-    const strands=hair.clone();
-    strands.color.multiplyScalar(1.13);
-    for (const side of [-1,1]) {
-      oval(head,hair,side*.272,-.287,-.132,.103,.35,.123).rotation.z=side*.08;
-      oval(head,hair,side*.279,-.500,-.137,.104,.19,.126).rotation.z=side*.16;
-      line(head,strands,[[side*.303,-.132,-.08],[side*.335,-.323,-.081],[side*.336,-.505,-.083],[side*.304,-.61,-.086]],.008);
-    }
-  }
 
   for(const side of [-1,1]) {
     const ear=oval(head,skin,side*.318,-.085,-.003,.092,.089,.062);
@@ -201,16 +194,22 @@ function createOwner(scene,gender) {
     oval(arm,skin,side*.061,-.367,.014,.073,.084,.072);
     oval(arm,skin,side*.013,-.351,.062,.034,.051,.036);
   }
+  return {root,head,arms,legs};
+}
+
+function createOwner(scene,source,colors) {
+  const owner=source ? buildOwnerModel(source,colors) : fallbackOwner(colors);
+  const {root}=owner;
   root.scale.setScalar(.86);
   root.position.set(2.35,0,2.58);
   root.rotation.y=Math.atan2(-root.position.x,-root.position.z);
   scene.add(root);
   const shadow=mesh(scene,new T.CircleGeometry(.36,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.16}),root.position.x,.009,root.position.z);
   shadow.rotation.x=-Math.PI/2;
-  return {root,head,arms,legs,shadow};
+  return {...owner,shadow};
 }
 
-export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third',ownerGender='default',onGraphicsChange}={}) {
+export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third',ownerModel,ownerColors,onGraphicsChange}={}) {
   const touchScreen=matchMedia('(pointer: coarse)').matches;
   const renderer = new T.WebGLRenderer({antialias:!touchScreen,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,touchScreen ? 1.35 : 1.7));
@@ -231,7 +230,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
   const clouds=preview ? null : makeIsland(scene,theme);
-  const owner=preview ? null : createOwner(scene,ownerGender);
+  const owner=preview ? null : createOwner(scene,ownerModel,cleanColors(ownerColors));
   const eyeTarget=new T.Vector3();
   const updateEyeCamera=() => {
     const position=owner.root.position;

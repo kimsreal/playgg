@@ -172,11 +172,17 @@ function cleanSettings($settings): array
     if (($friends && (!is_string($active) || !isset($seen[$active]))) || (!$friends && $active !== null)) {
         fail(422, 'invalid_settings');
     }
+    $colors = [];
+    $input = $settings['ownerColors'] ?? [];
+    foreach (['hoodie' => '#ede8e3', 'pants' => '#999492', 'skin' => '#f6d6c6'] as $part => $fallback) {
+        $color = is_array($input) ? ($input[$part] ?? null) : null;
+        $colors[$part] = is_string($color) && preg_match('/\A#[0-9a-f]{6}\z/i', $color) ? strtolower($color) : $fallback;
+    }
     return [
         'friends' => $friends,
         'active' => $active,
         'perspective' => choice($settings['perspective'] ?? 'third', ['first', 'third']),
-        'ownerGender' => choice($settings['ownerGender'] ?? 'default', ['default', 'male', 'female']),
+        'ownerColors' => $colors,
     ];
 }
 

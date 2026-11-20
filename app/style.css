@@ -368,18 +368,28 @@ section > .page-back { margin-bottom: 20px; }
 .treat-icon { display: block; width: 62px; height: 62px; object-fit: contain; }
 .bubble .treat-icon { width: 38px; height: 38px; }
 
-#owner-gender {
-  display: block;
-  max-width: 100%;
-  margin: 4px 0 6px;
-  padding: 8px 10px;
-  min-height: 44px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  color: var(--ink);
-  background: var(--white);
+#owner-color-form fieldset {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
-#owner-gender-status:empty { display: none; }
+#owner-color-form label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+#owner-color-form input[type="color"] {
+  width: 64px;
+  height: 44px;
+  padding: 4px;
+  cursor: pointer;
+}
+#owner-color-form button { justify-self: start; }
+#owner-color-status:empty { display: none; }
 
 .scene-actions #ride[aria-pressed="true"] {
   color: var(--white);
