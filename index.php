@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./app/style.css?v=61">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=61"></script>
+  <script type="module" src="./app/main.js?v=62"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">

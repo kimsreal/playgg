@@ -31,7 +31,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=61').catch(() => null);
+const scenes=import('./scene.js?v=62').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -629,7 +629,24 @@ function play(action,icon,object) {
     else throwFallbackBall();
     return;
   }
+  if (action==='pet') {
+    byId('reply').hidden=true;
+    if (scene && homeScene.classList.contains('has-webgl')) {
+      scene.play('pet');
+      return;
+    }
+    homeScene.style.setProperty('--owner-x','58%');
+    homeScene.style.setProperty('--owner-y','57%');
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      replyTimer=setTimeout(() => showPlayReply(action,icon,object),650);
+      return;
+    }
+  }
   scene?.play(action,object);
+  showPlayReply(action,icon,object);
+}
+
+function showPlayReply(action,icon,object) {
   const reply=$('#reply').empty().append(action==='treat' && object ? objectImage(object) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
   if (!homeScene.classList.contains('has-webgl') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const effect=action==='disliked' ? 'translate(-125%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';

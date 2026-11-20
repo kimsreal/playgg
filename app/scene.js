@@ -353,6 +353,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const ballReturn=new T.Vector3();
   const ballGrip=new T.Vector3();
   const petStep=new T.Vector3();
+  const pettingPoint=new T.Vector3();
   const wanderTarget=new T.Vector3();
   const previousLegAngles=pet.legs.map(() => 0);
   function makeHearts() {
@@ -386,8 +387,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const elapsed=T.MathUtils.clamp((now-previousTime)/1000,0,.05);
     previousTime=now;
     const alive=Boolean(action);
-    if (alive) action.elapsed=Math.min(action.duration,action.elapsed+elapsed);
-    else idleTime+=elapsed;
+    if (alive && action.kind!=='pet-approach') action.elapsed=Math.min(action.duration,action.elapsed+elapsed);
+    if (!alive) idleTime+=elapsed;
     const p=alive ? action.elapsed/action.duration : 0;
     const previousY=pet.root.position.y;
     const previousScale=pet.root.scale.y;
@@ -472,10 +473,12 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
           model.visible=p<.88;
           if (p>.65) pet.head.rotation.x=.35+(move ? Math.sin(t*15)*.14 : 0);
         }
-        if (kind==='pet' && heart) floatHearts(heart,position,1.76,p,move);
-        if (kind==='pet' || kind==='wag' || kind==='liked') {
+        const pettingContact=kind==='pet' && p>=.22 && p<=.9;
+        if (pettingContact && heart) floatHearts(heart,position,pet.head.position.y*pet.scale+.62,(p-.22)/.68,move);
+        if (pettingContact || kind==='wag' || kind==='liked') {
           pet.tail.rotation.y=move ? Math.sin(t*18)*.85 : .3;
-          pet.root.position.y=move ? Math.abs(Math.sin(p*Math.PI*2))*(hamster ? .06 : .22) : 0;
+          pet.root.position.y=move && !pettingContact ? Math.abs(Math.sin(p*Math.PI*2))*(hamster ? .06 : .22) : 0;
+          if (pettingContact) pet.head.rotation.x=move ? Math.sin(p*Math.PI*6)*.06 : 0;
         }
         if (kind==='liked' && p>=.35) {
           pet.smile.visible=true;
@@ -557,14 +560,25 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       owner.legs[1].rotation.z=.45*seated;
       owner.shadow.position.set(position.x,.009,position.z);
       owner.shadow.material.opacity=.16*(1-seated);
-      const reaching=alive && ['pet','treat','liked','letter'].includes(action.kind);
+      const petting=action?.kind==='pet';
+      const reaching=alive && ['treat','liked','letter'].includes(action.kind);
+      if (action?.kind==='pet-approach' || petting) {
+        const facing=action.kind==='pet-approach' && walking ? ownerTarget : pettingPoint;
+        const turn=Math.atan2(facing.x-position.x,facing.z-position.z)-owner.root.rotation.y;
+        owner.root.rotation.y+=Math.atan2(Math.sin(turn),Math.cos(turn))*(move ? 1-Math.exp(-elapsed*15) : 1);
+      }
+      const stroke=petting ? Math.min(clamp(p/.22,0,1),clamp((1-p)/.15,0,1)) : 0;
+      const shoulderHeight=owner.arms[0].position.y*owner.root.scale.y+position.y;
+      const pettingArm=-Math.atan2(.42,shoulderHeight-pettingPoint.y);
+
       const throwing=action?.kind==='ball' && p<.23;
       const catching=action?.kind==='ball-catch' && p<.55;
-      const arm=throwing ? -1.85*Math.sin(p/.23*Math.PI) : catching ? -.95
+      const arm=petting ? stroke*(pettingArm+(move ? Math.sin(p*Math.PI*8)*.12 : 0))
+        : throwing ? -1.85*Math.sin(p/.23*Math.PI) : catching ? -.95
         : reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : -stride*.7;
       owner.arms[0].rotation.x=T.MathUtils.lerp(arm,-.62,seated);
       owner.arms[1].rotation.x=T.MathUtils.lerp(walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0,-.62,seated);
-      owner.head.rotation.x=reaching ? .13 : 0;
+      owner.head.rotation.x=petting ? .2*stroke : reaching ? .13 : 0;
       if (camera===eye) updateEyeCamera();
     }
     if (action?.kind.startsWith('ball')) {
@@ -592,6 +606,9 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     }
     shadow.position.x=pet.root.position.x;
     shadow.position.z=pet.root.position.z;
+    if (action?.kind==='pet-approach' && seatBlend===0 && owner.root.position.distanceToSquared(ownerTarget)<.001) {
+      action.kind='pet';
+    }
     if (alive && p===1 && action.kind==='ball') {
       action.kind='ball-ready';
       onBallReady?.();
@@ -642,6 +659,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     if (hit.distanceToSquared(position)<.0001) return;
     owner.root.rotation.y=Math.atan2(hit.x-position.x,hit.z-position.z);
     ownerTarget.copy(hit);
+    if (['pet','pet-approach'].includes(action?.kind)) action=null;
   };
   if (onPet) renderer.domElement.addEventListener('click',tap);
   return {
@@ -671,6 +689,18 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       action={kind:'ball-catch',elapsed:0,duration:1.65};
     },
     play(kind,object='meat') {
+      if (kind==='pet' && owner) {
+        if (['pet-approach','pet'].includes(action?.kind)) return;
+        pettingPoint.copy(pet.head.position);
+        pettingPoint.y+=hamster ? .23 : .24;
+        pet.root.localToWorld(pettingPoint);
+        itemDirection.subVectors(owner.root.position,pettingPoint).setY(0);
+        if (itemDirection.lengthSq()<.01) itemDirection.set(1,0,0);
+        const space=hamster || profile.species==='lizard' ? .57 : .72;
+        ownerTarget.copy(pettingPoint).setY(0).addScaledVector(itemDirection.normalize(),space);
+        ownerTarget.clampLength(0,theme.radius-.25);
+        kind='pet-approach';
+      }
       if (kind==='ball' && owner) {
         const ownerPosition=owner.root.position;
         ownerTarget.copy(ownerPosition);
