@@ -70,14 +70,15 @@ function renderHome() {
   const today=dayKey();
   renderedDay=today;
   $('#greeting').text('안녕, '+profile.name+'!');
-  const remaining=Math.round((civilDate(profile.dates.away)-civilDate(today))/86400000);
   let message='오늘도 여기서 함께 쉬어요.';
+  if (profile.mode==='play') message='오늘은 같이 놀아요!';
   if (profile.mode==='away') {
+    const remaining=Math.round((civilDate(profile.dates?.away)-civilDate(today))/86400000);
     message=remaining>0 ? '다시 만나기까지 D-'+remaining : remaining===0 ? '오늘은 다시 만나는 날이에요.' : '오늘도 함께 쉬어 가요.';
   }
   $('#mode-copy').text(message);
   const birthday=today.slice(5)===profile.birthday.slice(5);
-  const memorial=profile.mode==='memory' && today.slice(5)===profile.dates.memory.slice(5);
+  const memorial=profile.mode==='memory' && today.slice(5)===profile.dates?.memory?.slice(5);
   const notices=[];
   if (birthday) notices.push(profile.name+'의 생일이에요. 오늘도 따뜻한 마음을 전해요.');
   if (memorial) notices.push(profile.name+'와 함께한 시간을 조용히 떠올려 봐요.');
@@ -103,7 +104,12 @@ function openProfile() {
 function refreshModeLabel() {
   const mode=profileForm.elements.mode.value;
   $('#event-label').text(mode==='memory' ? '기일' : mode==='away' ? '다시 만날 날짜' : '기일 또는 다시 만날 날짜');
-  profileForm.elements.event.max=mode==='memory' ? dayKey() : '';
+  const eventField=profileForm.elements.event;
+  const showDate=mode!=='play';
+  byId('event-field').hidden=!showDate;
+  eventField.disabled=!showDate;
+  eventField.required=showDate;
+  eventField.max=mode==='memory' ? dayKey() : '';
 }
 
 function readProfileForm() {
@@ -111,7 +117,7 @@ function readProfileForm() {
   return {
     ...defaults,...state?.profile,...draft,
     name:fields.name.trim(),species:fields.species,mode:fields.mode || '',
-    birthday:fields.birthday,dates:fields.mode ? {...modeDates,[fields.mode]:fields.event} : {...modeDates},
+    birthday:fields.birthday,dates:fields.event===undefined || !fields.mode ? {...modeDates} : {...modeDates,[fields.mode]:fields.event},
     likes:tags(fields.likes),dislikes:tags(fields.dislikes)
   };
 }
@@ -127,7 +133,7 @@ function saveOnboarding(step,profile) {
 
 $(profileForm).on('change','[name=mode]',event => {
   const previous=profileForm.dataset.mode;
-  if (previous) modeDates[previous]=profileForm.elements.event.value;
+  if (previous && !profileForm.elements.event.disabled) modeDates[previous]=profileForm.elements.event.value;
   profileForm.dataset.mode=event.target.value;
   profileForm.elements.event.value=modeDates[event.target.value] || '';
   refreshModeLabel();

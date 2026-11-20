@@ -1,6 +1,6 @@
-const CACHE='annyeong-v6';
+const CACHE='annyeong-v7';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=6','./app/style.css?v=6','./app/main.js?v=5','./app/photos.js?v=5',
+  './','./manifest.webmanifest?v=6','./app/style.css?v=6','./app/main.js?v=7','./app/photos.js?v=5',
   './app/data.js','./app/avatar.js','./app/scene.js?v=4','./app/vendor/three.module.min.js',
   './app/vendor/jquery.min.js','./app/icon-drawing-192.png','./app/icon-drawing-512.png'
 ];

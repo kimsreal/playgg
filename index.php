@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./app/style.css?v=6">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=5"></script>
+  <script type="module" src="./app/main.js?v=7"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -28,12 +28,13 @@
         <fieldset><legend>어떤 이야기를 담을까요?</legend>
           <label class="choice"><input type="radio" name="mode" value="memory" required> 무지개다리를 건넜어요</label>
           <label class="choice"><input type="radio" name="mode" value="away" required> 멀리 떨어져 있어요</label>
+          <label class="choice"><input type="radio" name="mode" value="play" required> 그냥 같이 놀래요</label>
         </fieldset>
         <div class="fields">
           <label>이름<input name="name" maxlength="24" required></label>
           <label>종류<select name="species"><option value="dog">강아지</option><option value="cat">고양이</option></select></label>
           <label>생일<input type="date" name="birthday" required></label>
-          <label><span id="event-label">기일 또는 다시 만날 날짜</span><input type="date" name="event" required></label>
+          <label id="event-field"><span id="event-label">기일 또는 다시 만날 날짜</span><input type="date" name="event" required></label>
         </div>
         <div class="fields">
           <label>좋아하는 것<input name="likes" maxlength="240" placeholder="공놀이, 닭가슴살"></label>
