@@ -147,7 +147,10 @@ function show(pageId) {
     renderHome();
     void mountScene(byId('home-scene'),state.profile,false);
   }
-  if (pageId==='photo') void showDaily();
+  if (pageId==='photo') {
+    $('#photo-status').text('');
+    void showDaily();
+  }
   if (pageId==='settings') {
     $('#album-status').text(state.album.length ? '선택한 앨범 사진 '+state.album.length+'장' : state.photos?.length ? '처음 등록한 사진을 사용하고 있어요.' : '추가한 사진이 없어요.');
     $('#clear-album').prop('hidden',!state.album.length);
@@ -394,29 +397,35 @@ async function showDaily() {
   }
 }
 
+$('[data-photo-picker]').on('click',() => byId('album-photos').click());
+
 $('#album-photos').on('change',async function () {
   const files=Array.from(this.files);
   this.value='';
   if (!files.length) return;
-  this.disabled=true;
+  const from=page;
   const id=activeFriendId(state);
-  $('#clear-album').prop('disabled',true);
-  $('#album-status').text('사진을 준비하고 있어요…');
+  const status=from==='photo' ? $('#photo-status') : $('#album-status');
+  const stillHere=() => page===from && activeFriendId(state)===id;
+  const controls=$('[data-photo-picker],#clear-album').prop('disabled',true);
+  status.text('고른 사진을 준비하고 있어요…');
   try {
     const {photos,skipped}=await preparePhotos(files);
     if (!photos.length) {
-      $('#album-status').text('사진을 열 수 없어요. JPEG 또는 PNG 사진을 골라 주세요.');
+      if (stillHere()) status.text('사진을 열 수 없어요. JPEG 또는 PNG 사진을 골라 주세요.');
       return;
     }
-    state=await updateState(current => updateFriend(current,id,() => ({album:photos})));
-    if (page!=='settings' || activeFriendId(state)!==id) return;
-    $('#album-status').text('앨범 사진 '+photos.length+'장 저장했어요.'+(skipped ? ' 일부 사진은 열 수 없었어요.' : ''));
+    state=await updateState(current => updateFriend(current,id,friend => ({
+      album:[...new Map([...friend.album,...photos].map(photo => [photo.id,photo])).values()]
+    })));
+    if (!stillHere()) return;
+    status.text('앨범 사진 '+state.album.length+'장이 저장되어 있어요.'+(skipped ? ' 일부 사진은 열 수 없었어요.' : ''));
     $('#clear-album').prop('hidden',false);
+    if (from==='photo') await showDaily();
   } catch {
-    $('#album-status').text('사진을 기기에 저장하지 못했어요. 다시 시도해 주세요.');
+    if (stillHere()) status.text('사진을 기기에 저장하지 못했어요. 다시 시도해 주세요.');
   } finally {
-    this.disabled=false;
-    $('#clear-album').prop('disabled',false);
+    controls.prop('disabled',false);
   }
 });
 

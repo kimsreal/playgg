@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./app/style.css?v=16">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=16"></script>
+  <script type="module" src="./app/main.js?v=17"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -120,9 +120,10 @@
       </div>
       <div id="photo-empty" hidden>
         <h2>아직 사진이 없어요</h2>
-        <p>원하는 사진을 추가하면 하루에 한 장씩 볼 수 있어요.</p>
-        <button type="button" data-page="settings">사진 설정 열기</button>
+        <p>사진 앱의 반려동물 앨범에서 여러 장을 한 번에 고르면, 하루에 한 장씩 보여줘요. 선택한 사진은 이 브라우저에만 저장돼요.</p>
       </div>
+      <button type="button" class="primary" data-photo-picker>갤러리에서 사진 고르기</button>
+      <p id="photo-status" class="small" role="status"></p>
     </section>
     <section id="settings" hidden>
       <button type="button" class="return-home" data-page="home">‹ 초원</button>
@@ -133,13 +134,14 @@
       <p>반려동물 정보와 사진은 이 브라우저에 저장돼요. 브라우저의 사이트 데이터를 지우면 저장한 내용도 사라져요.</p>
       <h2>오늘의 사진</h2>
       <p>사진 앱의 반려동물 앨범에서 보여 줄 사진을 골라 주세요. 추가한 사진은 이 브라우저에만 저장돼요.</p>
-      <label>앨범 사진 선택<input type="file" id="album-photos" accept="image/*" multiple></label>
+      <button type="button" data-photo-picker>갤러리에서 사진 고르기</button>
       <p id="album-status" class="small" role="status"></p>
       <button type="button" id="clear-album">앨범 사진 선택 해제</button>
       <h2>홈 화면에 설치</h2>
       <p>iPhone은 Safari의 공유 메뉴에서 ‘홈 화면에 추가’를, Android는 Chrome 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택해 주세요.</p>
       <button type="button" id="install" hidden>안녕 설치</button>
     </section>
+    <input type="file" id="album-photos" accept="image/*" multiple hidden>
     <p id="app-error" role="alert" hidden></p>
   </main>
 </div>
