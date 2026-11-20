@@ -1,4 +1,4 @@
-import {themes,themeId,purchasedThemes} from './theme-catalog.js';
+import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=81';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
@@ -423,7 +423,7 @@ let economyBusy=false;
 const themeCards=Object.entries(themes).filter(([,theme]) => theme.price>0).map(([id,theme]) => {
   const card=byId('theme-card-template').content.firstElementChild.cloneNode(true);
   const preview=card.querySelector('img');
-  preview.src='./app/'+id+'-preview.webp';
+  preview.src='./app/'+(theme.preview || id+'-preview.webp');
   preview.alt=theme.alt;
   card.querySelector('h2').textContent=theme.name;
   const buy=card.querySelector('button');

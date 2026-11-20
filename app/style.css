@@ -210,7 +210,7 @@ section > .page-back { margin-bottom: 20px; }
 #home[data-background="coast"] #home-scene {
   background: linear-gradient(to bottom, #7f81be 0%, #d69bb5 23%, #ffd497 41%, #bdaabf 42%, #83aebd 66%, #d0e3dc 100%);
 }
-#home[data-background="walk"] #home-scene { background: linear-gradient(#a9d1db,#f8e2c5 55%,#fcf7e9); }
+#home[data-background="walk"] #home-scene { background: linear-gradient(180deg,#f5a669 0%,#ffc982 43%,#fff0a6 100%); }
 #home[data-background="clouds"] #home-scene { background: linear-gradient(#88b9ea,#ced8fa 58%,#f8efff); }
 #home[data-background="stars"] #home-scene {
   background: radial-gradient(ellipse at 65% 25%, #6c69a577, transparent 55%), linear-gradient(#151f49,#414974 62%,#69638c);
