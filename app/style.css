@@ -165,6 +165,36 @@ section > .page-back { margin-bottom: 20px; }
 .scene-icon:hover { background: var(--sky-hover); }
 .scene-icon { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 23px; line-height: 1; }
 .scene-controls { position: absolute; left: var(--edge-left); right: var(--edge-right); bottom: var(--edge-bottom); display: grid; justify-items: center; gap: 10px; pointer-events: none; }
+#catch-ball {
+  pointer-events: auto;
+  min-width: 110px;
+  border: 1px solid white;
+  box-shadow: 0 3px 12px var(--shadow);
+}
+#fallback-ball {
+  position: absolute;
+  top: 53%;
+  left: 50%;
+  width: 17px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 33% 27%, #ffe3ee, #f08ab4 58%, #cb527f);
+  pointer-events: none;
+}
+#fallback-ball-hearts .ui-icon {
+  position: absolute;
+  top: 47%;
+  left: calc(50% - 24px);
+  width: 25px;
+  height: 25px;
+  fill: #ee81a9;
+  color: #cf5587;
+  pointer-events: none;
+}
+#fallback-ball-hearts .ui-icon + .ui-icon {
+  top: 57%;
+  left: calc(50% + 63px);
+}
 .scene-actions {
   display: grid;
   grid-auto-flow: column;

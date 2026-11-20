@@ -31,7 +31,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=57').catch(() => null);
+const scenes=import('./scene.js?v=61').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -275,12 +275,63 @@ function showError(message) {
   $('#app-error').text(message).prop('hidden',!message);
 }
 
+const catchBallButton=byId('catch-ball');
+const fallbackBall=byId('fallback-ball');
+const fallbackBallHearts=byId('fallback-ball-hearts');
+let ballAnimation, fetchRun, ballTimer, fallbackFetch=false;
+
+function clearBall() {
+  ballAnimation?.cancel();
+  fetchRun?.cancel();
+  clearTimeout(ballTimer);
+  catchBallButton.hidden=fallbackBall.hidden=fallbackBallHearts.hidden=true;
+  fallbackFetch=false;
+}
+
+function showCatchBall() {
+  if (page==='home') catchBallButton.hidden=false;
+}
+
+function throwFallbackBall() {
+  fallbackFetch=true;
+  fallbackBall.hidden=false;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hold={transform:'translate(-24px,-14px)'};
+  ballAnimation=fallbackBall.animate(reduce ? [hold,hold] : [
+    {transform:'translate(62px,34px)'},
+    {transform:'translate(10px,-110px)',offset:.13},
+    {transform:'translate(-85px,-22px)',offset:.27},
+    {transform:'translate(-85px,-22px)',offset:.53},
+    hold
+  ],{duration:reduce ? 300 : 2400,fill:'forwards'});
+  if (!reduce) fetchRun=homeScene.querySelector('.fallback-pet').animate([
+    {transform:'translate(-50%,-50%)'},
+    {transform:'translate(-50%,-50%)',offset:.2},
+    {transform:'translate(calc(-50% - 85px),calc(-50% - 8px))',offset:.53},
+    {transform:'translate(-50%,-50%)'}
+  ],{duration:2400});
+  ballAnimation.onfinish=showCatchBall;
+}
+
+catchBallButton.addEventListener('click',() => {
+  catchBallButton.hidden=true;
+  if (!fallbackFetch) {
+    scene?.catchBall();
+    return;
+  }
+  ballAnimation?.cancel();
+  fallbackBall.hidden=true;
+  fallbackBallHearts.hidden=false;
+  ballTimer=setTimeout(() => { fallbackBallHearts.hidden=true; },1500);
+});
+
 const rideButton=byId('ride');
 function updateRideButton() {
   rideButton.setAttribute('aria-pressed',String(riding));
 }
 rideButton.addEventListener('click',() => {
   if (!scene) return;
+  clearBall();
   riding=scene.setRiding(!riding);
   updateRideButton();
 });
@@ -309,7 +360,7 @@ async function mountScene(host,profile,preview,delivery=false) {
   };
   try {
     scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{
-      preview,perspective,ownerModel,ownerColors,onGraphicsChange:setGraphicsAvailable
+      preview,perspective,ownerModel,ownerColors,onGraphicsChange:setGraphicsAvailable,onBallReady:showCatchBall
     });
     setGraphicsAvailable(true);
     if (!preview && !delivery) scene.play('greet');
@@ -320,6 +371,7 @@ async function mountScene(host,profile,preview,delivery=false) {
 }
 
 function show(pageId,delivery=false) {
+  clearBall();
   page=pageId;
   riding=false;
   rideButton.hidden=true;
@@ -565,12 +617,19 @@ $(avatarForm).on('submit',async event => {
 });
 
 function play(action,icon,object) {
+  clearBall();
   if (riding && scene) {
     riding=scene.setRiding(false);
     updateRideButton();
   }
-  scene?.play(action,object);
   clearTimeout(replyTimer);
+  if (action==='ball') {
+    byId('reply').hidden=true;
+    if (scene && homeScene.classList.contains('has-webgl')) scene.play('ball');
+    else throwFallbackBall();
+    return;
+  }
+  scene?.play(action,object);
   const reply=$('#reply').empty().append(action==='treat' && object ? objectImage(object) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
   if (!homeScene.classList.contains('has-webgl') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const effect=action==='disliked' ? 'translate(-125%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';
@@ -826,7 +885,7 @@ $(document).on('click','button[data-page]',function () {
 $(document).on('click','button[data-panel]',function () { interaction(this.dataset.panel); });
 $('#close-interaction').on('click',() => $('#interaction').prop('hidden',true));
 $(document).on('click','button[data-action]',function () {
-  play(this.dataset.action,this.dataset.action==='ball' ? 'volleyball' : 'heart');
+  play(this.dataset.action,'heart');
 });
 $('#edit-profile').on('click',openProfile);
 $('#edit-avatar').on('click',() => {

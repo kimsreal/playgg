@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=60">
+  <link rel="stylesheet" href="./app/style.css?v=61">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=57"></script>
+  <script type="module" src="./app/main.js?v=61"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -92,6 +92,11 @@
         </div>
         <span class="fallback-owner" aria-hidden="true"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#user-round"></use></svg></span>
         <button type="button" class="fallback-pet" data-action="pet" aria-label="아바타 쓰다듬기"></button>
+        <span id="fallback-ball" aria-hidden="true" hidden></span>
+        <div id="fallback-ball-hearts" aria-hidden="true" hidden>
+          <svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#heart"></use></svg>
+          <svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#heart"></use></svg>
+        </div>
         <span id="letter-envelope" aria-hidden="true" hidden><svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></span>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
@@ -105,12 +110,13 @@
         <button type="button" data-view="first" aria-pressed="false">1인칭</button>
       </div>
       <div class="scene-controls">
+        <button type="button" class="primary" id="catch-ball" hidden>받기</button>
         <div id="interaction" hidden>
           <div class="interaction-heading"><h2 id="interaction-title"></h2><button type="button" id="close-interaction" class="scene-icon" aria-label="선택 닫기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#x"></use></svg></button></div>
           <div id="interaction-options" class="buttons"></div>
         </div>
         <div class="scene-actions" role="group" aria-label="함께 놀기">
-          <button type="button" data-action="pet" aria-label="쓰다듬기" title="쓰다듬기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M3 11h4l3.4-2.6a2.2 2.2 0 0 1 2.7 0l1.4 1H21a1 1 0 0 1 0 2h-5m3.5 0a1 1 0 0 1 0 2H15m3 0a1 1 0 0 1 0 2h-4m2.5 0a1 1 0 0 1 0 2H11L7 16H3Z"/><path d="M16 4.5 18 3m1 4 2.5-.5"/></svg></button>
+          <button type="button" data-action="pet" aria-label="쓰다듬기" title="쓰다듬기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M2 7h5c2.4 0 3.7 1.2 5.7 1.7l7.9 2.6c1.5.5 1.4 2.2.1 2.5l-4.4-1.4 4 2.3c1.3.8.3 2.6-1.1 1.8l-4.2-2 2.9 2.5c1.1 1 .1 2.6-1.2 1.6l-4.5-3.4-1.8-.2 1.1 3.2c.5 1.6-1.2 2.4-2 1.1l-3.4-5.1L2 13Z"/></svg></button>
           <button type="button" data-panel="treats" aria-label="간식" title="간식"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#bone"></use></svg></button>
           <button type="button" data-action="ball" aria-label="공놀이" title="공놀이"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#volleyball"></use></svg></button>
           <button type="button" data-panel="items" aria-label="아이템" title="아이템"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12 2.5c1.2 6 3.5 8.3 9.5 9.5-6 1.2-8.3 3.5-9.5 9.5C10.8 15.5 8.5 13.2 2.5 12c6-1.2 8.3-3.5 9.5-9.5Z"/></svg></button>
