@@ -23,8 +23,8 @@
       <img src="./app/icon-drawing-192.png" alt="" width="192" height="192">
       <h1>안녕</h1>
       <p>보고 싶은 날에도, 그냥 같이 놀고 싶은 날에도.<br>반려동물과 둘만의 초원에서 편하게 시간을 보내요.</p>
-      <button type="button" class="primary" id="start-welcome">시작하기</button>
-      <button type="button" class="account-link" data-open-account>로그인 · 회원가입</button>
+      <button type="button" class="primary" data-open-account>로그인 · 회원가입</button>
+      <button type="button" id="start-welcome">시작하기</button>
       <p id="welcome-error" role="alert"></p>
     </section>
     <section id="setup" hidden>
