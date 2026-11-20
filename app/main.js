@@ -14,10 +14,35 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=9').catch(() => null);
+const scenes=import('./scene.js?v=12').catch(() => null);
 let state, draft, addingFriend=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
+
+let perspective='third';
+try {
+  if (localStorage.getItem('annyeong-perspective')==='first') perspective='first';
+} catch {
+  // The current view can still be changed when browser storage is unavailable.
+}
+
+function applyPerspective() {
+  byId('home').dataset.view=perspective;
+  $('.view-picker button').each(function () {
+    this.setAttribute('aria-pressed',String(this.dataset.view===perspective));
+  });
+  scene?.setPerspective(perspective);
+}
+
+$('.view-picker button').on('click',function () {
+  perspective=this.dataset.view;
+  applyPerspective();
+  try {
+    localStorage.setItem('annyeong-perspective',perspective);
+  } catch {
+    // The active scene has already switched.
+  }
+});
 
 function showError(message) {
   $('#app-error').text(message).prop('hidden',!message);
@@ -34,7 +59,7 @@ async function mountScene(host,profile,preview) {
   const module=await scenes;
   if (revision!==sceneRevision || !module) return;
   try {
-    scene=module.createScene(host,profile,preview ? null : () => play('pet','💕'),{preview});
+    scene=module.createScene(host,profile,preview ? null : () => play('pet','💕'),{preview,perspective});
     fallback.hidden=true;
     host.classList.add('has-webgl');
     if (!preview) scene.play('greet');
@@ -58,6 +83,7 @@ function show(pageId) {
   if (pageId==='friends') renderFriends();
   window.scrollTo(0,0);
   if (pageId==='home') {
+    applyPerspective();
     renderHome();
     void mountScene(byId('home-scene'),state.profile,false);
   }

@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=11">
+  <link rel="stylesheet" href="./app/style.css?v=12">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=10"></script>
+  <script type="module" src="./app/main.js?v=12"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -70,6 +70,7 @@
             <span class="flowers flowers-a">✿ ✦ ✿</span><span class="flowers flowers-b">✦ ✿ ✦</span>
           </div>
         </div>
+        <span class="fallback-owner" aria-hidden="true">🧑</span>
         <button type="button" class="fallback-pet" data-action="pet" aria-label="아바타 쓰다듬기"></button>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
@@ -81,6 +82,10 @@
       <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
         <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><span aria-hidden="true">🖼︎</span></button>
         <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><span aria-hidden="true">⚙︎</span></button>
+      </div>
+      <div class="view-picker" role="group" aria-label="초원 시점">
+        <button type="button" data-view="third" aria-pressed="true">3인칭</button>
+        <button type="button" data-view="first" aria-pressed="false">1인칭</button>
       </div>
       <div class="scene-controls">
         <div id="interaction" hidden>

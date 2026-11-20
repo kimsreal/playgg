@@ -91,21 +91,74 @@ function makeIsland(scene,theme) {
   return clouds;
 }
 
-export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) {
+function createOwner(scene) {
+  const root=new T.Group();
+  const blue=material(0x6ebfff);
+  const trousers=material(0x647d9d);
+  const skin=material(0xe4b393);
+  const hair=material(0x59463d);
+  const shoes=material(0xf7f5ee);
+  const oval=(parent,shade,x,y,z,sx,sy,sz) => {
+    const part=mesh(parent,new T.SphereGeometry(1,12,8),shade,x,y,z);
+    part.scale.set(sx,sy,sz);
+    return part;
+  };
+  const head=new T.Group();
+  head.position.y=1.44;
+  root.add(head);
+  oval(head,skin,0,0,0,.24,.26,.22);
+  oval(head,hair,0,.115,-.035,.25,.178,.226);
+  oval(head,hair,-.107,.154,.105,.156,.102,.12);
+  for (const side of [-1,1]) {
+    oval(head,hair,side*.087,.005,.199,.024,.032,.017);
+    oval(head,skin,side*.235,-.029,0,.045,.066,.048);
+    oval(root,trousers,side*.105,.332,0,.12,.275,.12);
+    oval(root,shoes,side*.112,.102,.064,.122,.097,.171);
+  }
+  oval(root,blue,0,.857,0,.267,.34,.186);
+  const arms=[-1,1].map(side => {
+    const arm=new T.Group();
+    arm.position.set(side*.232,1.04,0);
+    arm.rotation.z=side*.18;
+    oval(arm,blue,side*.034,-.128,0,.09,.175,.09);
+    oval(arm,skin,side*.062,-.277,.011,.071,.084,.068);
+    root.add(arm);
+    return arm;
+  });
+  root.position.set(2.35,0,2.58);
+  scene.add(root);
+  const shadow=mesh(scene,new T.CircleGeometry(.32,20),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.16}),root.position.x,.009,root.position.z);
+  shadow.rotation.x=-Math.PI/2;
+  return {root,head,arms,shadow};
+}
+
+export function createScene(host,profile,onPet,{preview=false,theme=meadow,perspective='third'}={}) {
   const renderer = new T.WebGLRenderer({antialias:true,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
   renderer.setClearColor(theme.sky,preview ? 1 : 0);
   renderer.domElement.setAttribute('aria-hidden','true');
   host.prepend(renderer.domElement);
   const scene = new T.Scene();
-  const camera = new T.OrthographicCamera();
-  camera.position.set(preview ? 2 : 5.8,preview ? 2.3 : 7.8,preview ? 5 : 12);
-  camera.lookAt(0,preview ? .76 : .45,0);
+  const overview = new T.OrthographicCamera();
+  const eye = new T.PerspectiveCamera(54,1,.055,60);
+  let camera=overview;
+  overview.position.set(preview ? 2 : 5.8,preview ? 2.3 : 7.8,preview ? 5 : 12);
+  overview.lookAt(0,preview ? .76 : .45,0);
   scene.add(new T.HemisphereLight(0xfffcf5,0xc5c6ac,2.2));
   const sunlight = new T.DirectionalLight(0xffefd5,2);
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
   const clouds=preview ? null : makeIsland(scene,theme);
+  const owner=preview ? null : createOwner(scene);
+  const eyeTarget=new T.Vector3();
+  const setPerspective=view => {
+    if (!owner) return;
+    const first=view==='first';
+    owner.root.visible=!first;
+    owner.shadow.visible=!first;
+    camera=first ? eye : overview;
+  };
+  setPerspective(perspective);
   const shadow=mesh(scene,new T.CircleGeometry(.74,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.17}),0,.009,0);
   shadow.rotation.x=-Math.PI/2;
   const pet = createAvatar(profile);
@@ -121,10 +174,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) 
     if (!w || !h) return;
     renderer.setSize(w,h,false);
     const extent=preview ? 1.28 : Math.max(3.7,5.15*h/w);
-    camera.left=-extent*w/h; camera.right=extent*w/h;
-    camera.top=extent; camera.bottom=-extent;
-    camera.near=.1; camera.far=60;
-    camera.updateProjectionMatrix();
+    overview.left=-extent*w/h; overview.right=extent*w/h;
+    overview.top=extent; overview.bottom=-extent;
+    overview.near=.1; overview.far=60;
+    overview.updateProjectionMatrix();
+    eye.aspect=w/h;
+    eye.fov=w<h*.65 ? 65 : 54;
+    eye.updateProjectionMatrix();
   };
   const observer=new ResizeObserver(size);
   observer.observe(host);
@@ -204,7 +260,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) 
         if (kind==='pet' && heart) {
           heart.visible=true;
           heart.position.set(pet.root.position.x,1.76+(move ? p*.95 : 0),pet.root.position.z+.13);
-          heart.quaternion.copy(camera.quaternion);
+
           heart.children.forEach((part,i) => {part.position.y=Math.sin(i*2+p*3)*.18; part.scale.setScalar(.62+(i%3)*.17);});
         }
         if (kind==='pet' || kind==='wag' || kind==='liked') {
@@ -226,6 +282,18 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) 
         }
       }
     }
+    if (owner) {
+      const position=pet.root.position;
+      owner.root.rotation.y=Math.atan2(position.x-owner.root.position.x,position.z-owner.root.position.z);
+      const reaching=alive && ['pet','treat','liked','ball'].includes(action.kind);
+      owner.arms[0].rotation.x=reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : 0;
+      owner.arms[1].rotation.x=move ? Math.sin(t*2)*.055 : 0;
+      owner.head.rotation.x=reaching ? .13 : 0;
+      eye.position.set(owner.root.position.x,1.46,owner.root.position.z);
+      eyeTarget.set(position.x,.72,position.z);
+      eye.lookAt(eyeTarget);
+    }
+    if (heart?.visible) heart.quaternion.copy(camera.quaternion);
     shadow.position.x=pet.root.position.x;
     shadow.position.z=pet.root.position.z;
     renderer.render(scene,camera);
@@ -239,6 +307,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow}={}) 
   };
   if (onPet) renderer.domElement.addEventListener('click',tap);
   return {
+    setPerspective,
     play(kind) {
       const now=performance.now();
       action={kind,started:now};
