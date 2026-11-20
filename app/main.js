@@ -379,6 +379,7 @@ const foodReward=5;
 const backgroundChoice=byId('background-choice');
 const backgroundStatus=byId('background-status');
 const coastBuy=byId('coast-buy');
+const themeShopStatus=byId('theme-shop-status');
 const foodReset=byId('food-reset');
 const foodRetry=byId('food-retry');
 const foodStatus=byId('food-status');
@@ -421,10 +422,15 @@ function renderBalance() {
   const balance=state?.leaves || 0;
   const unlocked=ownsCoast(state);
   byId('home-leaf-count').textContent=String(balance);
-  byId('leaf-settings-balance').textContent='보유 잎사귀 '+balance+'개';
-  byId('coast-unlock').hidden=unlocked;
-  backgroundChoice.querySelector('[value=coast]').disabled=!unlocked;
+  byId('theme-shop-balance').textContent='보유 잎사귀 '+balance+'개';
+  byId('coast-card').dataset.locked=String(!unlocked);
+  byId('coast-lock').hidden=unlocked;
+  byId('coast-price').textContent=unlocked ? '보유 중' : '잎사귀 '+coastCost+'개';
+  const coastOption=backgroundChoice.querySelector('[value=coast]');
+  coastOption.hidden=coastOption.disabled=!unlocked;
+  coastBuy.hidden=unlocked;
   coastBuy.disabled=economyBusy || balance<coastCost;
+  coastBuy.textContent=balance<coastCost ? '잎사귀가 부족해요' : '노을 바다 구매';
 }
 
 async function changeBackground(selected,buy=false) {
@@ -432,7 +438,8 @@ async function changeBackground(selected,buy=false) {
   const session=account;
   economyBusy=true;
   backgroundChoice.disabled=true;
-  backgroundStatus.hidden=true;
+  const status=buy ? themeShopStatus : backgroundStatus;
+  status.hidden=true;
   renderBalance();
   try {
     const updated=await updateState(current => {
@@ -445,14 +452,14 @@ async function changeBackground(selected,buy=false) {
     state=updated;
     background=selected;
     if (buy) {
-      backgroundStatus.textContent='노을 바다를 구매했어요.';
-      backgroundStatus.hidden=false;
+      status.textContent='노을 바다를 구매했어요.';
+      status.hidden=false;
     }
     if (page==='home' && byId('home').dataset.background!==selected) show('home');
   } catch {
     if (account===session) {
-      backgroundStatus.textContent='배경을 저장하지 못했어요. 다시 시도해 주세요.';
-      backgroundStatus.hidden=false;
+      status.textContent='배경을 저장하지 못했어요. 다시 시도해 주세요.';
+      status.hidden=false;
     }
   } finally {
     economyBusy=false;
@@ -606,6 +613,10 @@ function show(pageId,delivery=null) {
     foodGame.resume();
   }
   if (pageId==='account') renderAccount();
+  if (pageId==='theme-shop') {
+    themeShopStatus.hidden=true;
+    renderBalance();
+  }
   if (pageId==='settings') {
     renderBalance();
     backgroundChoice.value=background;

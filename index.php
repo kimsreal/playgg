@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=77">
+  <link rel="stylesheet" href="./app/style.css?v=78">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=77"></script>
+  <script type="module" src="./app/main.js?v=78"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -242,6 +242,27 @@
       <button type="button" class="primary" data-photo-picker>갤러리에서 사진 고르기</button>
       <p id="photo-status" class="small" role="status"></p>
     </section>
+    <section id="theme-shop" hidden>
+      <button type="button" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <h1>테마 상점</h1>
+      <p class="small" id="theme-shop-balance"></p>
+      <ul class="theme-grid">
+        <li class="theme-card" id="coast-card" data-locked="true">
+          <div class="theme-preview">
+            <img src="./app/coast-preview.webp" alt="노을 아래 야자수가 있는 모래섬" width="390" height="390" loading="lazy">
+            <span class="theme-lock" id="coast-lock" role="img" aria-label="잠겨 있음">
+              <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg>
+            </span>
+          </div>
+          <div class="theme-card-meta">
+            <h2>노을 바다</h2>
+            <p class="small" id="coast-price">잎사귀 50개</p>
+            <button type="button" id="coast-buy" class="primary">노을 바다 구매</button>
+          </div>
+        </li>
+      </ul>
+      <p class="small" id="theme-shop-status" role="status" hidden></p>
+    </section>
     <section id="settings" hidden>
       <header class="settings-header">
         <button type="button" class="page-back scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
@@ -263,12 +284,7 @@
                 <option value="meadow">초원</option>
                 <option value="coast">노을 바다</option>
               </select>
-              <p class="small" id="leaf-settings-balance"></p>
-              <div id="coast-unlock" class="coast-unlock">
-                <p class="small">노을 바다 · 잎사귀 50개</p>
-                <button type="button" id="coast-buy" class="primary">노을 바다 구매</button>
-                <button type="button" data-page="food-intro">먹이 합치기 하러 가기</button>
-              </div>
+              <button type="button" class="theme-shop-link" data-page="theme-shop">다른 테마 보러가기</button>
               <p class="small" id="background-status" role="status" hidden></p>
             </div>
           </details>
