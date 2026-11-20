@@ -377,3 +377,12 @@ section > .page-back { margin-bottom: 20px; }
   background: var(--white);
 }
 #owner-gender-status:empty { display: none; }
+
+#ride {
+  pointer-events: auto;
+  padding-inline: 16px;
+  border: 1px solid var(--line);
+  background: var(--sky-soft);
+  box-shadow: 0 3px 10px var(--shadow);
+}
+#ride[aria-pressed="true"] { background: var(--sky); }

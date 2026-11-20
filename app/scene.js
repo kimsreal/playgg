@@ -233,7 +233,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const updateEyeCamera=() => {
     const position=owner.root.position;
     const heading=owner.root.rotation.y;
-    eye.position.set(position.x,1.46,position.z);
+    eye.position.set(position.x,position.y+1.46*owner.root.scale.y,position.z);
     eyeTarget.set(position.x+Math.sin(heading)*3,eye.position.y+Math.tan(eyePitch)*3,position.z+Math.cos(heading)*3);
     eye.lookAt(eyeTarget);
   };
@@ -248,6 +248,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const shadow=mesh(scene,new T.CircleGeometry(.74,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.17}),0,.009,0);
   shadow.rotation.x=-Math.PI/2;
   const pet = createAvatar(profile);
+  pet.root.name='pet';
   const hamster=profile.species==='hamster';
   scene.add(pet.root);
   const toy = mesh(scene,new T.IcosahedronGeometry(.22,1),material(0xec997d),0,0,0);
@@ -267,6 +268,36 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const ground=new T.Plane(new T.Vector3(0,1,0),0);
   const hit=new T.Vector3();
   const ownerTarget=owner?.root.position.clone();
+  let riding=false;
+  let approaching=false;
+  let seatBlend=0;
+  const seat=new T.Vector3();
+  const walkVector=new T.Vector3();
+  const seatHeight={dog:1.06,cat:1.06,hamster:.66,parrot:1.13,lizard:.64}[profile.species];
+  const riderScale=(hamster || profile.species==='lizard' ? .43 : .58)*pet.scale;
+
+  function setRiding(next) {
+    if (!owner || riding===next) return riding;
+    riding=next;
+    idleTime=0;
+    marker.visible=false;
+    const petPosition=pet.root.position;
+    if (riding) {
+      action=null;
+      approaching=seatBlend===0;
+      ownerTarget.set(petPosition.x,0,petPosition.z);
+    } else {
+      approaching=false;
+      if (seatBlend>0) {
+        const heading=pet.root.rotation.y;
+        ownerTarget.set(petPosition.x+Math.cos(heading)*.92,0,petPosition.z-Math.sin(heading)*.92);
+        ownerTarget.clampLength(0,theme.radius-.26);
+      } else {
+        ownerTarget.set(owner.root.position.x,0,owner.root.position.z);
+      }
+    }
+    return riding;
+  }
   const marker=owner ? mesh(scene,new T.RingGeometry(.18,.23,32),
     new T.MeshBasicMaterial({color:0x62b9f1,transparent:true,opacity:.8,side:T.DoubleSide}),0,.025,0) : null;
   if (marker) {
@@ -342,7 +373,13 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       const previousX=position.x;
       const previousZ=position.z;
       let stride=.33;
-      if (!alive && move) {
+      if (riding && !approaching && seatBlend>.9) {
+        petStep.set(ownerTarget.x-position.x,0,ownerTarget.z-position.z);
+        if (move) petStep.clampLength(0,elapsed*2.05);
+        position.add(petStep);
+        stride=.42;
+        if (Math.hypot(position.x-ownerTarget.x,position.z-ownerTarget.z)<.025) marker.visible=false;
+      } else if (!riding && !alive && move) {
         if (idleTime<.7 || Math.floor((idleTime-.7)/6)%2===1) {
           if (idleTime>=.7) pet.root.scale.y=pet.scale*.83;
         } else {
@@ -430,17 +467,44 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     }
     if (owner) {
       const position=owner.root.position;
-      const distance=position.distanceTo(ownerTarget);
-      const walking=distance>.008;
-      if (walking) position.lerp(ownerTarget,move ? Math.min(1,elapsed*2.45/distance) : 1);
-      else if (marker.visible) marker.visible=false;
+      const petPosition=pet.root.position;
+      if (riding && approaching) {
+        walkVector.set(petPosition.x-position.x,0,petPosition.z-position.z);
+        const distance=walkVector.length();
+        if (distance<.65 || !move) approaching=false;
+        else {
+          owner.root.rotation.y=Math.atan2(walkVector.x,walkVector.z);
+          position.add(walkVector.setLength(Math.min(elapsed*2.45,distance-.58)));
+        }
+      }
+      const seatRate=move ? elapsed*3.2 : 1;
+      seatBlend=T.MathUtils.clamp(seatBlend+(riding && !approaching ? seatRate : -seatRate),0,1);
+      const seated=T.MathUtils.smoothstep(seatBlend,0,1);
+      owner.root.scale.setScalar(T.MathUtils.lerp(1,riderScale,seated));
+      if (riding && !approaching) {
+        const angle=pet.root.rotation.y;
+        const offset=profile.species==='parrot' ? .2 : .15;
+        seat.set(petPosition.x-Math.sin(angle)*offset,
+          petPosition.y+seatHeight*pet.root.scale.y-.55*riderScale,
+          petPosition.z-Math.cos(angle)*offset);
+        position.lerp(seat,seatBlend===1 || !move ? 1 : 1-Math.exp(-elapsed*13));
+        if (camera!==eye && seatBlend>.7) owner.root.rotation.y=angle;
+      } else if (!riding) {
+        const distance=position.distanceTo(ownerTarget);
+        if (distance>.008) position.lerp(ownerTarget,move ? Math.min(1,elapsed*2.45/distance) : 1);
+        else if (marker.visible) marker.visible=false;
+      }
+      const walking=approaching || (!riding && position.distanceTo(ownerTarget)>.008);
       const stride=walking && move ? Math.sin(t*13)*.37 : 0;
-      owner.legs[0].rotation.x=stride;
-      owner.legs[1].rotation.x=-stride;
+      owner.legs[0].rotation.x=T.MathUtils.lerp(stride,-1.17,seated);
+      owner.legs[1].rotation.x=T.MathUtils.lerp(-stride,-1.17,seated);
+      owner.legs[0].rotation.z=-.45*seated;
+      owner.legs[1].rotation.z=.45*seated;
       owner.shadow.position.set(position.x,.009,position.z);
+      owner.shadow.material.opacity=.16*(1-seated);
       const reaching=alive && ['pet','treat','liked','ball'].includes(action.kind);
-      owner.arms[0].rotation.x=reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : -stride*.7;
-      owner.arms[1].rotation.x=walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0;
+      owner.arms[0].rotation.x=T.MathUtils.lerp(reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : -stride*.7,-.62,seated);
+      owner.arms[1].rotation.x=T.MathUtils.lerp(walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0,-.62,seated);
       owner.head.rotation.x=reaching ? .13 : 0;
       if (camera===eye) updateEyeCamera();
     }
@@ -456,15 +520,15 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const rect=renderer.domElement.getBoundingClientRect();
     camera.updateMatrixWorld();
     ray.setFromCamera(new T.Vector2((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2),camera);
-    if (ray.intersectObject(pet.root,true).length) {
+    if (!riding && ray.intersectObject(pet.root,true).length) {
       onPet();
       return;
     }
     if (!owner) return;
-    const position=owner.root.position;
+    const position=riding ? pet.root.position : owner.root.position;
     if (!ray.ray.intersectPlane(ground,hit) || hit.length()>theme.radius) {
       if (camera===eye) {
-        ownerTarget.copy(position);
+        ownerTarget.set(position.x,0,position.z);
         marker.visible=false;
         owner.root.rotation.y=Math.atan2(ray.ray.direction.x,ray.ray.direction.z);
       }
@@ -481,6 +545,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   if (onPet) renderer.domElement.addEventListener('click',tap);
   return {
     setPerspective,
+    setRiding,
     dragView(dx,dy) {
       if (!owner) return;
       const sensitivity=.007;

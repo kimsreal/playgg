@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=25">
+  <link rel="stylesheet" href="./app/style.css?v=30">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=29"></script>
+  <script type="module" src="./app/main.js?v=30"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -88,6 +88,7 @@
           <div class="interaction-heading"><h2 id="interaction-title"></h2><button type="button" id="close-interaction" class="scene-icon" aria-label="선택 닫기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#x"></use></svg></button></div>
           <div id="interaction-options" class="buttons"></div>
         </div>
+        <button type="button" id="ride" aria-pressed="false" hidden>타기</button>
         <div class="scene-actions" role="group" aria-label="함께 놀기">
           <button type="button" data-action="pet"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#heart"></use></svg>쓰다듬기</button>
           <button type="button" data-panel="treats"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#bone"></use></svg>간식</button>

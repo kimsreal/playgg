@@ -28,8 +28,9 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=29').catch(() => null);
+const scenes=import('./scene.js?v=30').catch(() => null);
 let state, draft, addingFriend=false;
+let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
 let renderedDay;
 
@@ -137,6 +138,17 @@ function showError(message) {
   $('#app-error').text(message).prop('hidden',!message);
 }
 
+const rideButton=byId('ride');
+function updateRideButton() {
+  rideButton.textContent=riding ? '내리기' : '타기';
+  rideButton.setAttribute('aria-pressed',String(riding));
+}
+rideButton.addEventListener('click',() => {
+  if (!scene) return;
+  riding=scene.setRiding(!riding);
+  updateRideButton();
+});
+
 async function mountScene(host,profile,preview) {
   const revision=++sceneRevision;
   scene?.dispose();
@@ -151,7 +163,10 @@ async function mountScene(host,profile,preview) {
     scene=module.createScene(host,profile,preview ? null : () => play('pet','heart'),{preview,perspective,ownerGender});
     fallback.hidden=true;
     host.classList.add('has-webgl');
-    if (!preview) scene.play('greet');
+    if (!preview) {
+      scene.play('greet');
+      rideButton.hidden=false;
+    }
   } catch {
     // The rest of the app still works on devices without WebGL.
   }
@@ -159,6 +174,9 @@ async function mountScene(host,profile,preview) {
 
 function show(pageId) {
   page=pageId;
+  riding=false;
+  rideButton.hidden=true;
+  updateRideButton();
   ++sceneRevision;
   scene?.dispose();
   scene=null;
@@ -365,6 +383,10 @@ $(avatarForm).on('submit',async event => {
 });
 
 function play(action,icon,treat) {
+  if (riding && scene) {
+    riding=scene.setRiding(false);
+    updateRideButton();
+  }
   scene?.play(action,treat);
   clearTimeout(replyTimer);
   const reply=$('#reply').empty().append(treat ? treatImage(treat) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
