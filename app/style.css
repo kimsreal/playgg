@@ -415,3 +415,8 @@ section > .page-back { margin-bottom: 20px; }
 #welcome p { max-width: 29ch; color: var(--muted-ink); word-break: keep-all; }
 #welcome button { margin-top: 14px; min-width: min(200px, 100%); }
 #welcome #welcome-error { color: #87432f; }
+
+.account-link { color: var(--focus); }
+#account-form { display: grid; gap: 11px; }
+#account-form button { justify-self: start; }
+#account [data-auth-mode][aria-pressed="true"] { background: var(--sky); font-weight: 650; }

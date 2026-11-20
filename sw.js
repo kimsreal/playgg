@@ -1,7 +1,7 @@
-const CACHE='annyeong-v38';
+const CACHE='annyeong-v39';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=6','./app/style.css?v=38','./app/main.js?v=38','./app/photos.js?v=5',
-  './app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js','./app/icons.svg?v=20','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=38','./app/vendor/three.module.min.js',
+  './','./manifest.webmanifest?v=6','./app/style.css?v=39','./app/main.js?v=39','./app/photos.js?v=39',
+  './app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js','./app/account.js','./app/icons.svg?v=20','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=38','./app/vendor/three.module.min.js',
   './app/items.js','./app/item-names.js',
   './app/item-ball.png','./app/item-bath.png','./app/item-vacuum.png','./app/item-tube.png','./app/item-bag.png','./app/item-gift-0.png','./app/item-gift-1.png','./app/item-gift-2.png',
   './app/vendor/jquery.min.js','./app/icon-drawing-192.png','./app/icon-drawing-512.png'

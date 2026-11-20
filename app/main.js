@@ -1,7 +1,8 @@
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
-import { readState, updateState, preparePhotos, chooseDaily } from './photos.js?v=5';
+import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -37,12 +38,57 @@ let renderedDay;
 
 let perspective='third';
 let ownerGender='default';
-try {
-  if (localStorage.getItem('annyeong-perspective')==='first') perspective='first';
-  const savedGender=localStorage.getItem('annyeong-owner-gender');
-  if (savedGender==='male' || savedGender==='female') ownerGender=savedGender;
-} catch {
-  // The current view can still be changed when browser storage is unavailable.
+let account=null;
+let accountReturnPage='welcome';
+let accountMode='login';
+let writes=Promise.resolve();
+
+function applyPreferences(settings) {
+  perspective=settings.perspective;
+  ownerGender=settings.ownerGender;
+  byId('owner-gender').value=ownerGender;
+}
+
+function guestPreferences() {
+  try {
+    const gender=localStorage.getItem('annyeong-owner-gender');
+    return {
+      perspective:localStorage.getItem('annyeong-perspective')==='first' ? 'first' : 'third',
+      ownerGender:gender==='male' || gender==='female' ? gender : 'default'
+    };
+  } catch {
+    return {perspective:'third',ownerGender:'default'};
+  }
+}
+
+function accountKey(session) {
+  return 'account:'+session.user.id;
+}
+
+function updateState(update) {
+  if (!account) return writeLocalState(update);
+  const session=account;
+  const key=accountKey(session);
+  const pending=writes.then(async () => {
+    const previous=await readState(key);
+    const updated=update(previous);
+    const settings=accountSettings(updated);
+    if (JSON.stringify(settings)!==JSON.stringify(accountSettings(previous))) {
+      const saved=await saveAccount(session,settings);
+      session.revision=saved.revision;
+    }
+    return writeLocalState(() => updated,key);
+  });
+  writes=pending.catch(() => {});
+  return pending;
+}
+
+async function enterAccount(session,guestSeed) {
+  const key=accountKey(session);
+  const restored=await writeLocalState(local => mergeAccount(session.settings,local || guestSeed),key);
+  account=session;
+  state=restored;
+  applyPreferences(session.settings);
 }
 
 function applyPerspective() {
@@ -53,25 +99,38 @@ function applyPerspective() {
   scene?.setPerspective(perspective);
 }
 
-$('.view-picker button').on('click',function () {
+$('.view-picker button').on('click',async function () {
   perspective=this.dataset.view;
   applyPerspective();
+  const value=perspective;
   try {
-    localStorage.setItem('annyeong-perspective',perspective);
+    if (account) state=await updateState(current => ({...current,perspective:value}));
+    else localStorage.setItem('annyeong-perspective',value);
   } catch {
-    // The active scene has already switched.
+    if (account && perspective===value) {
+      perspective=state?.perspective || 'third';
+      applyPerspective();
+      showError('시점을 계정에 저장하지 못했어요. 다시 시도해 주세요.');
+    }
   }
 });
 
 const genderSelect=byId('owner-gender');
-genderSelect.value=ownerGender;
-genderSelect.addEventListener('change',() => {
+genderSelect.addEventListener('change',async () => {
   ownerGender=genderSelect.value;
+  const value=ownerGender;
   try {
-    localStorage.setItem('annyeong-owner-gender',ownerGender);
+    if (account) state=await updateState(current => ({...current,ownerGender:value}));
+    else localStorage.setItem('annyeong-owner-gender',value);
     $('#owner-gender-status').text('저장했어요.');
   } catch {
-    $('#owner-gender-status').text('이번 접속에 적용했어요.');
+    if (account) {
+      ownerGender=state?.ownerGender || 'default';
+      genderSelect.value=ownerGender;
+      $('#owner-gender-status').text('계정에 저장하지 못했어요. 다시 시도해 주세요.');
+    } else {
+      $('#owner-gender-status').text('이번 접속에 적용했어요.');
+    }
   }
 });
 
@@ -261,6 +320,7 @@ function show(pageId) {
     $('#photo-status').text('');
     void showDaily();
   }
+  if (pageId==='account') renderAccount();
   if (pageId==='settings') {
     byId('settings-search').value='';
     filterSettings();
@@ -301,6 +361,10 @@ function renderDates() {
 
 function openProfile() {
   profileForm.reset();
+  $('#profile-storage-copy').text(account
+    ? '반려동물 정보는 계정에 저장돼요. 사진은 이 브라우저에만 저장돼요.'
+    : '로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.');
+  $('#setup [data-open-account]').text(account ? '계정' : '로그인 · 회원가입');
   const profile=draft || (addingFriend ? null : state?.profile);
   $('#setup-kicker').text(addingFriend || state?.profile ? '우리 공간' : '처음 만나는 날');
   $('#setup-title').text(addingFriend ? '새 친구를 소개해 주세요' : state?.profile ? '반려동물 정보' : '우리 공간을 만들어요');
@@ -674,6 +738,112 @@ window.addEventListener('pageshow',event => {
   if (event.persisted && page==='home') applyPerspective();
 });
 
+const accountForm=byId('account-form');
+
+function setAccountMode(mode) {
+  accountMode=mode;
+  const registering=mode==='register';
+  $('#account-name-field,#password-help,#account-import-note').prop('hidden',!registering);
+  accountForm.elements.name.disabled=!registering;
+  accountForm.elements.name.required=registering;
+  const password=accountForm.elements.password;
+  password.autocomplete=registering ? 'new-password' : 'current-password';
+  password.minLength=registering ? 8 : 1;
+  $('#account-submit').text(registering ? '회원가입' : '로그인');
+  $('[data-auth-mode]').each(function () {
+    this.setAttribute('aria-pressed',String(this.dataset.authMode===mode));
+  });
+  $('#account-error').text('');
+}
+
+function renderAccount() {
+  $('#account-signed-in').prop('hidden',!account);
+  $('#account-signed-out').prop('hidden',Boolean(account));
+  $('#account-name').text(account?.user.name || '');
+  $('#account-email').text(account?.user.email || '');
+  accountForm.reset();
+  setAccountMode('login');
+}
+
+function accountError(error) {
+  const messages={
+    not_configured:'운영 서버에 DB 연결 설정이 준비되면 이용할 수 있어요.',
+    unavailable:'계정 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.',
+    email_used:'이미 가입된 이메일이에요. 로그인해 주세요.',
+    incorrect_login:'이메일 또는 암호를 다시 확인해 주세요.',
+    invalid_credentials:'이메일을 확인하고 암호는 72바이트 이하로 입력해 주세요.',
+    invalid_name:'이름을 확인해 주세요.',
+    invalid_password:'암호를 8자 이상 입력해 주세요.',
+    invalid_settings:'반려동물 설정을 복사하지 못했어요. 정보를 확인해 주세요.',
+    rate_limited:'시도가 너무 많아요. 잠시 후 다시 시도해 주세요.',
+    already_signed_in:'다른 탭에서 이미 로그인했어요. 새로고침해 주세요.',
+    csrf:'계정 상태가 바뀌었어요. 다시 시도해 주세요.'
+  };
+  $('#account-error').text(messages[error.message] || messages.unavailable);
+}
+
+function showSavedScreen() {
+  draft=null;
+  addingFriend=false;
+  if (state?.profile) show('home');
+  else if (state?.onboarding) {
+    const saved=state.onboarding;
+    draft=saved.profile;
+    if (saved.step==='avatar') openAvatar();
+    else openProfile();
+  } else if (state?.welcomed || account) openProfile();
+  else show('welcome');
+}
+
+$(document).on('click','[data-open-account]',() => {
+  accountReturnPage=page;
+  show('account');
+});
+$('#account-back').on('click',() => show(accountReturnPage));
+$('[data-auth-mode]').on('click',function () {
+  accountForm.elements.password.value='';
+  setAccountMode(this.dataset.authMode);
+});
+
+async function runAccountAction(operation) {
+  const controls=$('#account button, #account input').not(':disabled').prop('disabled',true);
+  $('#account-error').text('');
+  try {
+    await writes;
+    await operation();
+  } catch (error) {
+    accountError(error);
+  } finally {
+    controls.prop('disabled',false);
+  }
+}
+
+accountForm.addEventListener('submit',event => {
+  event.preventDefault();
+  const fields=Object.fromEntries(new FormData(accountForm));
+  const action=accountMode;
+  void runAccountAction(async () => {
+    const guestSeed=action==='register' ? state : undefined;
+    if (action==='register') fields.settings=accountSettings({...state,perspective,ownerGender});
+    try {
+      const session=await changeAccount(action,fields);
+      await enterAccount(session,guestSeed);
+      showSavedScreen();
+    } finally {
+      accountForm.elements.password.value='';
+    }
+  });
+});
+$('#account-logout').on('click',function () {
+  void runAccountAction(async () => {
+    await changeAccount('logout');
+    account=null;
+    state=await readState();
+    applyPreferences(guestPreferences());
+    showSavedScreen();
+  });
+});
+
 byId('start-welcome').addEventListener('click',async event => {
   const button=event.currentTarget;
   button.disabled=true;
@@ -690,16 +860,11 @@ byId('start-welcome').addEventListener('click',async event => {
 });
 
 try {
-  state=await readState();
-  if (state?.profile) {
-    show('home');
-  } else if (state?.onboarding) {
-    const saved=state.onboarding;
-    draft=saved.profile;
-    if (saved.step==='avatar') openAvatar();
-    else openProfile();
-  } else if (state?.welcomed) openProfile();
-  else show('welcome');
+  const [guest,session]=await Promise.all([readState(),readAccount().catch(() => null)]);
+  state=guest;
+  applyPreferences(guestPreferences());
+  if (session?.user) await enterAccount(session);
+  showSavedScreen();
 } catch {
   showError('이 기기의 저장 공간을 열 수 없어요. 일반 브라우저 창에서 다시 열어 주세요.');
 } finally {

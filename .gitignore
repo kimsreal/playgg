@@ -63,3 +63,4 @@ config/banner/
 public/doc/
 robots.txt
 sitemap.xml
+!/config/cf-playground.sample.php

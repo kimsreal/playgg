@@ -13,27 +13,27 @@ function database() {
   return connection;
 }
 
-export async function readState() {
+export async function readState(key = 'state') {
   const db=await database();
   return new Promise((resolve,reject) => {
-    const request=db.transaction('app').objectStore('app').get('state');
+    const request=db.transaction('app').objectStore('app').get(key);
     request.onsuccess=() => resolve(request.result);
     request.onerror=() => reject(request.error);
   });
 }
 
-export async function updateState(update) {
+export async function updateState(update, key = 'state') {
   const db=await database();
   return new Promise((resolve,reject) => {
     const transaction=db.transaction('app','readwrite');
     const store=transaction.objectStore('app');
-    const read=store.get('state');
+    const read=store.get(key);
     let result;
     let error;
     read.onsuccess=() => {
       try {
         result=update(read.result);
-        store.put(result,'state');
+        store.put(result,key);
       } catch (problem) {
         error=problem;
         transaction.abort();

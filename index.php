@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=38">
+  <link rel="stylesheet" href="./app/style.css?v=39">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=38"></script>
+  <script type="module" src="./app/main.js?v=39"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -24,13 +24,15 @@
       <h1>안녕</h1>
       <p>보고 싶은 날에도, 그냥 같이 놀고 싶은 날에도.<br>반려동물과 둘만의 초원에서 편하게 시간을 보내요.</p>
       <button type="button" class="primary" id="start-welcome">시작하기</button>
+      <button type="button" class="account-link" data-open-account>로그인 · 회원가입</button>
       <p id="welcome-error" role="alert"></p>
     </section>
     <section id="setup" hidden>
       <button type="button" id="setup-back" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기" hidden><span aria-hidden="true">‹</span></button>
       <p class="kicker" id="setup-kicker">처음 만나는 날</p>
       <h1 id="setup-title" tabindex="-1">우리 공간을 만들어요</h1>
-      <p>로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
+      <p id="profile-storage-copy">로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
+      <button type="button" class="account-link" data-open-account>로그인 · 회원가입</button>
       <form id="profile-form">
         <fieldset><legend>어떤 이야기를 담을까요?</legend>
           <label class="choice"><input type="radio" name="mode" value="memory" required> 무지개다리를 건넜어요</label>
@@ -140,6 +142,7 @@
       <p id="mode-copy" class="small" hidden></p>
       <p id="occasion" class="occasion" role="status" hidden></p>
       <ul class="settings-list">
+        <li data-setting="계정 로그인 회원가입 로그아웃"><button type="button" class="settings-row" data-open-account><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#user-round"></use></svg><span>계정</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></button></li>
         <li data-setting="반려동물 정보와 모드 바꾸기 이름 생일 기일 다시 만나기"><button type="button" class="settings-row" id="edit-profile"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#user-round"></use></svg><span>반려동물 정보와 모드 바꾸기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></button></li>
         <li data-setting="아바타 꾸미기 색 몸 귀 꼬리 무늬"><button type="button" class="settings-row" id="edit-avatar"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#sparkles"></use></svg><span>아바타 꾸미기</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></button></li>
         <li data-setting="주인 아바타 성별 남성 여성 기본">
@@ -172,7 +175,7 @@
           <details>
             <summary class="settings-row"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#hard-drive"></use></svg><span>저장 공간</span><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=20#chevron-right"></use></svg></summary>
             <div class="settings-detail">
-              <p>반려동물 정보와 사진은 이 브라우저에 저장돼요. 브라우저의 사이트 데이터를 지우면 저장한 내용도 사라져요.</p>
+              <p>로그인하면 반려동물 정보와 화면 설정이 계정에 저장돼요. 게스트 정보와 사진은 이 브라우저에 저장돼요.</p>
             </div>
           </details>
         </li>
@@ -187,6 +190,32 @@
         </li>
       </ul>
       <p id="settings-empty" class="small" role="status" hidden>검색 결과가 없어요.</p>
+    </section>
+    <section id="account" hidden>
+      <header class="settings-header">
+        <button type="button" id="account-back" class="page-back scene-icon" aria-label="뒤로가기"><span aria-hidden="true">‹</span></button>
+        <h1>계정</h1>
+      </header>
+      <div id="account-signed-in" hidden>
+        <h2 id="account-name"></h2>
+        <p id="account-email" class="small"></p>
+        <button type="button" id="account-logout">로그아웃</button>
+      </div>
+      <div id="account-signed-out">
+        <div class="buttons" role="group" aria-label="계정 메뉴">
+          <button type="button" data-auth-mode="login" aria-pressed="true">로그인</button>
+          <button type="button" data-auth-mode="register" aria-pressed="false">회원가입</button>
+        </div>
+        <form id="account-form">
+          <label>이메일<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+          <label id="account-name-field" hidden>이름<input name="name" autocomplete="name" maxlength="100"></label>
+          <label>암호<input name="password" type="password" autocomplete="current-password" maxlength="72" required></label>
+          <p id="password-help" class="small" hidden>암호는 8자 이상 입력해 주세요.</p>
+          <p id="account-import-note" class="small" hidden>회원가입하면 이 브라우저에서 사용하던 반려동물 설정을 새 계정에 복사해요. 사진은 이 브라우저에만 저장돼요.</p>
+          <button type="submit" class="primary" id="account-submit">로그인</button>
+        </form>
+      </div>
+      <p id="account-error" role="alert"></p>
     </section>
     <input type="file" id="album-photos" accept="image/*" multiple hidden>
     <p id="app-error" role="alert" hidden></p>
