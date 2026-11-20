@@ -8,7 +8,7 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=47">
+  <link rel="stylesheet" href="./app/style.css?v=48">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=43"></script>
@@ -27,8 +27,8 @@
         <span class="welcome-pet welcome-pet--parrot"><img src="./app/welcome-pets/parrot.webp" alt="" width="272" height="272"></span>
         <span class="welcome-pet welcome-pet--lizard"><img src="./app/welcome-pets/lizard.webp" alt="" width="272" height="272"></span>
       </div>
-      <h1>안녕</h1>
-      <p>보고 싶은 날에도, 그냥 같이 놀고 싶은 날에도.<br>반려동물과 둘만의 초원에서 편하게 시간을 보내요.</p>
+      <h1>언제 어디서든 함께!</h1>
+      <p class="welcome-copy">왠지 보고 싶은 날에도, 그냥 같이 놀고 싶은 날에도<br>반려동물과 둘만의 초원에서 편하게 시간을 보내요!</p>
       <button type="button" class="primary" data-open-account>로그인 · 회원가입</button>
       <button type="button" id="start-welcome">시작하기</button>
       <p id="welcome-error" role="alert"></p>

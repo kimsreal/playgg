@@ -462,8 +462,14 @@ section > .page-back { margin-bottom: 20px; }
 @media (prefers-reduced-motion: reduce) {
   .welcome-pet { animation: none; }
 }
-#welcome h1 { margin: 2px 0 12px; }
-#welcome p { max-width: 29ch; color: var(--muted-ink); word-break: keep-all; }
+#welcome h1 { margin: 2px 0 12px; font-weight: 800; }
+#welcome .welcome-copy {
+  max-width: 100%;
+  color: var(--muted-ink);
+  font-size: clamp(11px, 3.4vw, 14px);
+  line-height: 1.6;
+  word-break: keep-all;
+}
 #welcome button { width: min(100%, 330px); min-height: 48px; margin-top: 10px; border-radius: 999px; }
 #welcome-error:empty { display: none; }
 #welcome #welcome-error { color: #87432f; }
