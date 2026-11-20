@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=20">
+  <link rel="stylesheet" href="./app/style.css?v=21">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=20"></script>
+  <script type="module" src="./app/main.js?v=21"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -20,7 +20,7 @@
 <div class="app" id="app" hidden>
   <main>
     <section id="setup" hidden>
-      <button type="button" class="return-home" data-page="home" hidden>초원으로 돌아가기</button>
+      <button type="button" id="setup-back" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기" hidden><span aria-hidden="true">‹</span></button>
       <p class="kicker" id="setup-kicker">처음 만나는 날</p>
       <h1 id="setup-title">우리 공간을 만들어요</h1>
       <p>로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
@@ -46,6 +46,7 @@
       </form>
     </section>
     <section id="avatar" hidden>
+      <button type="button" id="avatar-back" class="page-back scene-icon" aria-label="뒤로가기"><span aria-hidden="true">‹</span></button>
       <p class="kicker">아바타 꾸미기</p>
       <h1 id="avatar-title"></h1>
       <div class="scene preview" id="avatar-scene"><span class="fallback-pet" aria-hidden="true"></span></div>
@@ -58,7 +59,7 @@
         </div>
         <label><span id="avatar-color-label">털색</span> <input type="color" name="fur" value="#e8c198"></label>
         <p id="avatar-error" role="alert"></p>
-        <div class="buttons"><button type="button" id="avatar-back">뒤로</button><button class="primary" type="submit">초원으로 가기</button></div>
+        <div class="buttons"><button class="primary" type="submit">초원으로 가기</button></div>
       </form>
     </section>
     <section id="home" aria-label="초원" hidden>
@@ -97,13 +98,13 @@
       </div>
     </section>
     <section id="friends" hidden>
-      <button type="button" class="return-home" data-page="settings">설정으로 돌아가기</button>
+      <button type="button" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1>다른 친구랑 놀기</h1>
       <ul id="friend-list" class="friend-list"></ul>
       <button type="button" class="primary" id="add-friend">반려동물 추가</button>
     </section>
     <section id="photo" hidden>
-      <button type="button" class="return-home scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="page-back scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1>오늘의 사진</h1>
       <div id="photo-card" hidden>
         <figure class="polaroid" id="daily-frame">
@@ -121,7 +122,7 @@
     </section>
     <section id="settings" hidden>
       <header class="settings-header">
-      <button type="button" class="scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
+        <button type="button" class="page-back scene-icon" data-page="home" aria-label="초원으로 돌아가기"><span aria-hidden="true">‹</span></button>
         <h1>설정</h1>
       </header>
       <label class="settings-search">

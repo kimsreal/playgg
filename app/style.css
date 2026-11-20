@@ -135,7 +135,7 @@ input[type=radio] { accent-color: var(--sky); }
   height: auto;
 }
 
-.return-home { margin-bottom: 20px; }
+section > .page-back { margin-bottom: 20px; }
 .meadow-open { padding: 0; overflow: hidden; background: var(--white); }
 .meadow-open .app { max-width: none; border-radius: 0; box-shadow: none; min-height: 0; }
 .meadow-open main { min-height: 0; padding: 0; }

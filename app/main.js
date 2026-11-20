@@ -153,7 +153,7 @@ function show(pageId) {
   $('main > section').prop('hidden',true);
   $('#'+pageId).prop('hidden',false);
   document.body.classList.toggle('meadow-open',pageId==='home');
-  $('#setup .return-home').prop('hidden',!state?.profile);
+  $('#setup-back').prop('hidden',!state?.profile);
   if (pageId==='friends') renderFriends();
   window.scrollTo(0,0);
   if (pageId==='home') {
@@ -207,7 +207,10 @@ function openProfile() {
   const profile=draft || (addingFriend ? null : state?.profile);
   $('#setup-kicker').text(addingFriend || state?.profile ? '우리 공간' : '처음 만나는 날');
   $('#setup-title').text(addingFriend ? '새 친구를 소개해 주세요' : state?.profile ? '반려동물 정보' : '우리 공간을 만들어요');
-  $('#setup .return-home').text(addingFriend ? '친구 목록으로 돌아가기' : '초원으로 돌아가기').attr('data-page',addingFriend ? 'friends' : 'home');
+  $('#setup-back').attr({
+    'aria-label':addingFriend ? '친구 목록으로 돌아가기' : '설정으로 돌아가기',
+    'data-page':addingFriend ? 'friends' : 'settings'
+  });
   modeDates={...profile?.dates};
   $('#setup-error').text('');
   if (profile) {
@@ -293,6 +296,7 @@ function avatarProfile() {
 }
 
 function openAvatar() {
+  $('#avatar-back').attr('aria-label', state?.profile && !addingFriend ? '설정으로 돌아가기' : '반려동물 정보로 돌아가기');
   $('#avatar-title').text(draft.name+'의 모습');
   $('#avatar-error').text('');
   const earLabels={parrot:['머리 깃','세운 깃','접힌 깃'],lizard:['머리 능선','또렷한 능선','낮은 능선']};
