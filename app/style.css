@@ -42,7 +42,43 @@ fieldset { border: 1px solid var(--line); border-radius: 15px; margin: 16px 0; }
 legend { font-weight: 650; }
 .choice { display: flex; min-height: 42px; align-items: center; gap: 7px; padding-inline: 10px; border-radius: var(--choice-radius); cursor: pointer; }
 .choice:hover, .choice:has(:checked) { background: var(--sky-soft); }
-#profile-progress { margin-top: 12px; }
+#setup.profile-wizard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100dvh - 88px);
+  text-align: center;
+}
+@media (max-width: 500px) {
+  #setup.profile-wizard { min-height: calc(100dvh - 40px); }
+}
+.profile-wizard #profile-form {
+  width: min(100%, 350px);
+  margin-block: auto;
+  padding-block: 22px;
+}
+.profile-wizard #setup-title {
+  margin-bottom: 24px;
+  letter-spacing: -.025em;
+  word-break: keep-all;
+}
+.profile-wizard [data-profile-step] { margin: 0; }
+.profile-wizard #profile-story {
+  min-width: 0;
+  padding: 10px;
+  text-align: left;
+}
+.profile-wizard .fields { grid-template-columns: minmax(0, 1fr); }
+.profile-wizard .buttons {
+  justify-content: center;
+  margin: 18px 0 0;
+}
+.profile-wizard .buttons button { min-width: 88px; }
+.profile-wizard #setup-error:empty { display: none; }
+#profile-progress {
+  margin: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 .fields.profile-field { grid-template-columns: minmax(0, 1fr); }
 .fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 12px 0; }
 label > input:not([type=radio]), label > select { width: 100%; display: block; margin-top: 4px; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; color: inherit; background: var(--white); padding: 6px; }

@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=64">
+  <link rel="stylesheet" href="./app/style.css?v=66">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=65"></script>
+  <script type="module" src="./app/main.js?v=66"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -40,13 +40,13 @@
     </section>
     <section id="setup" hidden>
       <button type="button" id="setup-back" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기" hidden><span aria-hidden="true">‹</span></button>
-      <p class="kicker" id="setup-kicker">처음 만나는 날</p>
-      <h1 id="setup-title" tabindex="-1">우리 공간을 만들어요</h1>
-      <p id="profile-storage-copy">로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
-      <button type="button" class="account-link" data-open-account>로그인 · 회원가입</button>
       <form id="profile-form" novalidate>
-        <p class="small" id="profile-progress" hidden></p>
-        <fieldset data-profile-step><legend>어떤 이야기를 담을까요?</legend>
+        <p class="kicker" id="setup-kicker">처음 만나는 날</p>
+        <h1 id="setup-title" tabindex="-1">어떤 이야기를 담을까요?</h1>
+        <p id="profile-storage-copy">로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
+        <button type="button" class="account-link" data-open-account>로그인 · 회원가입</button>
+        <fieldset id="profile-story" data-profile-step>
+          <legend>어떤 이야기를 담을까요?</legend>
           <label class="choice"><input type="radio" name="mode" value="memory" required> 무지개다리를 건넜어요</label>
           <label class="choice"><input type="radio" name="mode" value="away" required> 멀리 떨어져 있어요</label>
           <label class="choice"><input type="radio" name="mode" value="play" required> 그냥 같이 놀래요</label>
@@ -74,6 +74,7 @@
           <button class="primary" id="profile-next" type="submit">저장</button>
         </div>
       </form>
+      <p class="small" id="profile-progress" hidden></p>
     </section>
     <section id="avatar" hidden>
       <button type="button" id="avatar-back" class="page-back scene-icon" aria-label="뒤로가기"><span aria-hidden="true">‹</span></button>

@@ -493,7 +493,7 @@ function renderDates() {
 }
 
 const profilePanels=[...profileForm.querySelectorAll('[data-profile-step]')];
-const profileTitles=['우리 공간을 만들어요','이름을 알려 주세요','어떤 반려동물인가요?','기억하고 싶은 날짜','좋아하는 것과 싫어하는 것'];
+const profileTitles=['어떤 이야기를 담을까요?','이름을 알려 주세요','어떤 반려동물인가요?','기억하고 싶은 날짜','좋아하는 것과 싫어하는 것'];
 let profileStep=0;
 
 function renderProfileStep(focus=false) {
@@ -501,11 +501,15 @@ function renderProfileStep(focus=false) {
   profilePanels.forEach((panel,index) => { panel.hidden=wizard && profileStep!==index; });
   const progress=byId('profile-progress');
   progress.hidden=!wizard;
-  progress.textContent=(profileStep+1)+' / '+profilePanels.length+' 단계';
+  progress.textContent=(profileStep+1)+' / '+profilePanels.length;
   byId('profile-previous').hidden=!wizard || profileStep===0;
   byId('profile-next').textContent=wizard && profileStep<profilePanels.length-1 ? '다음' : '저장';
   if (wizard) byId('setup-title').textContent=profileTitles[profileStep];
-  byId('profile-storage-copy').hidden=wizard && profileStep!==0;
+  byId('setup').classList.toggle('profile-wizard',wizard);
+  $('#setup-kicker,#profile-storage-copy,#setup [data-open-account],#profile-story legend').prop('hidden',wizard);
+  const story=byId('profile-story');
+  if (wizard) story.setAttribute('aria-labelledby','setup-title');
+  else story.removeAttribute('aria-labelledby');
   if (focus) {
     byId('setup-title').focus();
     window.scrollTo(0,0);
