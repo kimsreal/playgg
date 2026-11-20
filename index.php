@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f4f4e6">
+  <meta name="theme-color" content="#ffffff">
   <meta name="description" content="반려동물과 함께 쉬어 가는 둘만의 초원">
-  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=5">
+  <link rel="stylesheet" href="./app/style.css?v=6">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=5"></script>
