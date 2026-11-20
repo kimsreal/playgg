@@ -46,3 +46,15 @@ figure { margin: 16px 0; padding: 10px; background: #e8edd7; border-radius: 17px
 figure img { display: block; width: 100%; max-height: 370px; object-fit: contain; border-radius: 11px; }
 [role=alert]:not(:empty) { color: #87432f; margin: 8px 0; }
 @media (max-width: 500px) { body { padding: 0; } .app { border-radius: 0; min-height: 100dvh; } nav { padding-bottom: max(12px,env(safe-area-inset-bottom)); } }
+
+.launch {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #fff;
+}
+.launch img {
+  width: min(55vw, 192px);
+  height: auto;
+}

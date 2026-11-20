@@ -3,6 +3,7 @@ import { readState, updateState, preparePhotos, extractColors, chooseDaily } fro
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
+const launchDelay=new Promise(resolve => setTimeout(resolve,matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 750));
 const profileForm=byId('profile-form');
 const avatarForm=byId('avatar-form');
 const defaults={size:'medium',ears:'folded',tail:'long',fur:'#e8c198',pattern:'solid'};
@@ -106,6 +107,25 @@ function refreshModeLabel() {
   profileForm.elements.event.max=mode==='memory' ? dayKey() : '';
 }
 
+function readProfileForm() {
+  const fields=Object.fromEntries(new FormData(profileForm));
+  return {
+    ...defaults,...state?.profile,...draft,
+    name:fields.name.trim(),species:fields.species,mode:fields.mode || '',
+    birthday:fields.birthday,dates:fields.mode ? {...modeDates,[fields.mode]:fields.event} : {...modeDates},
+    likes:tags(fields.likes),dislikes:tags(fields.dislikes)
+  };
+}
+
+function saveOnboarding(step,profile) {
+  if (state?.profile) return Promise.resolve();
+  const onboarding={step,profile,photos:pendingPhotos,palette};
+  const errorId=step==='avatar' ? 'avatar-error' : 'setup-error';
+  return updateState(current => current?.profile ? current : {...current,onboarding}).catch(() => {
+    $('#'+errorId).text('입력한 내용을 이 브라우저에 저장하지 못했어요.');
+  });
+}
+
 function renderPhotoCount() {
   $('#photo-count').text(!state?.profile && pendingPhotos.length ? '선택한 사진 '+pendingPhotos.length+'장' : '');
 }
@@ -116,6 +136,10 @@ $(profileForm).on('change','[name=mode]',event => {
   profileForm.dataset.mode=event.target.value;
   profileForm.elements.event.value=modeDates[event.target.value] || '';
   refreshModeLabel();
+  if (!state?.profile) void saveOnboarding('setup',readProfileForm());
+});
+$(profileForm).on('input change','input:not([type=radio]):not([type=file]),select',() => {
+  if (!state?.profile) void saveOnboarding('setup',readProfileForm());
 });
 
 $('#pet-photos').on('change', function () {
@@ -127,10 +151,12 @@ $('#pet-photos').on('change', function () {
   button.disabled=true;
   $('#photo-count').text('사진을 준비하고 있어요…');
   const input=this;
-  currentPhotosTask=preparePhotos(files).then(({photos,skipped}) => {
+  currentPhotosTask=preparePhotos(files).then(async ({photos,skipped}) => {
     pendingPhotos=[...new Map([...pendingPhotos,...photos].map(photo => [photo.id,photo])).values()];
+    if (photos.length) palette=[];
     renderPhotoCount();
     $('#setup-error').text(skipped ? '일부 사진을 열 수 없어요. 필요하면 JPEG 또는 PNG 사진을 더 골라 주세요.' : '');
+    await saveOnboarding('setup',readProfileForm());
   }).finally(() => {
     input.disabled=false;
     button.disabled=false;
@@ -149,11 +175,7 @@ $(profileForm).on('submit',async event => {
     $('#setup-error').text('서로 다른 사진을 5장 이상 골라 주세요.');
     return;
   }
-  draft={
-    ...defaults,...state?.profile,...draft,
-    name:fields.name.trim(),species:fields.species,mode:fields.mode,birthday:fields.birthday,
-    dates:{...modeDates,[fields.mode]:fields.event},likes:tags(fields.likes),dislikes:tags(fields.dislikes)
-  };
+  draft=readProfileForm();
   if (state?.profile) {
     try {
       state=await updateState(current => ({...current,profile:draft}));
@@ -166,9 +188,12 @@ $(profileForm).on('submit',async event => {
     const submit=profileForm.querySelector('[type=submit]');
     try {
       submit.disabled=true;
-      palette=await extractColors(pendingPhotos);
-      draft.fur=palette[0] || defaults.fur;
+      if (!palette.length) {
+        palette=await extractColors(pendingPhotos);
+        draft.fur=palette[0] || defaults.fur;
+      }
       openAvatar();
+      await saveOnboarding('avatar',draft);
     } catch {
       $('#setup-error').text('사진의 색을 읽지 못했어요. 다시 시도해 주세요.');
     } finally {
@@ -203,13 +228,17 @@ $(avatarForm).on('change',() => {
     this.setAttribute('aria-pressed',String(palette[index]===profile.fur));
   });
   void mountScene(byId('avatar-scene'),profile,true);
+  void saveOnboarding('avatar',profile);
 });
 $('#avatar-back').on('click',() => {
   draft=avatarProfile();
   if (state?.profile) {
     draft=null;
     show('settings');
-  } else openProfile();
+  } else {
+    openProfile();
+    void saveOnboarding('setup',draft);
+  }
 });
 
 $(avatarForm).on('submit',async event => {
@@ -219,7 +248,7 @@ $(avatarForm).on('submit',async event => {
   submit.disabled=true;
   try {
     state=await updateState(current => ({
-      ...current,profile,photos:current?.photos || pendingPhotos,album:current?.album || [],palette
+      ...current,profile,photos:current?.photos || pendingPhotos,album:current?.album || [],palette,onboarding:null
     }));
     draft=null;
     pendingPhotos=[];
@@ -357,7 +386,18 @@ try {
   if (state?.profile) {
     palette=state.palette || [];
     show('home');
+  } else if (state?.onboarding) {
+    const saved=state.onboarding;
+    draft=saved.profile;
+    palette=saved.palette;
+    pendingPhotos=saved.photos;
+    if (saved.step==='avatar') openAvatar();
+    else openProfile();
   } else openProfile();
 } catch {
   showError('이 기기의 저장 공간을 열 수 없어요. 일반 브라우저 창에서 다시 열어 주세요.');
+} finally {
+  await launchDelay;
+  byId('launch').hidden=true;
+  byId('app').hidden=false;
 }

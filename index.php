@@ -8,19 +8,22 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css">
+  <link rel="stylesheet" href="./app/style.css?v=3">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js"></script>
+  <script type="module" src="./app/main.js?v=3"></script>
 </head>
 <body>
-<div class="app">
+<div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
+  <img src="./app/icon-drawing-192.png" alt="" width="192" height="192" fetchpriority="high">
+</div>
+<div class="app" id="app" hidden>
   <header class="top"><a href="./" aria-label="안녕 홈">안녕<span aria-hidden="true"> ✿</span></a><button type="button" data-page="settings" class="settings" hidden>설정</button></header>
   <main>
     <section id="setup" hidden>
       <p class="kicker">처음 만나는 날</p>
       <h1>우리 공간을 만들어요</h1>
-      <p>사진과 반려동물 정보는 이 기기에만 저장돼요.</p>
+      <p>로그인 없이 사용할 수 있어요. 입력 중인 정보와 사진은 이 브라우저에만 저장돼요.</p>
       <form id="profile-form">
         <fieldset><legend>어떤 이야기를 담을까요?</legend>
           <label class="choice"><input type="radio" name="mode" value="memory" required> 무지개다리를 건넜어요</label>
@@ -89,6 +92,8 @@
       <p class="kicker">우리 공간</p>
       <h1>설정</h1>
       <div class="buttons"><button type="button" id="edit-profile">반려동물 정보와 모드 바꾸기</button><button type="button" id="edit-avatar">아바타 꾸미기</button></div>
+      <h2>저장 공간</h2>
+      <p>반려동물 정보와 사진은 이 브라우저에 저장돼요. 브라우저의 사이트 데이터를 지우면 저장한 내용도 사라져요.</p>
       <h2>오늘의 사진</h2>
       <p>사진 앱의 반려동물 앨범에서 보여 줄 사진을 골라 주세요. 선택한 사진이 없으면 처음 등록한 사진을 사용해요.</p>
       <label>앨범 사진 선택<input type="file" id="album-photos" accept="image/*" multiple></label>
