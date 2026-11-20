@@ -1,10 +1,11 @@
+import {themes,themeId,purchasedThemes} from './theme-catalog.js';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
-import { activeFriendId, friendSpace, listFriends, migrateFriendSpaces, switchFriend, addFriend, updateFriend } from './friends.js?v=79';
+import { activeFriendId, friendSpace, listFriends, migrateFriendSpaces, switchFriend, addFriend, updateFriend } from './friends.js?v=80';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=79';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=80';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -32,7 +33,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=74').catch(() => null);
+const scenes=import('./scene.js?v=80').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -381,11 +382,9 @@ async function mountScene(host,profile,preview,delivery=null) {
   if (delivery) deliverGift(delivery);
 }
 
-const coastCost=50;
 const foodReward=5;
 const backgroundChoice=byId('background-choice');
 const backgroundStatus=byId('background-status');
-const coastBuy=byId('coast-buy');
 const themeShopStatus=byId('theme-shop-status');
 const foodReset=byId('food-reset');
 const foodRetry=byId('food-retry');
@@ -421,27 +420,40 @@ let rewardPending=false;
 
 let economyBusy=false;
 
-function ownsCoast(current) {
-  return current?.coastUnlocked===true;
-}
+const themeCards=Object.entries(themes).filter(([,theme]) => theme.price>0).map(([id,theme]) => {
+  const card=byId('theme-card-template').content.firstElementChild.cloneNode(true);
+  const preview=card.querySelector('img');
+  preview.src='./app/'+id+'-preview.webp';
+  preview.alt=theme.alt;
+  card.querySelector('h2').textContent=theme.name;
+  const buy=card.querySelector('button');
+  buy.addEventListener('click',() => void changeBackground(id,true));
+  byId('theme-grid').append(card);
+  const option=new Option(theme.name,id);
+  backgroundChoice.add(option);
+  return {id,theme,card,buy,option,lock:card.querySelector('.theme-lock'),price:card.querySelector('p')};
+});
 
 function renderBalance() {
   const balance=state?.leaves || 0;
-  const unlocked=ownsCoast(state);
+  const owned=purchasedThemes(state);
   byId('home-leaf-count').textContent=String(balance);
   byId('theme-shop-balance').textContent='보유 잎사귀 '+balance+'개';
-  byId('coast-card').dataset.locked=String(!unlocked);
-  byId('coast-lock').hidden=unlocked;
-  byId('coast-price').textContent=unlocked ? '보유 중' : '잎사귀 '+coastCost+'개';
-  const coastOption=backgroundChoice.querySelector('[value=coast]');
-  coastOption.hidden=coastOption.disabled=!unlocked;
-  coastBuy.hidden=unlocked;
-  coastBuy.disabled=economyBusy || balance<coastCost;
-  coastBuy.textContent=balance<coastCost ? '잎사귀가 부족해요' : '노을 바다 구매';
+  for (const {id,theme,card,buy,option,lock,price} of themeCards) {
+    const unlocked=owned.includes(id);
+    card.dataset.locked=String(!unlocked);
+    lock.hidden=unlocked;
+    price.textContent=unlocked ? '보유 중' : '잎사귀 '+theme.price+'개';
+    option.hidden=option.disabled=!unlocked;
+    buy.hidden=unlocked;
+    buy.disabled=economyBusy || balance<theme.price;
+    buy.textContent=balance<theme.price ? '잎사귀가 부족해요' : theme.name+' 구매';
+  }
 }
 
 async function changeBackground(selected,buy=false) {
-  if (economyBusy) return;
+  if (economyBusy || themeId(selected)!==selected) return;
+  const theme=themes[selected];
   const session=account;
   const friendId=activeFriendId(state);
   economyBusy=true;
@@ -451,18 +463,19 @@ async function changeBackground(selected,buy=false) {
   renderBalance();
   try {
     const updated=await updateState(current => {
-      const unlocked=ownsCoast(current);
-      const price=buy && !unlocked ? coastCost : 0;
-      if ((current?.leaves || 0)<price || (selected==='coast' && !unlocked && !buy)) throw new Error('locked');
+      const owned=purchasedThemes(current);
+      const unlocked=theme.price===0 || owned.includes(selected);
+      const price=buy && !unlocked ? theme.price : 0;
+      if ((current?.leaves || 0)<price || (!unlocked && !buy)) throw new Error('locked');
       const withSpace=updateFriend(current,friendId,friend => ({
         space:{...friend.space,background:selected}
       }));
-      return {...withSpace,coastUnlocked:unlocked || buy,leaves:(current?.leaves || 0)-price};
+      return {...withSpace,unlockedThemes:price ? [...owned,selected] : owned,leaves:(current?.leaves || 0)-price};
     });
     if (account!==session) return;
     state=updated;
     if (buy) {
-      status.textContent='노을 바다를 구매했어요.';
+      status.textContent=theme.name+' 구매를 완료했어요.';
       status.hidden=false;
     }
     if (page==='home' && byId('home').dataset.background!==friendSpace(state.space).background) show('home');
@@ -480,7 +493,6 @@ async function changeBackground(selected,buy=false) {
 }
 
 backgroundChoice.addEventListener('change',() => void changeBackground(backgroundChoice.value));
-coastBuy.addEventListener('click',() => void changeBackground('coast',true));
 
 const foodGame=createFoodGame({
   canvas:byId('food-board'),
@@ -503,7 +515,7 @@ async function awardFoodGame() {
   foodStatus.textContent='케이크를 완성했어요. 잎사귀를 담는 중이에요.';
   try {
     const updated=await updateState(current => ({
-      ...current,coastUnlocked:ownsCoast(current),leaves:Math.min(999999,(current?.leaves || 0)+foodReward)
+      ...current,leaves:Math.min(999999,(current?.leaves || 0)+foodReward)
     }));
     if (account!==session) return;
     rewardPending=false;
@@ -602,7 +614,7 @@ function show(pageId,delivery=null) {
     renderBalance();
     const {background}=friendSpace(state.space);
     byId('home').dataset.background=background;
-    byId('home').setAttribute('aria-label',background==='coast' ? '노을 바다' : '초원');
+    byId('home').setAttribute('aria-label',themes[background].name);
     applyPerspective();
     void mountScene(byId('home-scene'),state.profile,false,delivery);
   }

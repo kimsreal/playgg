@@ -1,8 +1,10 @@
+import {themeId} from './theme-catalog.js';
+
 export const activeFriendId = state => state.friendId || 'first';
 
 export function friendSpace(space,legacyBackground) {
   const background=space?.background ?? legacyBackground;
-  return {...space,background:background==='coast' ? 'coast' : 'meadow'};
+  return {...space,background:themeId(background)};
 }
 
 export function migrateFriendSpaces(state,legacyBackground=state?.background) {

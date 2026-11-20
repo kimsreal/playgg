@@ -1,3 +1,4 @@
+import {makeWalk,makeCloudSpace,makeNightSky} from './extra-themes.js';
 import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
@@ -28,7 +29,7 @@ function scatter(scene, geometry, instances) {
   });
   scene.add(batch);
 }
-function makeIsland(scene,theme) {
+function makeIsland(scene,theme,withClouds=true) {
   const {radius,grass,earth,trees,flowers}=theme;
   mesh(scene,new T.CylinderGeometry(radius,radius*.98,.22,48),material(grass),0,-.115,0);
   mesh(scene,new T.CylinderGeometry(radius*.98,radius*.89,.33,48),material(0x98a675),0,-.38,0);
@@ -85,6 +86,7 @@ function makeIsland(scene,theme) {
   scatter(scene,new T.IcosahedronGeometry(1,0),pavers);
   scatter(scene,new T.CylinderGeometry(1,1,1,4),stems);
   scatter(scene,new T.IcosahedronGeometry(1,0),blooms);
+  if (!withClouds) return null;
   const cloud=material(0xfff8e8);
   const clouds=new T.Group();
   for (const [x,y,z] of [[-5.6,4.35,-4.5],[3.95,4.2,-5.15],[-3.15,5.4,-7.8],[6.2,4.85,-6.9]]) {
@@ -211,8 +213,9 @@ function createOwner(scene,source,colors) {
 }
 
 export function createScene(host,profile,onPet,{preview=false,background='meadow',perspective='third',ownerModel,ownerColors,onGraphicsChange,onBallReady}={}) {
-  const seaside=background==='coast' && !preview;
-  const theme=seaside ? coast : meadow;
+  const environment=preview ? 'meadow' : background;
+  const night=environment==='stars';
+  const theme=environment==='coast' ? coast : night ? {...meadow,grass:0x789676,earth:0x77728e} : meadow;
   const touchScreen=matchMedia('(pointer: coarse)').matches;
   const renderer = new T.WebGLRenderer({antialias:!touchScreen,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,touchScreen ? 1.35 : 1.7));
@@ -228,12 +231,21 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
   overview.lookAt(overviewTarget);
   const orbit=new T.Spherical().setFromVector3(overview.position.clone().sub(overviewTarget));
   let eyePitch=Math.atan2(.49-1.46,3);
-  scene.add(new T.HemisphereLight(0xfffcf5,0xc5c6ac,2.2));
-  const sunlight = new T.DirectionalLight(0xffefd5,2);
+  scene.add(new T.HemisphereLight(night ? 0xb4cbff : 0xfffcf5,night ? 0x8c85ad : 0xc5c6ac,night ? 1.65 : 2.2));
+  const sunlight = new T.DirectionalLight(night ? 0xabbdfb : 0xffefd5,night ? .85 : 2);
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
-  const animateCoast=seaside ? makeCoast(scene,theme) : null;
-  const clouds=preview || seaside ? null : makeIsland(scene,theme);
+  let animateEnvironment;
+  let clouds;
+  if (!preview) {
+    if (environment==='coast') animateEnvironment=makeCoast(scene,theme);
+    else if (environment==='walk') makeWalk(scene,theme.radius);
+    else if (environment==='clouds') animateEnvironment=makeCloudSpace(scene,theme.radius);
+    else if (night) {
+      clouds=makeIsland(scene,theme,false);
+      animateEnvironment=makeNightSky(scene);
+    } else clouds=makeIsland(scene,theme);
+  }
   const owner=preview ? null : createOwner(scene,ownerModel,cleanColors(ownerColors));
   const eyeTarget=new T.Vector3();
   const updateEyeCamera=() => {
@@ -408,7 +420,7 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
     const move=!reduced.matches;
     const walk=move ? Math.sin(t*(hamster ? 24 : 10)) : 0;
     if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
-    animateCoast?.(move ? t : 0);
+    animateEnvironment?.(move ? t : 0);
     toy.visible=false;
     envelope.visible=false;
     if (placedItem) placedItem.visible=false;

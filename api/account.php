@@ -157,8 +157,16 @@ function cleanSettings($settings): array
     }
     $friends = [];
     $seen = [];
-    $background = choice($settings['background'] ?? 'meadow', ['meadow', 'coast']);
-    $coastUnlocked = ($settings['coastUnlocked'] ?? false) === true || $background === 'coast';
+    $paidThemes = ['coast', 'walk', 'clouds', 'stars'];
+    $allowedThemes = array_merge(['meadow'], $paidThemes);
+    $background = choice($settings['background'] ?? 'meadow', $allowedThemes);
+    $owned = $settings['unlockedThemes'] ?? [];
+    $owned = is_array($owned) ? array_values(array_filter($paidThemes, function ($theme) use ($owned) {
+        return in_array($theme, $owned, true);
+    })) : [];
+    if ((($settings['coastUnlocked'] ?? false) === true || $background === 'coast') && !in_array('coast', $owned, true)) {
+        $owned[] = 'coast';
+    }
     foreach ($settings['friends'] as $friend) {
         if (!is_array($friend) || !isset($friend['profile']) || !is_array($friend['profile'])) {
             fail(422, 'invalid_settings');
@@ -170,8 +178,8 @@ function cleanSettings($settings): array
         $seen[$id] = true;
         $space = $friend['space'] ?? [];
         if (!is_array($space)) fail(422, 'invalid_settings');
-        $theme = choice($space['background'] ?? $background, ['meadow', 'coast']);
-        $coastUnlocked = $coastUnlocked || $theme === 'coast';
+        $theme = choice($space['background'] ?? $background, $allowedThemes);
+        if (!in_array($theme, $owned, true) && $theme !== 'meadow') $owned[] = $theme;
         $friends[] = ['id' => $id, 'profile' => cleanProfile($friend['profile']), 'space' => ['background' => $theme]];
     }
     $active = $settings['active'] ?? null;
@@ -190,7 +198,8 @@ function cleanSettings($settings): array
         'perspective' => choice($settings['perspective'] ?? 'third', ['first', 'third']),
         'ownerColors' => $colors,
         'background' => $background,
-        'coastUnlocked' => $coastUnlocked,
+        'unlockedThemes' => $owned,
+        'coastUnlocked' => in_array('coast', $owned, true),
         'leaves' => is_int($settings['leaves'] ?? null) ? max(0, min(999999, $settings['leaves'])) : 0,
     ];
 }

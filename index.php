@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=78">
+  <link rel="stylesheet" href="./app/style.css?v=80">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=79"></script>
+  <script type="module" src="./app/main.js?v=80"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -246,21 +246,22 @@
       <button type="button" class="page-back scene-icon" data-page="settings" aria-label="설정으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1>테마 상점</h1>
       <p class="small" id="theme-shop-balance"></p>
-      <ul class="theme-grid">
-        <li class="theme-card" id="coast-card" data-locked="true">
+      <ul class="theme-grid" id="theme-grid"></ul>
+      <template id="theme-card-template">
+        <li class="theme-card">
           <div class="theme-preview">
-            <img src="./app/coast-preview.webp" alt="노을 아래 야자수가 있는 모래섬" width="390" height="390" loading="lazy">
-            <span class="theme-lock" id="coast-lock" role="img" aria-label="잠겨 있음">
+            <img width="390" height="390" loading="lazy" alt="">
+            <span class="theme-lock" role="img" aria-label="잠겨 있음">
               <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg>
             </span>
           </div>
           <div class="theme-card-meta">
-            <h2>노을 바다</h2>
-            <p class="small" id="coast-price">잎사귀 50개</p>
-            <button type="button" id="coast-buy" class="primary">노을 바다 구매</button>
+            <h2></h2>
+            <p class="small"></p>
+            <button type="button" class="primary"></button>
           </div>
         </li>
-      </ul>
+      </template>
       <p class="small" id="theme-shop-status" role="status" hidden></p>
     </section>
     <section id="settings" hidden>
@@ -282,7 +283,6 @@
               <label for="background-choice">공간 테마</label>
               <select id="background-choice">
                 <option value="meadow">초원</option>
-                <option value="coast">노을 바다</option>
               </select>
               <button type="button" class="theme-shop-link" data-page="theme-shop">다른 테마 보러가기</button>
               <p class="small" id="background-status" role="status" hidden></p>

@@ -1,5 +1,6 @@
+import {purchasedThemes} from './theme-catalog.js';
 import {ownerColors} from './owner-colors.js';
-import {friendSpace,listFriends} from './friends.js?v=79';
+import {friendSpace,listFriends} from './friends.js?v=80';
 
 let csrf;
 
@@ -41,7 +42,8 @@ export function accountSettings(state) {
     active:friends[0]?.id || null,
     friends:friends.map(({id,profile,space}) => ({id,profile,space:friendSpace(space,state?.background)})).sort((a,b) => a.id.localeCompare(b.id)),
     background:friendSpace(state?.space,state?.background).background,
-    coastUnlocked:state?.coastUnlocked===true || state?.background==='coast' || friends.some(friend => friend.space?.background==='coast'),
+    unlockedThemes:purchasedThemes(state),
+    coastUnlocked:purchasedThemes(state).includes('coast'),
     leaves:state?.leaves || 0,
     perspective:state?.perspective || 'third',
     ownerColors:ownerColors(state?.ownerColors)
@@ -58,7 +60,7 @@ export function mergeAccount(settings,local) {
   }));
   const active=friends.find(friend => friend.id===settings.active);
   const preferences={
-    coastUnlocked:settings.coastUnlocked===true || settings.background==='coast' || friends.some(friend => friend.space.background==='coast'),leaves:settings.leaves || 0,perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
+    unlockedThemes:purchasedThemes(settings),leaves:settings.leaves || 0,perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
   if (!active) return {...preferences,onboarding:local?.onboarding || null};
   return {
     ...preferences,friendId:active.id,profile:active.profile,space:active.space,photos:active.photos,album:active.album,

@@ -210,6 +210,49 @@ section > .page-back { margin-bottom: 20px; }
 #home[data-background="coast"] #home-scene {
   background: linear-gradient(to bottom, #7f81be 0%, #d69bb5 23%, #ffd497 41%, #bdaabf 42%, #83aebd 66%, #d0e3dc 100%);
 }
+#home[data-background="walk"] #home-scene { background: linear-gradient(#a9d1db,#f8e2c5 55%,#fcf7e9); }
+#home[data-background="clouds"] #home-scene { background: linear-gradient(#88b9ea,#ced8fa 58%,#f8efff); }
+#home[data-background="stars"] #home-scene {
+  background: radial-gradient(ellipse at 65% 25%, #6c69a577, transparent 55%), linear-gradient(#151f49,#414974 62%,#69638c);
+}
+#home[data-background="clouds"] .meadow-island {
+  background: #f3f3ff;
+  box-shadow: 0 12px #cfdaff, 0 24px 18px #819eca66;
+}
+#home[data-background="clouds"] .meadow-island > * { visibility: hidden; }
+#home[data-background="stars"] .meadow-island { filter: brightness(.7) saturate(.7); }
+#home[data-background="stars"] .meadow-clouds { display: none; }
+#home[data-background="stars"] .meadow-fallback::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 48%;
+  background:
+    radial-gradient(circle at 19% 32%, #fff 1px, transparent 2px),
+    radial-gradient(circle at 32% 16%, #ffe6b4 1px, transparent 2px),
+    radial-gradient(circle at 49% 39%, #fff 1px, transparent 2px),
+    radial-gradient(circle at 67% 25%, #fff 1px, transparent 2px),
+    radial-gradient(circle at 78% 46%, #fff 1px, transparent 2px),
+    radial-gradient(circle at 90% 30%, #ffe6b4 1px, transparent 2px);
+}
+#home[data-background="stars"] .meadow-fallback::after {
+  content: "";
+  position: absolute;
+  top: 21%;
+  left: 25%;
+  width: 52px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffedc1);
+  opacity: 0;
+  animation: fallback-shooting-star 8s linear infinite;
+}
+@keyframes fallback-shooting-star {
+  0%, 100% { opacity: 0; transform: translate(0,0) rotate(22deg); }
+  4% { opacity: 1; }
+  19%, 99% { opacity: 0; transform: translate(31vw,10vw) rotate(22deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #home[data-background="stars"] .meadow-fallback::after { animation: none; }
+}
 .coast-sunset { display: none; }
 #home[data-background="coast"] .coast-sunset {
   display: block;
