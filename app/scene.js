@@ -142,10 +142,14 @@ function createOwner(scene,gender) {
   }
   cap.computeVertexNormals();
   mesh(head,cap,hair,0,0,0);
-  if(gender==='female'){
-    for(const side of [-1,1]) {
-      const lock=oval(head,hair,side*.245,-.193,-.118,.101,.192,.104);
-      lock.rotation.z=side*.42;
+  if (gender==='female') {
+    oval(head,hair,0,-.315,-.177,.298,.335,.112);
+    const strands=hair.clone();
+    strands.color.multiplyScalar(1.13);
+    for (const side of [-1,1]) {
+      oval(head,hair,side*.272,-.287,-.132,.103,.35,.123).rotation.z=side*.08;
+      oval(head,hair,side*.279,-.500,-.137,.104,.19,.126).rotation.z=side*.16;
+      line(head,strands,[[side*.303,-.132,-.08],[side*.335,-.323,-.081],[side*.336,-.505,-.083],[side*.304,-.61,-.086]],.008);
     }
   }
 
@@ -153,13 +157,9 @@ function createOwner(scene,gender) {
     const ear=oval(head,skin,side*.318,-.085,-.003,.092,.089,.062);
     ear.rotation.z=side*-.27;
     oval(head,warmSkin,side*.346,-.083,.045,.045,.034,.012).rotation.z=side*-.27;
-    const eye=oval(head,eyeBase,side*.137,-.077,.228,.091,.058,.034);
-    eye.rotation.z=side*-.12;
-    oval(eye,ink,side*.10,.06,.61,.74,.88,.52);
-    oval(eye,reflection,-.27,.34,.93,.30,.17,.11);
-    line(head,lips,[
-      [side*.059,-.067,.254],[side*.108,-.022,.252],[side*.168,-.023,.234],[side*.215,-.046,.211]
-    ],.008);
+    const eye=oval(head,eyeBase,side*.128,-.074,.235,.049,.049,.027);
+    oval(eye,ink,0,.04,.63,.78,.78,.49);
+    oval(eye,reflection,-.27,.32,.96,.24,.24,.11);
     oval(head,warmSkin,side*.191,-.143,.201,.057,.023,.012).rotation.z=side*.11;
   }
   oval(head,skin,0,-.109,.25,.038,.043,.036);
