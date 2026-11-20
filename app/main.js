@@ -1067,20 +1067,24 @@ function accountError(error) {
   $('#account-error').text(messages[error.message] || messages.unavailable);
 }
 
-function showSavedScreen() {
-  draft=null;
+function enterSpace() {
   addingFriend=false;
-  if (state?.profile) show('home');
-  else if (state?.onboarding) {
-    const saved=state.onboarding;
-    draft=saved.profile;
-    if (saved.step==='avatar') openAvatar();
-    else openProfile(saved.profileStep);
-  } else if (state?.welcomed || account) openProfile();
-  else show('welcome');
+  const saved=state?.onboarding;
+  draft=saved?.profile || null;
+  if (state?.profile) {
+    show('home');
+    return;
+  }
+  const step=saved?.step==='avatar' ? profilePanels.length-1 : saved?.profileStep;
+  openProfile(step);
+  byId('setup-title').focus();
 }
 
 $(document).on('click','[data-open-account]',() => {
+  if (page==='welcome' && account) {
+    enterSpace();
+    return;
+  }
   accountReturnPage=page;
   show('account');
 });
@@ -1113,7 +1117,7 @@ accountForm.addEventListener('submit',event => {
     try {
       const session=await changeAccount(action,fields);
       await enterAccount(session,guestSeed);
-      showSavedScreen();
+      enterSpace();
     } finally {
       accountForm.elements.password.value='';
     }
@@ -1125,31 +1129,18 @@ $('#account-logout').on('click',function () {
     account=null;
     state=await readState();
     applyPreferences(guestPreferences());
-    showSavedScreen();
+    show('welcome');
   });
 });
 
-byId('start-welcome').addEventListener('click',async event => {
-  const button=event.currentTarget;
-  button.disabled=true;
-  $('#welcome-error').text('');
-  try {
-    state=await updateState(current => ({...current,welcomed:true}));
-    openProfile();
-    byId('setup-title').focus();
-  } catch {
-    $('#welcome-error').text('이 브라우저에 시작 상태를 저장하지 못했어요. 다시 시도해 주세요.');
-  } finally {
-    button.disabled=false;
-  }
-});
+byId('start-welcome').addEventListener('click',enterSpace);
 
 try {
   const [guest,session]=await Promise.all([readState(),readAccount().catch(() => null)]);
   state=guest;
   applyPreferences(guestPreferences());
   if (session?.user) await enterAccount(session);
-  showSavedScreen();
+  show('welcome');
 } catch {
   showError('이 기기의 저장 공간을 열 수 없어요. 일반 브라우저 창에서 다시 열어 주세요.');
 } finally {
