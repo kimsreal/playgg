@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=33">
+  <link rel="stylesheet" href="./app/style.css?v=34">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=32"></script>
+  <script type="module" src="./app/main.js?v=34"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -40,7 +40,7 @@
           <label>좋아하는 것<input name="likes" maxlength="240" placeholder="공놀이, 닭가슴살"></label>
           <label>싫어하는 것<input name="dislikes" maxlength="240" placeholder="목욕, 청소기"></label>
         </div>
-        <p class="small">여러 가지는 쉼표로 나눠 주세요.</p>
+        <p class="small">쉼표로 나눠 좋아하는 것과 싫어하는 것을 각각 3개까지 적어 주세요.</p>
         <p id="setup-error" role="alert"></p>
         <button class="primary" type="submit">저장</button>
       </form>

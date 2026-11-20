@@ -1,3 +1,4 @@
+import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
 import { readState, updateState, preparePhotos, chooseDaily } from './photos.js?v=5';
@@ -28,7 +29,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=31').catch(() => null);
+const scenes=import('./scene.js?v=34').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -251,6 +252,11 @@ function openProfile() {
     profileForm.elements.dislikes.value=profile.dislikes.join(', ');
     profileForm.elements.event.value=modeDates[profile.mode] || '';
   }
+  for (const key of ['likes','dislikes']) {
+    const input=profileForm.elements[key];
+    input.dataset.original=state?.profile && !addingFriend ? input.value : '';
+  }
+  validateItemCounts();
   profileForm.dataset.mode=profileForm.elements.mode.value;
   refreshModeLabel();
   show('setup');
@@ -265,6 +271,17 @@ function refreshModeLabel() {
   eventField.disabled=!showDate;
   eventField.required=showDate;
   eventField.max=mode==='memory' ? dayKey() : '';
+}
+
+function validateItemCounts() {
+  let valid=true;
+  for (const key of ['likes','dislikes']) {
+    const input=profileForm.elements[key];
+    const exceeds=tags(input.value).length>3 && input.value!==input.dataset.original;
+    input.setCustomValidity(exceeds ? '각 항목은 쉼표로 나눠 3개까지 입력해 주세요.' : '');
+    valid&&=!exceeds;
+  }
+  return valid;
 }
 
 function readProfileForm() {
@@ -292,14 +309,18 @@ $(profileForm).on('change','[name=mode]',event => {
   profileForm.dataset.mode=event.target.value;
   profileForm.elements.event.value=modeDates[event.target.value] || '';
   refreshModeLabel();
-  if (!state?.profile) void saveOnboarding('setup',readProfileForm());
+  if (validateItemCounts() && !state?.profile) void saveOnboarding('setup',readProfileForm());
 });
 $(profileForm).on('input change','input:not([type=radio]):not([type=file]),select',() => {
-  if (!state?.profile) void saveOnboarding('setup',readProfileForm());
+  if (validateItemCounts() && !state?.profile) void saveOnboarding('setup',readProfileForm());
 });
 
 $(profileForm).on('submit',async event => {
   event.preventDefault();
+  if (!validateItemCounts()) {
+    profileForm.reportValidity();
+    return;
+  }
   const fields=Object.fromEntries(new FormData(profileForm));
   if (!fields.name.trim()) {
     $('#setup-error').text('반려동물 이름을 입력해 주세요.');
@@ -381,14 +402,14 @@ $(avatarForm).on('submit',async event => {
   }
 });
 
-function play(action,icon,treat) {
+function play(action,icon,object) {
   if (riding && scene) {
     riding=scene.setRiding(false);
     updateRideButton();
   }
-  scene?.play(action,treat);
+  scene?.play(action,object);
   clearTimeout(replyTimer);
-  const reply=$('#reply').empty().append(treat ? treatImage(treat) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
+  const reply=$('#reply').empty().append(object ? objectImage(object) : makeIcon(icon)).attr('aria-label',replyLabels[icon]).prop('hidden',false);
   if (!scene && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const effect=action==='disliked' ? 'translate(-65%,-50%) rotate(-12deg)' : 'translate(-50%,-75%)';
     byId('home-scene').querySelector('.fallback-pet').animate([
@@ -398,18 +419,20 @@ function play(action,icon,treat) {
   replyTimer=setTimeout(() => reply.prop('hidden',true),2700);
 }
 
-function treatImage(kind) {
-  return $('<img>',{class:'treat-icon',src:'./app/treat-'+kind+'.png',alt:''});
+function objectImage(kind) {
+  const prefix=kind==='meat' || kind==='fish' ? 'treat-' : 'item-';
+  return $('<img>',{class:'treat-icon',src:'./app/'+prefix+kind+'.png',alt:''});
 }
 
 function interaction(panel) {
-  const container=$('#interaction-options').empty().toggleClass('treat-options',panel==='treats');
-  const add=(label,action,reply,icon) => {
-    const button=$('<button>',{type:'button',text:label});
-    if (icon) button.addClass('with-icon').prepend(makeIcon(icon));
+  const container=$('#interaction-options').empty().toggleClass('treat-options',panel!=='talk').toggleClass('item-options',panel==='items');
+  const add=(label,action,reply,kind) => {
+    const button=$('<button>',{type:'button',title:label});
+    if (kind) button.attr('aria-label',label).append(objectImage(kind));
+    if (panel!=='treats') $('<span>',{text:label}).appendTo(button);
     button.on('click',() => {
       $('#interaction').prop('hidden',true);
-      play(action,Array.isArray(reply) ? random(reply) : reply);
+      play(action,Array.isArray(reply) ? random(reply) : reply,kind);
     }).appendTo(container);
   };
   if (panel==='talk') {
@@ -417,16 +440,12 @@ function interaction(panel) {
     phrases.forEach(([label,icons,action]) => add(label,action,icons));
   } else if (panel==='treats') {
     $('#interaction-title').text('간식 고르기');
-    for (const [kind,label,reply] of [['meat','고기 간식','bone'],['fish','생선 간식','fish']]) {
-      $('<button>',{type:'button','aria-label':label,title:label}).append(treatImage(kind)).on('click',() => {
-        $('#interaction').prop('hidden',true);
-        play('treat',reply,kind);
-      }).appendTo(container);
-    }
+    add('고기 간식','treat','bone','meat');
+    add('생선 간식','treat','fish','fish');
   } else {
     $('#interaction-title').text('아이템 놓기');
-    for (const like of state.profile.likes) add(like,'liked','sparkles','heart');
-    for (const dislike of state.profile.dislikes) add(dislike,'disliked','smile','smile');
+    for (const like of state.profile.likes) add(like,'liked','sparkles',itemShape(like));
+    for (const dislike of state.profile.dislikes) add(dislike,'disliked','smile',itemShape(dislike));
     if (!container.children().length) $('<p>').text('설정에서 좋아하는 것과 싫어하는 것을 추가할 수 있어요.').appendTo(container);
   }
   $('#interaction').prop('hidden',false);

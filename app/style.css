@@ -388,3 +388,14 @@ section > .page-back { margin-bottom: 20px; }
 .scene-actions #ride[aria-pressed="true"]::before {
   background: linear-gradient(180deg, #cdeeff42, #a5d4ff14 83%);
 }
+
+.item-options button {
+  height: auto;
+  min-height: 79px;
+  padding: 4px 6px 7px;
+  align-content: start;
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.item-options .treat-icon { width: 56px; height: 56px; }

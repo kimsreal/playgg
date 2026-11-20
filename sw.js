@@ -1,7 +1,9 @@
-const CACHE='annyeong-v33';
+const CACHE='annyeong-v34';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=6','./app/style.css?v=33','./app/main.js?v=32','./app/photos.js?v=5',
-  './app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js','./app/icons.svg?v=20','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=29','./app/scene.js?v=31','./app/vendor/three.module.min.js',
+  './','./manifest.webmanifest?v=6','./app/style.css?v=34','./app/main.js?v=34','./app/photos.js?v=5',
+  './app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js','./app/icons.svg?v=20','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=29','./app/scene.js?v=34','./app/vendor/three.module.min.js',
+  './app/items.js','./app/item-names.js',
+  './app/item-ball.png','./app/item-bath.png','./app/item-vacuum.png','./app/item-tube.png','./app/item-bag.png','./app/item-gift-0.png','./app/item-gift-1.png','./app/item-gift-2.png',
   './app/vendor/jquery.min.js','./app/icon-drawing-192.png','./app/icon-drawing-512.png'
 ];
 const assets=new Set(APP_FILES.map(file => new URL(file,self.registration.scope).href));
