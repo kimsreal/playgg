@@ -571,7 +571,8 @@ function show(pageId,delivery=null) {
   scene?.dispose();
   scene=null;
   clearTimeout(replyTimer);
-  $('#reply,#interaction,#letter-envelope,#fallback-cake').prop('hidden',true);
+  $('#reply,#interaction,#letter-envelope').prop('hidden',true);
+  byId('fallback-cake').setAttribute('hidden','');
   for (const animation of byId('fallback-cake').getAnimations()) animation.cancel();
   for (const animation of byId('letter-envelope').getAnimations()) animation.cancel();
   showError('');
@@ -981,7 +982,7 @@ function deliverGift(kind) {
     return;
   }
   const cake=byId('fallback-cake');
-  cake.hidden=false;
+  cake.removeAttribute('hidden');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!reduced) homeScene.querySelector('.fallback-pet').animate([
     {transform:'translate(-50%,-50%)'},
@@ -992,7 +993,7 @@ function deliverGift(kind) {
     {transform:'scale(1)'},{transform:'scale(1)',offset:.62},{transform:'scale(.1)',opacity:0}
   ],{duration:1000});
   eating.onfinish=() => {
-    cake.hidden=true;
+    cake.setAttribute('hidden','');
     showPlayReply('pet','heart');
   };
 }

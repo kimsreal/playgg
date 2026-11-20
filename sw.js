@@ -1,6 +1,6 @@
-const CACHE='annyeong-v74';
+const CACHE='annyeong-v75';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=7','./app/style.css?v=74','./app/main.js?v=74','./app/photos.js?v=39',
+  './','./manifest.webmanifest?v=7','./app/style.css?v=74','./app/main.js?v=75','./app/photos.js?v=39',
   './app/paw-cursor-pink.png','./app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js','./app/account.js?v=69','./app/icons.svg?v=21','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=74','./app/vendor/three.module.min.js',
   './app/owner-model.js?v=43','./app/owner-colors.js','./app/models/hood_character_cylindrical_legs.glb','./app/vendor/GLTFLoader.js','./app/vendor/BufferGeometryUtils.js',
   './app/welcome-pets/dog.webp','./app/welcome-pets/cat.webp','./app/welcome-pets/hamster.webp','./app/welcome-pets/parrot.webp','./app/welcome-pets/lizard.webp',
