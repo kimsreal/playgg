@@ -532,3 +532,53 @@ section > .page-back { margin-bottom: 20px; }
 #account-form { display: grid; gap: 11px; }
 #account-form button { justify-self: start; }
 #account [data-auth-mode][aria-pressed="true"] { background: var(--sky); font-weight: 650; }
+
+.letter-menu, #letter-form, #letter-list { display: grid; gap: 12px; }
+#letter-form textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  resize: vertical;
+  color: var(--ink);
+  background: #f9fcff;
+  font: inherit;
+}
+#letter-form textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#letter-error:empty, #letter-history-status:empty { display: none; }
+#letter-error { color: #87432f; }
+#letter-list { list-style: none; margin: 0; padding: 0; }
+#letter-list li {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #ebdfcf;
+  border-radius: 12px;
+  background: #fffcf5;
+}
+#letter-list time { color: var(--muted-ink); font-size: .85rem; }
+.letter-text { margin: 12px 0 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.letter-reply {
+  margin: 0 0 0 auto;
+  width: fit-content;
+  max-width: 100%;
+  color: #306485;
+  font: 1.55rem/1.2 "Nanum Pen Script", cursive;
+  text-align: right;
+  transform: rotate(-3deg);
+}
+#letter-envelope {
+  position: absolute;
+  z-index: 2;
+  top: 51%;
+  left: 51%;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 34px;
+  border-radius: 7px;
+  color: #975e41;
+  background: #ffedcb;
+  box-shadow: 0 3px 10px var(--shadow);
+  pointer-events: none;
+}
+#letter-envelope .ui-icon { width: 24px; height: 24px; }

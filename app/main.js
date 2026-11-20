@@ -22,7 +22,7 @@ function makeIcon(name) {
   svg.setAttribute('aria-hidden','true');
   svg.setAttribute('focusable','false');
   const use=document.createElementNS(namespace,'use');
-  use.setAttribute('href','./app/icons.svg?v=20#'+name);
+  use.setAttribute('href','./app/icons.svg?v=21#'+name);
   svg.append(use);
   return svg;
 }
@@ -31,7 +31,7 @@ const random=values => values[Math.floor(Math.random()*values.length)];
 const dayKey=(date=new Date()) => [date.getFullYear(),date.getMonth()+1,date.getDate()].map(value => String(value).padStart(2,'0')).join('-');
 const civilDate=key => Date.parse(key+'T00:00:00Z');
 const tags=value => [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
-const scenes=import('./scene.js?v=43').catch(() => null);
+const scenes=import('./scene.js?v=53').catch(() => null);
 let state, draft, addingFriend=false;
 let riding=false;
 let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates={};
@@ -285,7 +285,7 @@ rideButton.addEventListener('click',() => {
   updateRideButton();
 });
 
-async function mountScene(host,profile,preview) {
+async function mountScene(host,profile,preview,delivery=false) {
   const revision=++sceneRevision;
   scene?.dispose();
   scene=null;
@@ -294,7 +294,11 @@ async function mountScene(host,profile,preview) {
   host.classList.remove('has-webgl');
   fallback.replaceChildren(makeIcon(speciesInfo[profile.species][0]));
   const module=await scenes;
-  if (revision!==sceneRevision || !module) return;
+  if (revision!==sceneRevision) return;
+  if (!module) {
+    if (delivery) deliverLetter();
+    return;
+  }
   const ownerModel=preview ? null : await module.loadOwnerModel();
   if (revision!==sceneRevision) return;
   const setGraphicsAvailable=available => {
@@ -308,13 +312,14 @@ async function mountScene(host,profile,preview) {
       preview,perspective,ownerModel,ownerColors,onGraphicsChange:setGraphicsAvailable
     });
     setGraphicsAvailable(true);
-    if (!preview) scene.play('greet');
+    if (!preview && !delivery) scene.play('greet');
   } catch {
     // The rest of the app still works on devices without WebGL.
   }
+  if (delivery) deliverLetter();
 }
 
-function show(pageId) {
+function show(pageId,delivery=false) {
   page=pageId;
   riding=false;
   rideButton.hidden=true;
@@ -323,7 +328,8 @@ function show(pageId) {
   scene?.dispose();
   scene=null;
   clearTimeout(replyTimer);
-  $('#reply,#interaction').prop('hidden',true);
+  $('#reply,#interaction,#letter-envelope').prop('hidden',true);
+  for (const animation of byId('letter-envelope').getAnimations()) animation.cancel();
   showError('');
   $('main > section').prop('hidden',true);
   $('#'+pageId).prop('hidden',false);
@@ -333,12 +339,21 @@ function show(pageId) {
   window.scrollTo(0,0);
   if (pageId==='home') {
     applyPerspective();
-    void mountScene(byId('home-scene'),state.profile,false);
+    void mountScene(byId('home-scene'),state.profile,false,delivery);
   }
   if (pageId==='photo') {
     $('#photo-status').text('');
     void showDaily();
   }
+  if (pageId==='letter-write') {
+    byId('letter-title').textContent=state.profile.name+'에게 보내는 편지';
+    byId('letter-error').textContent='';
+  }
+  if (pageId==='letters') {
+    byId('letter-form').reset();
+    byId('letter-form').querySelector('button').disabled=true;
+  }
+  if (pageId==='letter-history') void renderLetters();
   if (pageId==='account') renderAccount();
   if (pageId==='settings') {
     byId('settings-search').value='';
@@ -564,6 +579,95 @@ function play(action,icon,object) {
     ],{duration:550});
   }
   replyTimer=setTimeout(() => reply.prop('hidden',true),2700);
+}
+
+const letterForm=byId('letter-form');
+const letterBody=byId('letter-body');
+const letterSubmit=letterForm.querySelector('button');
+const letterReplies=['편지 써줘서 고마워!', '많이많이 사랑해!', '나도 네 생각을 했어!', '마음이 포근해졌어!', '내 마음도 여기 담아 둘게!'];
+const letterDate=new Intl.DateTimeFormat('ko-KR',{dateStyle:'long'});
+
+function letterKey() {
+  return 'letters:'+(account ? accountKey(account) : 'guest')+':'+activeFriendId(state);
+}
+
+letterBody.addEventListener('input',() => {
+  letterSubmit.disabled=!letterBody.value.trim();
+});
+
+letterForm.addEventListener('submit',async event => {
+  event.preventDefault();
+  const text=letterBody.value.trim();
+  if (letterBody.readOnly || letterSubmit.disabled || !text || text.length>2000) return;
+  const key=letterKey();
+  const revision=sceneRevision;
+  letterSubmit.disabled=true;
+  letterBody.readOnly=true;
+  byId('letter-error').textContent='';
+  try {
+    const letter={text,date:Date.now(),reply:random(letterReplies)};
+    await writeLocalState(previous => [letter,...(previous || [])],key);
+    if (page==='letter-write' && sceneRevision===revision && letterKey()===key) {
+      letterForm.reset();
+      show('home',true);
+    }
+  } catch {
+    if (sceneRevision===revision) byId('letter-error').textContent='편지를 저장하지 못했어요. 다시 시도해 주세요.';
+  } finally {
+    letterBody.readOnly=false;
+    letterSubmit.disabled=!letterBody.value.trim();
+  }
+});
+
+async function renderLetters() {
+  const key=letterKey();
+  const revision=sceneRevision;
+  const list=byId('letter-list');
+  const status=byId('letter-history-status');
+  list.replaceChildren();
+  status.textContent='편지를 불러오는 중이에요.';
+  try {
+    const letters=await readState(key) || [];
+    if (sceneRevision!==revision) return;
+    status.textContent=letters.length ? '' : '아직 건넨 편지가 없어요.';
+    for (const letter of letters) {
+      const card=document.createElement('li');
+      const date=document.createElement('time');
+      date.dateTime=new Date(letter.date).toISOString();
+      date.textContent=letterDate.format(letter.date);
+      const text=document.createElement('p');
+      text.className='letter-text';
+      text.textContent=letter.text;
+      const reply=document.createElement('p');
+      reply.className='letter-reply';
+      reply.textContent=letter.reply;
+      card.append(date,text,reply);
+      list.append(card);
+    }
+  } catch {
+    if (sceneRevision===revision) status.textContent='편지를 불러오지 못했어요.';
+  }
+}
+
+function deliverLetter() {
+  if (scene) {
+    scene.play('letter');
+    return;
+  }
+  const envelope=byId('letter-envelope');
+  envelope.hidden=false;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const flight=envelope.animate(reduced ? [{opacity:1},{opacity:1}] : [
+    {transform:'translate(95px,55px) rotate(-15deg)'},
+    {transform:'translate(45px,-45px) rotate(10deg)',offset:.45},
+    {transform:'translate(0,0) rotate(-7deg)'}
+  ],{duration:1250,easing:'ease-out'});
+  flight.onfinish=() => {
+    envelope.hidden=true;
+    if (!reduced) homeScene.querySelector('.fallback-pet').animate([
+      {transform:'translate(-50%,-50%)'},{transform:'translate(-50%,-90%)'},{transform:'translate(-50%,-50%)'}
+    ],{duration:400,iterations:3});
+  };
 }
 
 function objectImage(kind) {

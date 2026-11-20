@@ -257,6 +257,23 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   scene.add(pet.root);
   const toy = mesh(scene,new T.IcosahedronGeometry(.22,1),material(0xec997d),0,0,0);
   toy.visible=false;
+  const envelope=new T.Group();
+  const paper=new T.MeshStandardMaterial({color:0xffedcb,roughness:.82});
+  const seam=new T.MeshStandardMaterial({color:0xbb815c,roughness:.85});
+  mesh(envelope,new T.BoxGeometry(.58,.38,.055),paper,0,0,0);
+  for (const side of [-1,1]) {
+    const fold=mesh(envelope,new T.BoxGeometry(.35,.014,.012),seam,side*.146,.071,.028);
+    fold.rotation.z=side*.44;
+  }
+  mesh(envelope,new T.SphereGeometry(.055,12,8),material(0xe18094),0,0,.034).scale.z=.25;
+  envelope.visible=false;
+  if (owner) scene.add(envelope);
+  else envelope.traverse(part => {
+    part.geometry?.dispose();
+    part.material?.dispose();
+  });
+  const letterOrigin=new T.Vector3();
+  const letterTarget=new T.Vector3();
   const treats={meat:createMeatTreat(),fish:createFishTreat()};
   const items=new Map();
   let placedItem;
@@ -372,6 +389,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const walk=move ? Math.sin(t*(hamster ? 24 : 10)) : 0;
     if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
     toy.visible=false;
+    envelope.visible=false;
     if (placedItem) placedItem.visible=false;
     for (const treat of Object.values(treats)) treat.visible=false;
     if (heart) heart.visible=false;
@@ -430,6 +448,25 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         if (kind==='liked' || kind==='disliked') {
           placedItem.position.set(target.x,0,target.z);
           placedItem.visible=true;
+        }
+        if (kind==='letter') {
+          const arrival=clamp(p/.39,0,1);
+          const reading=p>=.39 && p<.58;
+          const cheering=p>=.58;
+          const hop=clamp((p-.58)/.42,0,1);
+          envelope.visible=!cheering;
+          if (envelope.visible) {
+            envelope.position.lerpVectors(letterOrigin,letterTarget,move ? arrival : 1);
+            if (move) envelope.position.y+=Math.sin(arrival*Math.PI)*.85;
+            envelope.rotation.set(-.16,camera.rotation.y,move ? Math.sin(arrival*Math.PI)*.28 : 0);
+          }
+          if (reading) pet.head.rotation.x=.29;
+          if (cheering) {
+            pet.smile.visible=true;
+            if (profile.species!=='parrot' && profile.species!=='lizard') pet.mouth.visible=false;
+            pet.tail.rotation.y=move ? Math.sin(t*20)*.9 : .36;
+            if (move) pet.root.position.y=Math.abs(Math.sin(hop*Math.PI*3))*(hamster ? .33 : .52);
+          }
         }
         if (kind==='treat') {
           const model=treats[action.object];
@@ -525,7 +562,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       owner.legs[1].rotation.z=.45*seated;
       owner.shadow.position.set(position.x,.009,position.z);
       owner.shadow.material.opacity=.16*(1-seated);
-      const reaching=alive && ['pet','treat','liked','ball'].includes(action.kind);
+      const reaching=alive && ['pet','treat','liked','ball','letter'].includes(action.kind);
       owner.arms[0].rotation.x=T.MathUtils.lerp(reaching ? -.92*(move ? Math.sin(p*Math.PI) : 1) : -stride*.7,-.62,seated);
       owner.arms[1].rotation.x=T.MathUtils.lerp(walking ? stride*.7 : move ? Math.sin(t*2)*.055 : 0,-.62,seated);
       owner.head.rotation.x=reaching ? .13 : 0;
@@ -620,7 +657,17 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         }
         placedItem=items.get(object);
       }
-      action={kind,object,elapsed:0,duration:kind==='ball' ? 3.1 : kind==='treat' ? 2.75 : 2.05};
+      if (kind==='letter') {
+        if (!owner) return;
+        owner.arms[0].getWorldPosition(letterOrigin);
+        letterOrigin.y-=.15;
+        pet.head.getWorldPosition(letterTarget);
+        const heading=pet.root.rotation.y;
+        letterTarget.x+=Math.sin(heading)*.36;
+        letterTarget.z+=Math.cos(heading)*.36;
+        letterTarget.y+=.18;
+      }
+      action={kind,object,elapsed:0,duration:kind==='letter' ? 3.7 : kind==='ball' ? 3.1 : kind==='treat' ? 2.75 : 2.05};
       idleTime=0;
       initial.set(pet.root.position.x,0,pet.root.position.z);
       const locations={ball:[2.65,0,-1.2],greet:[0,0,1.95],treat:[.85,0,1.4],liked:[-1,0,1.65]};
