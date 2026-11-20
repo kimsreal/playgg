@@ -741,35 +741,27 @@ section > .page-back { margin-bottom: 20px; }
 }
 .leaf-companion img { object-fit: contain; }
 .leaf-companion p { margin: 0; color: var(--muted-ink); }
-.leaf-game-counts {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-  margin-block: 14px;
-  color: var(--muted-ink);
+.food-order { color: #426653; }
+#food-board {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin-inline: auto;
+  border: 6px solid #c6e0cf;
+  border-top-width: 2px;
+  border-radius: 16px 16px 24px 24px;
+  background: linear-gradient(#fafff7,#edf7e7);
+  cursor: crosshair;
 }
-#leaf-board {
+.food-controls {
   display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
-  gap: 8px;
-  padding: 12px;
-  border-radius: 22px;
-  background: #eef7e7;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 6px 12px;
+  margin-block: 12px;
 }
-#leaf-board button {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1;
-  min-width: 0;
-  border-radius: 16px;
-  background: #c5e0ad;
-  color: #44693e;
-}
-#leaf-board button:hover { background: #d3e8c0; }
-#leaf-board button:disabled { opacity: 1; cursor: default; }
-#leaf-board button[data-reveal="leaf"] { background: #fff1b8; }
-#leaf-board button[data-reveal="empty"] { background: #e1edda; }
-#leaf-board .ui-icon { width: 24px; height: 24px; }
-#leaf-game-status { margin-block: 12px; }
+.food-controls label { grid-column: 1 / -1; font-size: .85rem; }
+.food-controls input { min-width: 0; width: 100%; accent-color: #568c69; }
+#food-status:empty { display: none; }
 .coast-unlock { margin-top: 14px; }

@@ -1,3 +1,4 @@
+import {createFoodGame} from './food-game.js';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
@@ -377,11 +378,11 @@ const coastCost=50;
 const backgroundChoice=byId('background-choice');
 const backgroundStatus=byId('background-status');
 const coastBuy=byId('coast-buy');
-const leafBoard=byId('leaf-board');
-const leafNext=byId('leaf-next');
-const leafStatus=byId('leaf-game-status');
-const roundLeafCount=5;
-let leafRound;
+const foodReset=byId('food-reset');
+const foodRetry=byId('food-retry');
+const foodStatus=byId('food-status');
+let rewardPending=false;
+
 let economyBusy=false;
 
 function ownsCoast(current) {
@@ -416,7 +417,7 @@ async function changeBackground(selected,buy=false) {
     state=updated;
     background=selected;
     if (buy) {
-      backgroundStatus.textContent='노을 바다를 열었어요.';
+      backgroundStatus.textContent='노을 바다를 구매했어요.';
       backgroundStatus.hidden=false;
     }
     if (page==='home' && byId('home').dataset.background!==selected) show('home');
@@ -436,68 +437,46 @@ async function changeBackground(selected,buy=false) {
 backgroundChoice.addEventListener('change',() => void changeBackground(backgroundChoice.value));
 coastBuy.addEventListener('click',() => void changeBackground('coast',true));
 
-function startLeafRound() {
-  if (economyBusy) return;
-  const patches=Array.from({length:12},(_,index) => index);
-  for (let i=patches.length-1;i>0;i--) {
-    const j=Math.floor(Math.random()*(i+1));
-    [patches[i],patches[j]]=[patches[j],patches[i]];
+const foodGame=createFoodGame({
+  canvas:byId('food-board'),
+  aim:byId('food-aim'),
+  drop:byId('food-drop'),
+  reset:foodReset,
+  status:foodStatus,
+  onClear() {
+    rewardPending=true;
+    void awardFoodGame();
   }
-  const round={leaves:new Set(patches.slice(0,roundLeafCount)),found:0};
-  leafRound=round;
-  leafStatus.textContent='';
-  leafNext.hidden=true;
-  byId('leaf-round-count').textContent='찾은 잎사귀 0 / '+roundLeafCount;
-  leafBoard.replaceChildren(...patches.map((_,index) => {
-    const tile=document.createElement('button');
-    tile.type='button';
-    tile.setAttribute('aria-label',(index+1)+'번째 풀숲 살펴보기');
-    tile.append(makeIcon('leaf'));
-    tile.addEventListener('click',() => void revealPatch(round,index,tile));
-    return tile;
-  }));
-  renderBalance();
-}
-
-async function revealPatch(round,index,tile) {
-  if (economyBusy || tile.disabled || round.found===roundLeafCount) return;
-  const found=round.leaves.has(index);
-  if (found) {
-    economyBusy=true;
-    try {
-      const session=account;
-      const updated=await updateState(current => ({
-        ...current,coastUnlocked:ownsCoast(current),leaves:Math.min(999999,(current?.leaves || 0)+1)
-      }));
-      if (account!==session) return;
-      state=updated;
-      round.found++;
-    } catch {
-      if (page==='leaf-game') leafStatus.textContent='잎사귀를 저장하지 못했어요. 다시 눌러 주세요.';
-      return;
-    } finally {
-      economyBusy=false;
-      renderBalance();
-    }
-  }
-  if (leafRound!==round) return;
-  tile.disabled=true;
-  tile.dataset.reveal=found ? 'leaf' : 'empty';
-  tile.setAttribute('aria-label',found ? '잎사귀를 찾은 풀숲' : '살펴본 풀숲');
-  if (!found) tile.replaceChildren();
-  byId('leaf-round-count').textContent='찾은 잎사귀 '+round.found+' / '+roundLeafCount;
-  const complete=round.found===roundLeafCount;
-  leafStatus.textContent=complete ? '잎사귀를 모두 찾았어요!' : found ? '잎사귀를 하나 찾았어요.' : '이 풀숲은 살펴봤어요.';
-  if (complete) {
-    leafNext.hidden=false;
-    if (page==='leaf-game') leafNext.focus();
-  } else if (page==='leaf-game') [...leafBoard.children].find(button => !button.disabled)?.focus();
-}
-
-leafNext.addEventListener('click',() => {
-  startLeafRound();
-  leafBoard.firstElementChild?.focus();
 });
+
+async function awardFoodGame() {
+  if (!rewardPending || economyBusy) return;
+  const session=account;
+  foodReset.disabled=true;
+  foodRetry.hidden=true;
+  economyBusy=true;
+  foodStatus.textContent='케이크를 완성했어요. 잎사귀를 담는 중이에요.';
+  try {
+    const updated=await updateState(current => ({
+      ...current,coastUnlocked:ownsCoast(current),leaves:Math.min(999999,(current?.leaves || 0)+50)
+    }));
+    if (account!==session) return;
+    rewardPending=false;
+    state=updated;
+    foodStatus.textContent='케이크 완성! 잎사귀 50개를 받았어요.';
+  } catch {
+    if (account===session) {
+      foodStatus.textContent='잎사귀를 저장하지 못했어요. 다시 받아 주세요.';
+      foodRetry.hidden=false;
+    }
+  } finally {
+    economyBusy=false;
+    foodReset.disabled=rewardPending;
+    renderBalance();
+  }
+}
+
+foodRetry.addEventListener('click',() => void awardFoodGame());
 
 const music=byId('meadow-music');
 const musicToggle=byId('music-toggle');
@@ -546,6 +525,7 @@ document.addEventListener('click',() => {
 });
 
 function show(pageId,delivery=false) {
+  if (pageId!=='leaf-game') foodGame.pause();
   clearBall();
   page=pageId;
   riding=false;
@@ -586,8 +566,8 @@ function show(pageId,delivery=false) {
   if (pageId==='letter-history') void renderLetters();
   if (pageId==='leaf-game') {
     byId('leaf-pet').src='./app/welcome-pets/'+state.profile.species+'.webp';
-    byId('leaf-intro').textContent=state.profile.name+'와 함께 잎사귀를 찾아요.';
-    if (!leafRound) startLeafRound();
+    byId('leaf-intro').textContent=state.profile.name+'와 함께 먹이를 합쳐요.';
+    foodGame.resume();
     renderBalance();
   }
   if (pageId==='account') renderAccount();
@@ -1212,7 +1192,9 @@ function accountError(error) {
 }
 
 function enterSpace() {
-  leafRound=null;
+  rewardPending=false;
+  foodRetry.hidden=true;
+  foodGame.restart();
   addingFriend=false;
   const saved=state?.onboarding;
   draft=saved?.profile || null;
@@ -1272,7 +1254,9 @@ $('#account-logout').on('click',function () {
   void runAccountAction(async () => {
     await changeAccount('logout');
     account=null;
-    leafRound=null;
+    rewardPending=false;
+    foodRetry.hidden=true;
+    foodGame.restart();
     state=await readState();
     applyPreferences(guestPreferences());
     show('welcome');
