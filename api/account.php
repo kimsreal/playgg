@@ -157,6 +157,8 @@ function cleanSettings($settings): array
     }
     $friends = [];
     $seen = [];
+    $background = choice($settings['background'] ?? 'meadow', ['meadow', 'coast']);
+    $coastUnlocked = ($settings['coastUnlocked'] ?? false) === true || $background === 'coast';
     foreach ($settings['friends'] as $friend) {
         if (!is_array($friend) || !isset($friend['profile']) || !is_array($friend['profile'])) {
             fail(422, 'invalid_settings');
@@ -166,7 +168,11 @@ function cleanSettings($settings): array
             fail(422, 'invalid_settings');
         }
         $seen[$id] = true;
-        $friends[] = ['id' => $id, 'profile' => cleanProfile($friend['profile'])];
+        $space = $friend['space'] ?? [];
+        if (!is_array($space)) fail(422, 'invalid_settings');
+        $theme = choice($space['background'] ?? $background, ['meadow', 'coast']);
+        $coastUnlocked = $coastUnlocked || $theme === 'coast';
+        $friends[] = ['id' => $id, 'profile' => cleanProfile($friend['profile']), 'space' => ['background' => $theme]];
     }
     $active = $settings['active'] ?? null;
     if (($friends && (!is_string($active) || !isset($seen[$active]))) || (!$friends && $active !== null)) {
@@ -183,8 +189,8 @@ function cleanSettings($settings): array
         'active' => $active,
         'perspective' => choice($settings['perspective'] ?? 'third', ['first', 'third']),
         'ownerColors' => $colors,
-        'background' => choice($settings['background'] ?? 'meadow', ['meadow', 'coast']),
-        'coastUnlocked' => ($settings['coastUnlocked'] ?? false) === true || ($settings['background'] ?? null) === 'coast',
+        'background' => $background,
+        'coastUnlocked' => $coastUnlocked,
         'leaves' => is_int($settings['leaves'] ?? null) ? max(0, min(999999, $settings['leaves'])) : 0,
     ];
 }

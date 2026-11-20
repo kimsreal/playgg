@@ -1,9 +1,26 @@
 export const activeFriendId = state => state.friendId || 'first';
 
+export function friendSpace(space,legacyBackground) {
+  const background=space?.background ?? legacyBackground;
+  return {...space,background:background==='coast' ? 'coast' : 'meadow'};
+}
+
+export function migrateFriendSpaces(state,legacyBackground=state?.background) {
+  if (!state?.profile) return state;
+  const {background,...saved}=state;
+  return {
+    ...saved,
+    coastUnlocked:state.coastUnlocked===true || legacyBackground==='coast',
+    space:friendSpace(state.space,legacyBackground),
+    friends:(state.friends || []).map(friend => ({...friend,space:friendSpace(friend.space,legacyBackground)}))
+  };
+}
+
 function activeFriend(state) {
   return {
     id:activeFriendId(state),
     profile:state.profile,
+    space:friendSpace(state.space,state.background),
     photos:state.photos || [],
     album:state.album || [],
     daily:state.daily || null
@@ -16,7 +33,7 @@ export function listFriends(state) {
 
 function selectFriend(state,friend,friends) {
   return {
-    ...state,friendId:friend.id,profile:friend.profile,photos:friend.photos,
+    ...state,friendId:friend.id,profile:friend.profile,space:friendSpace(friend.space,state.background),photos:friend.photos,
     album:friend.album,daily:friend.daily,friends,onboarding:null
   };
 }
@@ -29,7 +46,7 @@ export function switchFriend(state,id) {
 }
 
 export function addFriend(state,id,profile) {
-  const friend={id,profile,photos:[],album:[],daily:null};
+  const friend={id,profile,space:friendSpace(),photos:[],album:[],daily:null};
   return selectFriend(state,friend,listFriends(state));
 }
 

@@ -2,9 +2,9 @@ import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
-import { activeFriendId, listFriends, switchFriend, addFriend, updateFriend } from './friends.js';
+import { activeFriendId, friendSpace, listFriends, migrateFriendSpaces, switchFriend, addFriend, updateFriend } from './friends.js?v=79';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=69';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=79';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -39,7 +39,6 @@ let page, scene, sceneRevision=0, replyTimer, photoUrl, installPrompt, modeDates
 let renderedDay;
 
 let perspective='third';
-let background='meadow';
 let ownerColors=cleanOwnerColors();
 let account=null;
 let accountReturnPage='welcome';
@@ -48,7 +47,6 @@ let writes=Promise.resolve();
 
 function applyPreferences(settings) {
   perspective=settings.perspective;
-  background=settings.background==='coast' ? 'coast' : 'meadow';
   ownerColors=cleanOwnerColors(settings.ownerColors);
   syncOwnerColorInputs();
 }
@@ -56,13 +54,21 @@ function applyPreferences(settings) {
 function guestPreferences() {
   try {
     return {
-      background:state?.background ?? localStorage.getItem('annyeong-background'),
       perspective:localStorage.getItem('annyeong-perspective')==='first' ? 'first' : 'third',
       ownerColors:cleanOwnerColors(JSON.parse(localStorage.getItem('annyeong-owner-colors')))
     };
   } catch {
     return {perspective:'third',ownerColors:cleanOwnerColors()};
   }
+}
+
+async function restoreGuest(guest) {
+  if (!guest?.profile || guest.space) return guest;
+  let legacy=guest.background;
+  if (legacy===undefined) {
+    try { legacy=localStorage.getItem('annyeong-background'); } catch {}
+  }
+  return writeLocalState(current => current?.space ? current : migrateFriendSpaces(current,current?.background ?? legacy));
 }
 
 function accountKey(session) {
@@ -341,6 +347,7 @@ rideButton.addEventListener('click',() => {
 });
 
 async function mountScene(host,profile,preview,delivery=null) {
+  const {background}=friendSpace(state?.space);
   const revision=++sceneRevision;
   scene?.dispose();
   scene=null;
@@ -415,7 +422,7 @@ let rewardPending=false;
 let economyBusy=false;
 
 function ownsCoast(current) {
-  return current?.coastUnlocked===true || current?.background==='coast' || background==='coast';
+  return current?.coastUnlocked===true;
 }
 
 function renderBalance() {
@@ -436,6 +443,7 @@ function renderBalance() {
 async function changeBackground(selected,buy=false) {
   if (economyBusy) return;
   const session=account;
+  const friendId=activeFriendId(state);
   economyBusy=true;
   backgroundChoice.disabled=true;
   const status=buy ? themeShopStatus : backgroundStatus;
@@ -446,16 +454,18 @@ async function changeBackground(selected,buy=false) {
       const unlocked=ownsCoast(current);
       const price=buy && !unlocked ? coastCost : 0;
       if ((current?.leaves || 0)<price || (selected==='coast' && !unlocked && !buy)) throw new Error('locked');
-      return {...current,background:selected,coastUnlocked:unlocked || buy,leaves:(current?.leaves || 0)-price};
+      const withSpace=updateFriend(current,friendId,friend => ({
+        space:{...friend.space,background:selected}
+      }));
+      return {...withSpace,coastUnlocked:unlocked || buy,leaves:(current?.leaves || 0)-price};
     });
     if (account!==session) return;
     state=updated;
-    background=selected;
     if (buy) {
       status.textContent='노을 바다를 구매했어요.';
       status.hidden=false;
     }
-    if (page==='home' && byId('home').dataset.background!==selected) show('home');
+    if (page==='home' && byId('home').dataset.background!==friendSpace(state.space).background) show('home');
   } catch {
     if (account===session) {
       status.textContent='배경을 저장하지 못했어요. 다시 시도해 주세요.';
@@ -464,7 +474,7 @@ async function changeBackground(selected,buy=false) {
   } finally {
     economyBusy=false;
     backgroundChoice.disabled=false;
-    backgroundChoice.value=background;
+    backgroundChoice.value=friendSpace(state?.space).background;
     renderBalance();
   }
 }
@@ -590,6 +600,7 @@ function show(pageId,delivery=null) {
   if (pageId==='home') {
     startMusic();
     renderBalance();
+    const {background}=friendSpace(state.space);
     byId('home').dataset.background=background;
     byId('home').setAttribute('aria-label',background==='coast' ? '노을 바다' : '초원');
     applyPerspective();
@@ -619,7 +630,7 @@ function show(pageId,delivery=null) {
   }
   if (pageId==='settings') {
     renderBalance();
-    backgroundChoice.value=background;
+    backgroundChoice.value=friendSpace(state?.space).background;
     backgroundStatus.hidden=true;
     byId('settings-search').value='';
     filterSettings();
@@ -860,7 +871,7 @@ $(avatarForm).on('submit',async event => {
     state=await updateState(current => {
       if (newId) return addFriend(current,newId,profile);
       if (id) return updateFriend(current,id,() => ({profile}));
-      return {...current,profile,photos:current?.photos || current?.onboarding?.photos || [],album:current?.album || [],onboarding:null};
+      return {...current,profile,space:friendSpace(),photos:current?.photos || current?.onboarding?.photos || [],album:current?.album || [],onboarding:null};
     });
     draft=null;
     addingFriend=false;
@@ -1310,7 +1321,7 @@ accountForm.addEventListener('submit',event => {
   const action=accountMode;
   void runAccountAction(async () => {
     const guestSeed=action==='register' ? state : undefined;
-    if (action==='register') fields.settings=accountSettings({...state,perspective,background,ownerColors});
+    if (action==='register') fields.settings=accountSettings({...state,perspective,ownerColors});
     try {
       const session=await changeAccount(action,fields);
       await enterAccount(session,guestSeed);
@@ -1325,7 +1336,7 @@ $('#account-logout').on('click',function () {
     await changeAccount('logout');
     account=null;
     restartFoodGame();
-    state=await readState();
+    state=await restoreGuest(await readState());
     applyPreferences(guestPreferences());
     show('welcome');
   });
@@ -1335,7 +1346,7 @@ byId('start-welcome').addEventListener('click',enterSpace);
 
 try {
   const [guest,session]=await Promise.all([readState(),readAccount().catch(() => null)]);
-  state=guest;
+  state=await restoreGuest(guest);
   applyPreferences(guestPreferences());
   if (session?.user) await enterAccount(session);
   show('welcome');

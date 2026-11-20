@@ -1,5 +1,5 @@
 import {ownerColors} from './owner-colors.js';
-import {listFriends} from './friends.js';
+import {friendSpace,listFriends} from './friends.js?v=79';
 
 let csrf;
 
@@ -39,9 +39,9 @@ export function accountSettings(state) {
   const friends=state?.profile ? listFriends(state) : [];
   return {
     active:friends[0]?.id || null,
-    friends:friends.map(({id,profile}) => ({id,profile})).sort((a,b) => a.id.localeCompare(b.id)),
-    background:state?.background==='coast' ? 'coast' : 'meadow',
-    coastUnlocked:state?.coastUnlocked===true || state?.background==='coast',
+    friends:friends.map(({id,profile,space}) => ({id,profile,space:friendSpace(space,state?.background)})).sort((a,b) => a.id.localeCompare(b.id)),
+    background:friendSpace(state?.space,state?.background).background,
+    coastUnlocked:state?.coastUnlocked===true || state?.background==='coast' || friends.some(friend => friend.space?.background==='coast'),
     leaves:state?.leaves || 0,
     perspective:state?.perspective || 'third',
     ownerColors:ownerColors(state?.ownerColors)
@@ -50,18 +50,18 @@ export function accountSettings(state) {
 
 export function mergeAccount(settings,local) {
   const previous=local?.profile ? new Map(listFriends(local).map(friend => [friend.id,friend])) : new Map();
-  const friends=settings.friends.map(({id,profile}) => ({
-    id,profile,
+  const friends=settings.friends.map(({id,profile,space}) => ({
+    id,profile,space:friendSpace(space,settings.background),
     photos:previous.get(id)?.photos || [],
     album:previous.get(id)?.album || [],
     daily:previous.get(id)?.daily || null
   }));
   const active=friends.find(friend => friend.id===settings.active);
-  const preferences={background:settings.background==='coast' ? 'coast' : 'meadow',
-    coastUnlocked:settings.coastUnlocked===true || settings.background==='coast',leaves:settings.leaves || 0,perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
+  const preferences={
+    coastUnlocked:settings.coastUnlocked===true || settings.background==='coast' || friends.some(friend => friend.space.background==='coast'),leaves:settings.leaves || 0,perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
   if (!active) return {...preferences,onboarding:local?.onboarding || null};
   return {
-    ...preferences,friendId:active.id,profile:active.profile,photos:active.photos,album:active.album,
+    ...preferences,friendId:active.id,profile:active.profile,space:active.space,photos:active.photos,album:active.album,
     daily:active.daily,friends:friends.filter(friend => friend.id!==active.id)
   };
 }
