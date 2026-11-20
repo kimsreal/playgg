@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=6">
   <link rel="icon" type="image/png" href="./app/icon-drawing-192.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=16">
+  <link rel="stylesheet" href="./app/style.css?v=18">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=17"></script>
+  <script type="module" src="./app/main.js?v=18"></script>
 </head>
 <body>
 <div id="launch" class="launch" role="status" aria-label="안녕 시작 중">
@@ -20,7 +20,7 @@
 <div class="app" id="app" hidden>
   <main>
     <section id="setup" hidden>
-      <button type="button" class="return-home" data-page="home" hidden>‹ 초원</button>
+      <button type="button" class="return-home" data-page="home" hidden>초원으로 돌아가기</button>
       <p class="kicker" id="setup-kicker">처음 만나는 날</p>
       <h1 id="setup-title">우리 공간을 만들어요</h1>
       <p>로그인 없이 사용할 수 있어요. 입력한 정보는 이 브라우저에만 저장돼요.</p>
@@ -61,27 +61,22 @@
         <div class="buttons"><button type="button" id="avatar-back">뒤로</button><button class="primary" type="submit">초원으로 가기</button></div>
       </form>
     </section>
-    <section id="home" hidden>
+    <section id="home" aria-label="초원" hidden>
       <div class="scene" id="home-scene">
         <div class="meadow-fallback" aria-hidden="true">
           <div class="meadow-clouds"></div>
           <div class="meadow-island">
-            <span class="tree tree-a">🌳</span><span class="tree tree-b">🌳</span>
-            <span class="flowers flowers-a">✿ ✦ ✿</span><span class="flowers flowers-b">✦ ✿ ✦</span>
+            <span class="tree tree-a"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#tree-deciduous"></use></svg></span><span class="tree tree-b"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#tree-deciduous"></use></svg></span>
+            <span class="flowers flowers-a"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#flower-2"></use></svg></span><span class="flowers flowers-b"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#flower-2"></use></svg></span>
           </div>
         </div>
-        <span class="fallback-owner" aria-hidden="true">🧑</span>
+        <span class="fallback-owner" aria-hidden="true"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#user-round"></use></svg></span>
         <button type="button" class="fallback-pet" data-action="pet" aria-label="아바타 쓰다듬기"></button>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
-      <div class="scene-greeting">
-        <h1 id="greeting"></h1>
-        <p id="mode-copy"></p>
-        <p id="occasion" class="occasion" role="status" hidden></p>
-      </div>
       <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
-        <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><span aria-hidden="true">🖼︎</span></button>
-        <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><span aria-hidden="true">⚙︎</span></button>
+        <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#image"></use></svg></button>
+        <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#settings"></use></svg></button>
       </div>
       <div class="view-picker" role="group" aria-label="초원 시점">
         <button type="button" data-view="third" aria-pressed="true">3인칭</button>
@@ -89,27 +84,26 @@
       </div>
       <div class="scene-controls">
         <div id="interaction" hidden>
-          <div class="interaction-heading"><h2 id="interaction-title"></h2><button type="button" id="close-interaction" class="scene-icon" aria-label="선택 닫기">×</button></div>
+          <div class="interaction-heading"><h2 id="interaction-title"></h2><button type="button" id="close-interaction" class="scene-icon" aria-label="선택 닫기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#x"></use></svg></button></div>
           <div id="interaction-options" class="buttons"></div>
         </div>
-        <button type="button" class="scene-friends" data-page="friends">🐾 다른 친구랑 놀기</button>
         <div class="scene-actions" role="group" aria-label="함께 놀기">
-          <button type="button" data-action="pet"><span aria-hidden="true">♡</span>쓰다듬기</button>
-          <button type="button" data-panel="treats"><span aria-hidden="true">🍖</span>간식</button>
-          <button type="button" data-action="ball"><span aria-hidden="true">⚾</span>공놀이</button>
-          <button type="button" data-panel="items"><span aria-hidden="true">✦</span>아이템</button>
-          <button type="button" data-panel="talk"><span aria-hidden="true">☏</span>말 걸기</button>
+          <button type="button" data-action="pet"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#heart"></use></svg>쓰다듬기</button>
+          <button type="button" data-panel="treats"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#bone"></use></svg>간식</button>
+          <button type="button" data-action="ball"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#volleyball"></use></svg>공놀이</button>
+          <button type="button" data-panel="items"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#sparkles"></use></svg>아이템</button>
+          <button type="button" data-panel="talk"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#message-circle"></use></svg>말 걸기</button>
         </div>
       </div>
     </section>
     <section id="friends" hidden>
-      <button type="button" class="return-home" data-page="home">‹ 초원</button>
+      <button type="button" class="return-home" data-page="settings">설정으로 돌아가기</button>
       <h1>다른 친구랑 놀기</h1>
       <ul id="friend-list" class="friend-list"></ul>
       <button type="button" class="primary" id="add-friend">반려동물 추가</button>
     </section>
     <section id="photo" hidden>
-      <button type="button" class="return-home" data-page="home">‹ 초원</button>
+      <button type="button" class="return-home" data-page="home">초원으로 돌아가기</button>
       <h1>오늘의 사진</h1>
       <div id="photo-card" hidden>
         <figure class="polaroid" id="daily-frame">
@@ -126,10 +120,12 @@
       <p id="photo-status" class="small" role="status"></p>
     </section>
     <section id="settings" hidden>
-      <button type="button" class="return-home" data-page="home">‹ 초원</button>
+      <button type="button" class="return-home" data-page="home">초원으로 돌아가기</button>
       <p class="kicker">우리 공간</p>
       <h1>설정</h1>
-      <div class="buttons"><button type="button" id="edit-profile">반려동물 정보와 모드 바꾸기</button><button type="button" id="edit-avatar">아바타 꾸미기</button></div>
+      <p id="mode-copy" class="small" hidden></p>
+      <p id="occasion" class="occasion" role="status" hidden></p>
+      <div class="buttons"><button type="button" id="edit-profile">반려동물 정보와 모드 바꾸기</button><button type="button" id="edit-avatar">아바타 꾸미기</button><button type="button" class="settings-friends" data-page="friends"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg#paw-print"></use></svg> 다른 친구랑 놀기</button></div>
       <h2>저장 공간</h2>
       <p>반려동물 정보와 사진은 이 브라우저에 저장돼요. 브라우저의 사이트 데이터를 지우면 저장한 내용도 사라져요.</p>
       <h2>오늘의 사진</h2>

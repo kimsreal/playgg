@@ -8,18 +8,18 @@ export const meadow = {
 };
 
 export const phrases = [
-  ['밥 먹었어?', ['🍖'], 'belly'],
-  ['오늘 뭐 했어?', ['☀️','💤','⚽'], 'perch'],
-  ['사랑해', ['💕'], 'wag'],
-  ['보고 싶었어', ['🐾'], 'greet'],
-  ['잘 자', ['🌙'], 'sleep'],
-  ['같이 산책할까?', ['🌿'], 'greet'],
-  ['공 가져올래?', ['⚽'], 'ball'],
-  ['햇살이 따뜻하지?', ['☀️'], 'perch'],
-  ['기분이 어때?', ['✨'], 'wag'],
-  ['옆에 앉을래?', ['🫶'], 'perch'],
-  ['좋은 꿈 꿔', ['⭐'], 'sleep'],
-  ['오늘도 반가워', ['🐾'], 'greet']
+  ['밥 먹었어?', ['bone'], 'belly'],
+  ['오늘 뭐 했어?', ['sun','moon','volleyball'], 'perch'],
+  ['사랑해', ['heart'], 'wag'],
+  ['보고 싶었어', ['paw-print'], 'greet'],
+  ['잘 자', ['moon'], 'sleep'],
+  ['같이 산책할까?', ['leaf'], 'greet'],
+  ['공 가져올래?', ['volleyball'], 'ball'],
+  ['햇살이 따뜻하지?', ['sun'], 'perch'],
+  ['기분이 어때?', ['sparkles'], 'wag'],
+  ['옆에 앉을래?', ['heart'], 'perch'],
+  ['좋은 꿈 꿔', ['star'], 'sleep'],
+  ['오늘도 반가워', ['paw-print'], 'greet']
 ];
 
 export const photoTitles = [
