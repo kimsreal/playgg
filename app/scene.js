@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.min.js';
-import { createAvatar } from './avatar.js?v=26';
+import { createAvatar } from './avatar.js?v=29';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import { meadow } from './data.js';
 
@@ -248,6 +248,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const shadow=mesh(scene,new T.CircleGeometry(.74,24),new T.MeshBasicMaterial({color:0x47613a,transparent:true,opacity:.17}),0,.009,0);
   shadow.rotation.x=-Math.PI/2;
   const pet = createAvatar(profile);
+  const hamster=profile.species==='hamster';
   scene.add(pet.root);
   const toy = mesh(scene,new T.IcosahedronGeometry(.22,1),material(0xec997d),0,0,0);
   toy.visible=false;
@@ -324,7 +325,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     const previousTail=pet.tail.rotation.y;
     pet.legs.forEach((leg,i) => {previousLegAngles[i]=leg.rotation.x;});
     const move=!reduced.matches;
-    const walk=move ? Math.sin(t*10) : 0;
+    const walk=move ? Math.sin(t*(hamster ? 24 : 10)) : 0;
     if (clouds) clouds.position.x=move ? Math.sin(t*.095)*.42 : 0;
     toy.visible=false;
     for (const treat of Object.values(treats)) treat.visible=false;
@@ -391,7 +392,7 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         }
         if (kind==='pet' || kind==='wag' || kind==='liked') {
           pet.tail.rotation.y=move ? Math.sin(t*18)*.85 : .3;
-          pet.root.position.y=move ? Math.abs(Math.sin(p*Math.PI*2))*.22 : 0;
+          pet.root.position.y=move ? Math.abs(Math.sin(p*Math.PI*2))*(hamster ? .06 : .22) : 0;
         }
         if (kind==='disliked') {
           pet.head.rotation.y=.85;
@@ -414,7 +415,8 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         const heading=Math.atan2(dx,dz);
         const turn=heading-pet.root.rotation.y;
         pet.root.rotation.y+=Math.atan2(Math.sin(turn),Math.cos(turn))*(1-Math.exp(-elapsed*11));
-        pet.legs.forEach((leg,i) => {leg.rotation.x=walk*(i===0||i===3 ? stride : -stride);});
+        const step=hamster ? stride*.68 : stride;
+        pet.legs.forEach((leg,i) => {leg.rotation.x=walk*(i===0||i===3 ? step : -step);});
       }
       if (move) {
         const blend=1-Math.exp(-elapsed*15);

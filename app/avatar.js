@@ -125,14 +125,17 @@ export function createAvatar(profile) {
   }
   const cat = profile.species === 'cat';
   const hamster=profile.species==='hamster';
-  const body = sphere(root,fur,0,.64,-.12,hamster ? [.59,.56,.55] : [.51,.49,.72]);
-  if (profile.pattern === 'tuxedo') sphere(root,pale,0,.66,.43,[.34,.37,.23]);
+  const body = sphere(root,fur,0,hamster ? .375 : .64,-.12,hamster ? [.56,.33,.59] : [.51,.49,.72]);
+  if (profile.pattern === 'tuxedo') {
+    sphere(root,pale,0,hamster ? .33 : .66,.43,hamster ? [.27,.18,.15] : [.34,.37,.23]);
+  }
   if (profile.pattern === 'spots') {
     sphere(body,shade,.72,.13,.18,[.34,.48,.43]);
     sphere(body,shade,-.72,.23,-.25,[.35,.46,.34]);
   }
   const head = new T.Group();
-  head.position.set(0,1.12,.49);
+  head.position.set(0,hamster ? .53 : 1.12,.49);
+  if (hamster) head.scale.set(.88,.76,.88);
   root.add(head);
   sphere(head,fur,0,0,0,hamster ? [.56,.49,.47] : [.56,.48,.46]);
   const eyes = [];
@@ -164,19 +167,26 @@ export function createAvatar(profile) {
   for (const x of [-.32,.32]) {
     for (const z of [-.45,.31]) {
       const leg = new T.Group();
-      leg.position.set(x,.48,z);
+      leg.position.set(x,hamster ? .14 : .48,z);
       root.add(leg);
-      sphere(leg,fur,0,-.19,0,[.144,.25,.15]);
       const pawColor=profile.pattern === 'tuxedo' ? pale : fur;
-      sphere(leg,pawColor,0,-.36,.06,[.15,.12,.19]);
-      for (let toe=-1;toe<=1;toe++) {
-        sphere(leg,pawColor,toe*.072,-.374,.197,[.05,.056,.068]);
+      if (hamster) {
+        sphere(leg,pawColor,0,-.069,.035,[.099,.071,.119]);
+        for (let toe=-1;toe<=1;toe++) {
+          sphere(leg,pawColor,toe*.042,-.083,.109,[.031,.037,.048]);
+        }
+      } else {
+        sphere(leg,fur,0,-.19,0,[.144,.25,.15]);
+        sphere(leg,pawColor,0,-.36,.06,[.15,.12,.19]);
+        for (let toe=-1;toe<=1;toe++) {
+          sphere(leg,pawColor,toe*.072,-.374,.197,[.05,.056,.068]);
+        }
       }
       legs.push(leg);
     }
   }
   const tail = new T.Group();
-  tail.position.set(0,.64,-.67);
+  tail.position.set(0,hamster ? .34 : .64,-.67);
   root.add(tail);
   const points = {
     short: [[0,0,0],[0,.18,-.22],[0,.32,-.26]],
