@@ -302,7 +302,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     if (!owner || riding===next) return riding;
     riding=next;
     idleTime=0;
-    marker.visible=false;
     const petPosition=pet.root.position;
     if (riding) {
       action=null;
@@ -319,12 +318,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       }
     }
     return riding;
-  }
-  const marker=owner ? mesh(scene,new T.RingGeometry(.18,.23,32),
-    new T.MeshBasicMaterial({color:0x62b9f1,transparent:true,opacity:.8,side:T.DoubleSide}),0,.025,0) : null;
-  if (marker) {
-    marker.rotation.x=-Math.PI/2;
-    marker.visible=false;
   }
   let viewportWidth,viewportHeight;
   const size = () => {
@@ -412,7 +405,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
         if (move) petStep.clampLength(0,elapsed*2.05);
         position.add(petStep);
         stride=.42;
-        if (Math.hypot(position.x-ownerTarget.x,position.z-ownerTarget.z)<.025) marker.visible=false;
       } else if (!riding && !alive && move) {
         if (idleTime<.7 || Math.floor((idleTime-.7)/6)%2===1) {
           if (idleTime>=.7) pet.root.scale.y=pet.scale*.83;
@@ -553,7 +545,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       } else if (!riding) {
         const distance=position.distanceTo(ownerTarget);
         if (distance>.008) position.lerp(ownerTarget,move ? Math.min(1,elapsed*2.45/distance) : 1);
-        else if (marker.visible) marker.visible=false;
       }
       const walking=approaching || (!riding && position.distanceTo(ownerTarget)>.008);
       const stride=walking && move ? Math.sin(t*13)*.37 : 0;
@@ -610,7 +601,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     if (!ray.ray.intersectPlane(ground,hit) || hit.length()>theme.radius) {
       if (camera===eye) {
         ownerTarget.set(position.x,0,position.z);
-        marker.visible=false;
         owner.root.rotation.y=Math.atan2(ray.ray.direction.x,ray.ray.direction.z);
       }
       return;
@@ -620,8 +610,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
     if (hit.distanceToSquared(position)<.0001) return;
     owner.root.rotation.y=Math.atan2(hit.x-position.x,hit.z-position.z);
     ownerTarget.copy(hit);
-    marker.position.set(ownerTarget.x,.025,ownerTarget.z);
-    marker.visible=true;
   };
   if (onPet) renderer.domElement.addEventListener('click',tap);
   return {
