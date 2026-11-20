@@ -253,8 +253,59 @@ input[type=radio] { accent-color: var(--sky); }
   stroke-linejoin: round;
   vertical-align: middle;
 }
-.settings-friends, .with-icon { display: inline-flex; align-items: center; gap: 7px; }
+.with-icon { display: inline-flex; align-items: center; gap: 7px; }
 .bubble .ui-icon { width: 25px; height: 25px; }
 .fallback-pet .ui-icon, .fallback-owner .ui-icon, .meadow-island .tree .ui-icon { width: 1em; height: 1em; }
 .meadow-island .tree { color: #406b48; }
 .meadow-island .flowers .ui-icon { width: 19px; height: 19px; }
+
+.settings-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.settings-header h1 { margin: 0; font-size: 27px; }
+.settings-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-inline: 13px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--sky-soft);
+  color: var(--muted-ink);
+}
+.settings-search:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.settings-search > input[type=search] {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.settings-list { list-style: none; padding: 0; margin: 0; }
+.settings-list li + li { border-top: 1px solid var(--line); }
+.settings-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 9px;
+  text-align: left;
+  background: var(--white);
+  border-radius: 11px;
+  cursor: pointer;
+}
+.settings-row:hover { background: var(--sky-soft); }
+.settings-row:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.settings-row > .ui-icon:first-child { color: var(--focus); }
+.settings-row > .ui-icon:last-child { width: 16px; height: 16px; color: var(--muted-ink); }
+.settings-row::-webkit-details-marker { display: none; }
+.settings-row::marker { content: ""; }
+.settings-list details[open] > summary .ui-icon:last-child { transform: rotate(90deg); }
+.settings-detail { padding: 2px 10px 14px 42px; color: var(--muted-ink); }
+.settings-detail p { font-size: 14px; }
+.settings-detail button { margin-bottom: 5px; }
+#settings-empty { padding: 12px 9px; }

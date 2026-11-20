@@ -19,7 +19,7 @@ function makeIcon(name) {
   svg.setAttribute('aria-hidden','true');
   svg.setAttribute('focusable','false');
   const use=document.createElementNS(namespace,'use');
-  use.setAttribute('href','./app/icons.svg#'+name);
+  use.setAttribute('href','./app/icons.svg?v=20#'+name);
   svg.append(use);
   return svg;
 }
@@ -165,11 +165,24 @@ function show(pageId) {
     void showDaily();
   }
   if (pageId==='settings') {
+    byId('settings-search').value='';
+    filterSettings();
     renderDates();
     $('#album-status').text(state.album.length ? '선택한 앨범 사진 '+state.album.length+'장' : state.photos?.length ? '처음 등록한 사진을 사용하고 있어요.' : '추가한 사진이 없어요.');
     $('#clear-album').prop('hidden',!state.album.length);
   }
 }
+
+function filterSettings() {
+  const words=byId('settings-search').value.trim().toLocaleLowerCase().split(/\s+/);
+  const rows=[...document.querySelectorAll('.settings-list [data-setting]')];
+  for (const row of rows) {
+    row.hidden=!words.every(word => row.dataset.setting.toLocaleLowerCase().includes(word));
+  }
+  byId('settings-empty').hidden=rows.some(row => !row.hidden);
+}
+
+byId('settings-search').addEventListener('input',filterSettings);
 
 function renderDates() {
   const {profile}=state;
