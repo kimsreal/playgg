@@ -200,6 +200,7 @@ function createOwner(scene,gender) {
     oval(arm,skin,side*.061,-.367,.014,.073,.084,.072);
     oval(arm,skin,side*.013,-.351,.062,.034,.051,.036);
   }
+  root.scale.setScalar(.86);
   root.position.set(2.35,0,2.58);
   root.rotation.y=Math.atan2(-root.position.x,-root.position.z);
   scene.add(root);
@@ -274,7 +275,6 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
   const seat=new T.Vector3();
   const walkVector=new T.Vector3();
   const seatHeight={dog:1.06,cat:1.06,hamster:.66,parrot:1.13,lizard:.64}[profile.species];
-  const riderScale=(hamster || profile.species==='lizard' ? .43 : .58)*pet.scale;
 
   function setRiding(next) {
     if (!owner || riding===next) return riding;
@@ -480,12 +480,11 @@ export function createScene(host,profile,onPet,{preview=false,theme=meadow,persp
       const seatRate=move ? elapsed*3.2 : 1;
       seatBlend=T.MathUtils.clamp(seatBlend+(riding && !approaching ? seatRate : -seatRate),0,1);
       const seated=T.MathUtils.smoothstep(seatBlend,0,1);
-      owner.root.scale.setScalar(T.MathUtils.lerp(1,riderScale,seated));
       if (riding && !approaching) {
         const angle=pet.root.rotation.y;
         const offset=profile.species==='parrot' ? .2 : .15;
         seat.set(petPosition.x-Math.sin(angle)*offset,
-          petPosition.y+seatHeight*pet.root.scale.y-.55*riderScale,
+          petPosition.y+seatHeight*pet.root.scale.y-.55*owner.root.scale.y,
           petPosition.z-Math.cos(angle)*offset);
         position.lerp(seat,seatBlend===1 || !move ? 1 : 1-Math.exp(-elapsed*13));
         if (camera!==eye && seatBlend>.7) owner.root.rotation.y=angle;
