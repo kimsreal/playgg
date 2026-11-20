@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=74">
+  <link rel="stylesheet" href="./app/style.css?v=76">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=75"></script>
+  <script type="module" src="./app/main.js?v=76"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -173,16 +173,11 @@
       <h1>먹이 합치기</h1>
       <p class="small" id="food-upcoming"></p>
       <div class="food-stage">
-        <canvas id="food-board" width="300" height="300" aria-label="먹이 합치기 통"></canvas>
+        <canvas id="food-board" width="300" height="300" tabindex="0" aria-label="먹이 합치기 통. 좌우 방향키로 위치를 맞추고 스페이스 또는 엔터로 먹이를 놓으세요."></canvas>
         <div id="food-success" hidden>
           <strong role="status">성공!</strong>
           <div id="food-confetti" aria-hidden="true"></div>
         </div>
-      </div>
-      <div class="food-controls">
-        <label for="food-aim">떨어뜨릴 위치</label>
-        <input id="food-aim" type="range" min="12" max="288" value="150">
-        <button type="button" class="primary" id="food-drop">먹이 놓기</button>
       </div>
       <p id="food-status" class="small" role="status"></p>
       <button type="button" class="primary" id="food-gift" hidden></button>

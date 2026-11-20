@@ -11,12 +11,13 @@ const FOODS=[
 ];
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
-export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) {
+export function createFoodGame({canvas,reset,status,upcoming,onClear}) {
   const ctx=canvas.getContext('2d');
   const {width,height}=canvas;
   const pieces=[];
   let state='playing';
   let frame, previousTime, cooldown=0, overflow=0;
+  let aimX=width/2;
   let queued=0;
   let bag=[2,1,0,0,1,1,0];
 
@@ -78,7 +79,6 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
             merged=true;
             if (level===FOODS.length-1) {
               state='cleared';
-              drop.disabled=true;
               reset.hidden=true;
               onClear();
               return;
@@ -111,7 +111,6 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
       reset.hidden=false;
       status.textContent='통이 가득 찼어요. 한 판 더 할까요?';
     }
-    drop.disabled=state!=='playing' || cooldown>0;
   }
 
   function ellipse(x,y,rx,ry,fill,turn=0) {
@@ -222,7 +221,7 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
     ctx.stroke();
     ctx.setLineDash([]);
     const r=FOODS[queued][1];
-    const x=clamp(Number(aim.value),r,width-r);
+    const x=clamp(aimX,r,width-r);
     if (state==='playing') {
       ctx.strokeStyle='#7bab83';
       ctx.setLineDash([4,5]);
@@ -255,26 +254,43 @@ export function createFoodGame({canvas,aim,drop,reset,status,upcoming,onClear}) 
 
   function dropFood() {
     if (state!=='playing' || cooldown>0) return;
-    spawn(queued,Number(aim.value),26);
+    spawn(queued,aimX,26);
     nextFood();
     cooldown=.46;
-    drop.disabled=true;
   }
 
-  canvas.addEventListener('click',event => {
+  function aimAt(clientX) {
     const rect=canvas.getBoundingClientRect();
-    aim.value=clamp((event.clientX-rect.left)/rect.width*width,FOODS[queued][1],width-FOODS[queued][1]);
+    const r=FOODS[queued][1];
+    aimX=clamp((clientX-rect.left-canvas.clientLeft)/canvas.clientWidth*width,r,width-r);
+  }
+
+  canvas.addEventListener('pointermove',event => {
+    if (event.pointerType==='mouse' && state==='playing') aimAt(event.clientX);
+  });
+  canvas.addEventListener('click',event => {
+    aimAt(event.clientX);
     dropFood();
   });
-  drop.addEventListener('click',dropFood);
+  canvas.addEventListener('keydown',event => {
+    if (state!=='playing') return;
+    if (event.key==='ArrowLeft' || event.key==='ArrowRight') {
+      event.preventDefault();
+      const r=FOODS[queued][1];
+      aimX=clamp(aimX+(event.key==='ArrowLeft' ? -12 : 12),r,width-r);
+    } else if (event.key===' ' || event.key==='Enter') {
+      event.preventDefault();
+      if (!event.repeat) dropFood();
+    }
+  });
+
   function restart() {
     pieces.length=0;
     state='playing';
     cooldown=overflow=0;
-    aim.value=width/2;
+    aimX=width/2;
     bag=[2,1,0,0,1,1,0];
     nextFood();
-    drop.disabled=false;
     reset.hidden=true;
     status.textContent='';
   }

@@ -1,4 +1,4 @@
-import {createFoodGame} from './food-game.js?v=74';
+import {createFoodGame} from './food-game.js?v=76';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
@@ -467,8 +467,6 @@ coastBuy.addEventListener('click',() => void changeBackground('coast',true));
 
 const foodGame=createFoodGame({
   canvas:byId('food-board'),
-  aim:byId('food-aim'),
-  drop:byId('food-drop'),
   reset:foodReset,
   status:foodStatus,
   upcoming:byId('food-upcoming'),

@@ -835,20 +835,11 @@ section > .page-back { margin-bottom: 20px; }
   max-width: 300px;
   height: auto;
   margin-inline: auto;
-  border: 6px solid #c6e0cf;
-  border-top-width: 2px;
-  border-radius: 16px 16px 24px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
   background: linear-gradient(#fafff7,#edf7e7);
   cursor: crosshair;
 }
-.food-controls {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  align-items: center;
-  gap: 6px 12px;
-  margin-block: 12px;
-}
-.food-controls label { grid-column: 1 / -1; font-size: .85rem; }
-.food-controls input { min-width: 0; width: 100%; accent-color: #568c69; }
+#food-board:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 #food-status:empty { display: none; }
 .coast-unlock { margin-top: 14px; }
