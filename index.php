@@ -8,7 +8,7 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=83">
+  <link rel="stylesheet" href="./app/style.css?v=84">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=82"></script>
@@ -136,12 +136,12 @@
         <span id="home-leaf-count">0</span>
       </output>
       <div class="scene-shortcuts" role="group" aria-label="초원 메뉴">
-        <div class="scene-shortcut-icons">
-          <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></button>
-          <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg></button>
-          <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#settings"></use></svg></button>
-        </div>
-        <button type="button" class="scene-icon" id="food-open" data-page="food-intro">먹이 합치기</button>
+        <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></button>
+        <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#image"></use></svg></button>
+        <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#settings"></use></svg></button>
+        <button type="button" class="scene-icon" id="food-open" data-page="food-intro" aria-label="먹이 합치기" title="먹이 합치기">
+          <img src="./app/food-intro-cake.webp" alt="" width="38" height="38" draggable="false">
+        </button>
       </div>
       <div class="view-picker" role="group" aria-label="초원 시점">
         <button type="button" data-view="third" aria-pressed="true">3인칭</button>
