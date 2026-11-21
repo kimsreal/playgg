@@ -1,7 +1,7 @@
-const CACHE='annyeong-v82';
+const CACHE='annyeong-v83';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=7','./app/style.css?v=81','./app/main.js?v=82','./app/photos.js?v=39',
-  './app/paw-cursor-pink.png','./app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js?v=80','./app/account.js?v=80','./app/icons.svg?v=21','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=80','./app/vendor/three.module.min.js',
+  './','./manifest.webmanifest?v=7','./app/style.css?v=83','./app/main.js?v=82','./app/photos.js?v=39',
+  './app/annyeong-wordmark.webp','./app/paw-cursor-pink.png','./app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js?v=80','./app/account.js?v=80','./app/icons.svg?v=21','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=80','./app/vendor/three.module.min.js',
   './app/owner-model.js?v=43','./app/owner-colors.js','./app/models/hood_character_cylindrical_legs.glb','./app/vendor/GLTFLoader.js','./app/vendor/BufferGeometryUtils.js',
   './app/welcome-pets/dog.webp','./app/welcome-pets/cat.webp','./app/welcome-pets/hamster.webp','./app/welcome-pets/parrot.webp','./app/welcome-pets/lizard.webp',
   './app/coast.js','./app/theme-catalog.js','./app/theme-catalog.js?v=82','./app/extra-themes.js','./app/walk-preview.webp?v=81','./app/clouds-preview.webp','./app/stars-preview.webp','./app/coast-preview.webp?v=82','./app/food-intro-cake.webp','./app/food-game.js?v=77','./app/items.js','./app/item-names.js',

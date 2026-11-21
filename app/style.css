@@ -785,6 +785,21 @@ section > .page-back { margin-bottom: 20px; }
 }
 #letter-envelope .ui-icon { width: 24px; height: 24px; }
 
+.home-wordmark {
+  position: absolute;
+  z-index: 1;
+  top: var(--edge-top);
+  left: 50%;
+  width: clamp(76px, 24vw, 148px);
+  height: auto;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+@media (max-width: 500px) {
+  .home-wordmark { width: min(24vw, 105px); }
+  .scene-shortcuts { top: calc(var(--edge-top) + 38px); }
+}
 #home-leaf-balance {
   position: absolute;
   top: var(--edge-top);

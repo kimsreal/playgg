@@ -8,7 +8,7 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=81">
+  <link rel="stylesheet" href="./app/style.css?v=83">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=82"></script>
@@ -119,6 +119,7 @@
         <span id="letter-envelope" aria-hidden="true" hidden><svg class="ui-icon" viewBox="0 0 24 24"><use href="./app/icons.svg?v=21#mail"></use></svg></span>
         <output id="reply" class="bubble" aria-live="polite" hidden></output>
       </div>
+      <img class="home-wordmark" src="./app/annyeong-wordmark.webp" alt="안녕" width="452" height="145" draggable="false">
       <output id="home-leaf-balance" aria-label="보유 잎사귀">
         <svg class="balance-leaf" aria-hidden="true" viewBox="0 0 32 32">
           <defs>
