@@ -1,4 +1,4 @@
-import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=81';
+import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=82';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
