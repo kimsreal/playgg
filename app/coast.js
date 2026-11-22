@@ -84,13 +84,13 @@ export function makeCoast(scene,theme) {
   mat.rotation.y=.24;
   scene.add(mat);
   const linen=material(0xffefd6);
-  const coral=material(0xda7869);
+  const blue=material(0x4685c4);
   const width=1.6;
   const length=1.18;
   add(new T.BoxGeometry(width,.011,length),linen,0,0,0,mat);
   const stripe=new T.PlaneGeometry(.13,length);
   for (const x of [-.64,-.32,0,.32,.64]) {
-    add(stripe,coral,x,.007,0,mat).rotation.x=-Math.PI/2;
+    add(stripe,blue,x,.007,0,mat).rotation.x=-Math.PI/2;
   }
   const tassel=new T.BoxGeometry(.12,.008,.022);
   for (const side of [-1,1]) {

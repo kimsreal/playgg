@@ -3,7 +3,7 @@ import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
-import {coast,makeCoast} from './coast.js?v=92';
+import {coast,makeCoast} from './coast.js?v=93';
 import { meadow } from './data.js';
 import {buildOwnerModel} from './owner-model.js?v=43';
 import {ownerColors as cleanColors} from './owner-colors.js';
