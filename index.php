@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./app/style.css?v=94">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=95"></script>
+  <script type="module" src="./app/main.js?v=96"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
