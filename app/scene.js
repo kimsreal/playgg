@@ -1,9 +1,9 @@
-import {makeWalk,makeCloudSpace,makeNightSky} from './extra-themes.js';
+import {makeWalk,makeCloudSpace,makeNightSky} from './extra-themes.js?v=95';
 import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
-import {coast,makeCoast} from './coast.js?v=94';
+import {coast,makeCoast} from './coast.js?v=95';
 import { meadow } from './data.js';
 import {buildOwnerModel} from './owner-model.js?v=43';
 import {ownerColors as cleanColors} from './owner-colors.js';
@@ -29,7 +29,7 @@ function scatter(scene, geometry, instances) {
   });
   scene.add(batch);
 }
-function makeIsland(scene,theme) {
+function makeIsland(scene,theme,obstacles) {
   const {radius,grass,earth,trees,flowers}=theme;
   mesh(scene,new T.CylinderGeometry(radius,radius*.98,.22,48),material(grass),0,-.115,0);
   mesh(scene,new T.CylinderGeometry(radius*.98,radius*.89,.33,48),material(0x98a675),0,-.38,0);
@@ -41,6 +41,7 @@ function makeIsland(scene,theme) {
   const grassColors=[0x83af65,0x9abe73,0xc4dba0,0xa7c77d];
   const petalColors=[0xf3aec7,0xffe6a0,0xfffbda,0xcab7eb];
   trees.forEach(([x,z],index) => {
+    obstacles.push([x,z,.29]);
     const treeShadow=mesh(scene,new T.CircleGeometry(.72,15),shade,x+.17,.008,z+.12);
     treeShadow.rotation.x=-Math.PI/2;
     treeShadow.scale.set(1.22,.75,1);
@@ -214,6 +215,32 @@ function createOwner(scene,source,colors) {
   return {...owner,shadow};
 }
 
+// Sweep each step so fast actions and reduced-motion jumps also respect obstacles.
+function stopAtObstacle(position,x,z,clearance,obstacles) {
+  const dx=position.x-x;
+  const dz=position.z-z;
+  const lengthSquared=dx*dx+dz*dz;
+  if (lengthSquared<1e-12) return false;
+  let first=1;
+  for (const [ox,oz,radius] of obstacles) {
+    const startX=x-ox;
+    const startZ=z-oz;
+    const approach=startX*dx+startZ*dz;
+    if (approach>=0) continue;
+    const reach=radius+clearance;
+    const outside=startX*startX+startZ*startZ-reach*reach;
+    const discriminant=approach*approach-lengthSquared*outside;
+    if (discriminant<=0) continue;
+    const entry=outside<=0 ? 0 : (-approach-Math.sqrt(discriminant))/lengthSquared;
+    first=Math.min(first,entry);
+  }
+  if (first===1) return false;
+  const safe=Math.max(0,first-.004/Math.sqrt(lengthSquared));
+  position.x=x+dx*safe;
+  position.z=z+dz*safe;
+  return true;
+}
+
 export function createScene(host,profile,onPet,{preview=false,background='meadow',perspective='third',ownerModel,ownerColors,onGraphicsChange,onBallReady}={}) {
   const environment=preview ? 'meadow' : background;
   const night=environment==='stars';
@@ -237,16 +264,17 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
   const sunlight = new T.DirectionalLight(night ? 0xabbdfb : 0xffefd5,night ? .85 : 2);
   sunlight.position.set(-4,8,5);
   scene.add(sunlight);
+  const obstacles=[];
   let animateEnvironment;
   let clouds;
   if (!preview) {
     if (environment==='coast') {
-      animateEnvironment=makeCoast(scene,theme);
+      animateEnvironment=makeCoast(scene,theme,obstacles);
       clouds=makeSkyClouds(scene,[[-6.5,.9,-3.1],[4.25,.75,-4.8],[-2.75,.15,-7.1]]);
-    } else if (environment==='walk') makeWalk(scene,theme.radius);
+    } else if (environment==='walk') makeWalk(scene,theme.radius,obstacles);
     else if (environment==='clouds') animateEnvironment=makeCloudSpace(scene,theme.radius);
     else {
-      makeIsland(scene,theme);
+      makeIsland(scene,theme,obstacles);
       if (night) animateEnvironment=makeNightSky(scene);
       else clouds=makeSkyClouds(scene);
     }
@@ -540,6 +568,7 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
           if (kind==='sleep') for (const eye of pet.eyes) eye.scale.y=.018;
         }
       }
+      stopAtObstacle(position,previousX,previousZ,Math.max((hamster ? .49 : .66)*pet.scale,riding ? .48 : 0),obstacles);
       const dx=position.x-previousX;
       const dz=position.z-previousZ;
       const walking=dx*dx+dz*dz>1e-8;
@@ -563,8 +592,11 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
         pet.legs.forEach((leg,i) => {leg.rotation.x=T.MathUtils.lerp(previousLegAngles[i],leg.rotation.x,blend);});
       }
     }
+    let ownerBlocked=false;
     if (owner) {
       const position=owner.root.position;
+      const previousX=position.x;
+      const previousZ=position.z;
       const petPosition=pet.root.position;
       if (riding && approaching) {
         walkVector.set(petPosition.x-position.x,0,petPosition.z-position.z);
@@ -590,7 +622,8 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
         const distance=position.distanceTo(ownerTarget);
         if (distance>.008) position.lerp(ownerTarget,move ? Math.min(1,elapsed*2.45/distance) : 1);
       }
-      const walking=approaching || (!riding && position.distanceTo(ownerTarget)>.008);
+      ownerBlocked=stopAtObstacle(position,previousX,previousZ,.28,obstacles);
+      const walking=(approaching || !riding) && Math.hypot(position.x-previousX,position.z-previousZ)>.001;
       const stride=walking && move ? Math.sin(t*13)*.37 : 0;
       owner.legs[0].rotation.x=T.MathUtils.lerp(stride,-1.17,seated);
       owner.legs[1].rotation.x=T.MathUtils.lerp(-stride,-1.17,seated);
@@ -644,13 +677,14 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
     }
     shadow.position.x=pet.root.position.x;
     shadow.position.z=pet.root.position.z;
-    if (action?.kind==='pet-approach' && seatBlend===0 && owner.root.position.distanceToSquared(ownerTarget)<.001) {
-      action.kind='pet';
+    if (action?.kind==='pet-approach') {
+      if (ownerBlocked) action=null;
+      else if (seatBlend===0 && owner.root.position.distanceToSquared(ownerTarget)<.001) action.kind='pet';
     }
-    if (alive && p===1 && action.kind==='ball') {
+    if (action && p===1 && action.kind==='ball') {
       action.kind='ball-ready';
       onBallReady?.();
-    } else if (alive && p===1 && action.kind!=='ball-ready') action=null;
+    } else if (action && p===1 && action.kind!=='ball-ready') action=null;
     renderer.render(scene,camera);
     frame=requestAnimationFrame(animate);
   };

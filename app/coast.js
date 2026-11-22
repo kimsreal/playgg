@@ -2,7 +2,7 @@ import * as T from './vendor/three.module.min.js';
 
 export const coast={radius:4.6,sky:0xffd4b4};
 
-export function makeCoast(scene,theme) {
+export function makeCoast(scene,theme,obstacles) {
   const {radius}=theme;
   const material=color=>new T.MeshStandardMaterial({color,roughness:.88,flatShading:true});
   function add(geometry,shade,x,y,z,parent=scene) {
@@ -27,10 +27,14 @@ export function makeCoast(scene,theme) {
       uniform float clock;
       varying vec2 ground;
 
+      float grain(vec2 p) {
+        return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);
+      }
+
       void main() {
         float x=ground.x;
         float shore=ground.y+.38*x-.32*sin(x*1.05)+1.2;
-        float tide=.095*sin(clock*1.8+x*.7);
+        float tide=.10*sin(clock*1.55+x*.8)+.045*sin(x*3.6-clock*.9);
         float depth=tide-shore;
         if (depth<-.15) discard;
 
@@ -40,13 +44,25 @@ export function makeCoast(scene,theme) {
         vec3 color=mix(wetSand,shallow,smoothstep(-.11,.43,depth));
         color=mix(color,deep,smoothstep(.42,3.8,depth));
 
-        float ripples=sin(depth*9.0+sin(x*2.4)*.65+sin(x*4.1+depth*3.2)*.22-clock*1.5);
-        float shine=smoothstep(-.65,.8,sin(x*1.8+depth*2.8)+.22*sin(x*6.0));
-        color+=smoothstep(.78,1.0,ripples)*.045*shine*smoothstep(.3,1.8,depth);
-        float lip=(1.0-smoothstep(.026,.11,abs(depth-.035)));
-        float trailing=(1.0-smoothstep(.016,.068,abs(depth-.39+.045*sin(x*3.8+clock))));
-        float broken=smoothstep(-.52,.72,sin(x*3.2+clock*.6)+.3*sin(x*7.2));
-        color=mix(color,vec3(1.0,.98,.89),lip*.86+trailing*broken*.46);
+        float fleck=grain(floor(ground*90.0));
+        color+=(fleck-.5)*.032;
+        float drift=clock*1.45;
+        float crest=sin(depth*10.0+sin(x*2.0+drift*.35)*1.3+
+                        sin(x*4.6+depth*2.7)*.42-drift);
+        float crossWave=sin(depth*15.0-x*2.2+sin(x*3.1+depth*2.1)*.8-drift*.64);
+        float patches=smoothstep(-.36,.83,sin(x*1.55+depth*3.0)+.38*sin(x*5.2-depth));
+        float ripples=smoothstep(.83,.985,crest)*patches*.24;
+        ripples+=smoothstep(.94,.998,crossWave)*(1.0-patches)*.13;
+        color=mix(color,vec3(.83,.96,.98),ripples*smoothstep(.4,1.3,depth));
+
+        float surfWidth=.075+.054*(.5+.5*sin(x*4.3+clock*.9));
+        float lip=1.0-smoothstep(.018,surfWidth,abs(depth-.031));
+        float laceDepth=depth-.29+.093*sin(x*3.4+clock*.85)+.037*sin(x*8.2-clock);
+        float lace=1.0-smoothstep(.018,.067,abs(laceDepth));
+        float gaps=smoothstep(-.55,.73,sin(x*3.1+clock*.7)+.44*sin(x*7.4));
+        float bubbles=smoothstep(.84,.98,fleck)*(1.0-smoothstep(.12,.58,abs(depth-.19)));
+        float foam=lip*.89+lace*gaps*.54+bubbles*.27;
+        color=mix(color,vec3(1.0,.985,.925),min(foam,1.0));
 
         gl_FragColor=vec4(color,smoothstep(-.15,-.07,depth));
       }`,
@@ -65,6 +81,7 @@ export function makeCoast(scene,theme) {
   const bark=material(0xb17c57);
   const leaves=[material(0x6b9b78),material(0x8cb17e)];
   for (const [x,z,lean] of [[-3.25,1.67,-.24],[3.16,.06,.21]]) {
+    obstacles.push([x,z,.2]);
     const trunk=add(new T.CylinderGeometry(.09,.16,1.85,8),bark,x,.9,z);
     trunk.rotation.z=lean;
     const crown=add(new T.IcosahedronGeometry(.19,1),leaves[0],x-Math.sin(lean)*.9,1.79,z);

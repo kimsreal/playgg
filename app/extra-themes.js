@@ -8,7 +8,7 @@ function place(parent,geometry,material,x,y,z) {
   return mesh;
 }
 
-export function makeWalk(scene,radius) {
+export function makeWalk(scene,radius,obstacles) {
   place(scene,new T.CylinderGeometry(radius,radius*.93,.35,64),standard(0x9cbd90),0,-.18,0);
   const edging=standard(0xe7d5ba);
   const paved=[standard(0xd4ab93),standard(0xe1b8a0),standard(0xc89b87)];
@@ -23,6 +23,7 @@ export function makeWalk(scene,radius) {
   const warm=standard(0xffd689,{emissive:0xffbe52,emissiveIntensity:.55});
   const wood=standard(0xb27459);
   for (const [x,z] of [[-2.65,-1.30],[2.30,1.65]]) {
+    obstacles.push([x,z,.17]);
     place(scene,new T.CylinderGeometry(.064,.13,.24,10),iron,x,.12,z);
     place(scene,new T.CylinderGeometry(.035,.055,1.85,10),iron,x,1,z);
     place(scene,new T.BoxGeometry(.26,.31,.26),warm,x,1.95,z);
@@ -34,6 +35,9 @@ export function makeWalk(scene,radius) {
     bench.position.set(x,0,z);
     bench.rotation.y=yaw;
     scene.add(bench);
+    for (const offset of [-.47,-.24,0,.24,.47]) {
+      obstacles.push([x+Math.cos(yaw)*offset,z-Math.sin(yaw)*offset,.26]);
+    }
     for (const side of [-1,1]) {
       place(bench,new T.BoxGeometry(.07,.39,.37),iron,side*.49,.18,0);
       place(bench,new T.BoxGeometry(.05,.54,.06),iron,side*.49,.53,-.19);
@@ -49,8 +53,10 @@ export function makeWalk(scene,radius) {
     const angle=i*2.39996;
     const r=3.61+(i%3)*.19;
     const x=Math.cos(angle)*r, z=Math.sin(angle)*r;
-    if (Math.abs(x-.7*Math.sin(z*.57))>1.55)
+    if (Math.abs(x-.7*Math.sin(z*.57))>1.55) {
       place(scene,shrub,green,x,.13,z).scale.set(1.15,.77,.93);
+      obstacles.push([x,z,.34]);
+    }
   }
 }
 
