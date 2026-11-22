@@ -3,7 +3,7 @@ import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
-import {coast,makeCoast} from './coast.js?v=90';
+import {coast,makeCoast} from './coast.js?v=91';
 import { meadow } from './data.js';
 import {buildOwnerModel} from './owner-model.js?v=43';
 import {ownerColors as cleanColors} from './owner-colors.js';
@@ -29,7 +29,7 @@ function scatter(scene, geometry, instances) {
   });
   scene.add(batch);
 }
-function makeIsland(scene,theme,withClouds=true) {
+function makeIsland(scene,theme) {
   const {radius,grass,earth,trees,flowers}=theme;
   mesh(scene,new T.CylinderGeometry(radius,radius*.98,.22,48),material(grass),0,-.115,0);
   mesh(scene,new T.CylinderGeometry(radius*.98,radius*.89,.33,48),material(0x98a675),0,-.38,0);
@@ -86,10 +86,12 @@ function makeIsland(scene,theme,withClouds=true) {
   scatter(scene,new T.IcosahedronGeometry(1,0),pavers);
   scatter(scene,new T.CylinderGeometry(1,1,1,4),stems);
   scatter(scene,new T.IcosahedronGeometry(1,0),blooms);
-  if (!withClouds) return null;
+}
+
+function makeSkyClouds(scene,positions=[[-5.6,4.35,-4.5],[3.95,4.2,-5.15],[-3.15,5.4,-7.8],[6.2,4.85,-6.9]]) {
   const cloud=material(0xfff8e8);
   const clouds=new T.Group();
-  for (const [x,y,z] of [[-5.6,4.35,-4.5],[3.95,4.2,-5.15],[-3.15,5.4,-7.8],[6.2,4.85,-6.9]]) {
+  for (const [x,y,z] of positions) {
     for (let i=0;i<5;i++) {
       const size=.42+(2-Math.abs(2-i))*.12;
       mesh(clouds,new T.IcosahedronGeometry(size,1),cloud,x+i*.39,y+Math.sin(i*.8)*.19,z).scale.set(1.1,.55,.72);
@@ -238,13 +240,16 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
   let animateEnvironment;
   let clouds;
   if (!preview) {
-    if (environment==='coast') animateEnvironment=makeCoast(scene,theme);
-    else if (environment==='walk') makeWalk(scene,theme.radius);
+    if (environment==='coast') {
+      animateEnvironment=makeCoast(scene,theme);
+      clouds=makeSkyClouds(scene,[[-6.5,.9,-3.1],[4.25,.75,-4.8],[-2.75,.15,-7.1]]);
+    } else if (environment==='walk') makeWalk(scene,theme.radius);
     else if (environment==='clouds') animateEnvironment=makeCloudSpace(scene,theme.radius);
-    else if (night) {
-      clouds=makeIsland(scene,theme,false);
-      animateEnvironment=makeNightSky(scene);
-    } else clouds=makeIsland(scene,theme);
+    else {
+      makeIsland(scene,theme);
+      if (night) animateEnvironment=makeNightSky(scene);
+      else clouds=makeSkyClouds(scene);
+    }
   }
   const owner=preview ? null : createOwner(scene,ownerModel,cleanColors(ownerColors));
   const eyeTarget=new T.Vector3();

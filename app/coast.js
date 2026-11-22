@@ -57,31 +57,10 @@ export function makeCoast(scene,theme) {
   waterSurface.rotation.x=-Math.PI/2;
   waterSurface.renderOrder=-1;
 
-  const sky=new T.Group();
-  scene.add(sky);
-  const puffGeometry=new T.IcosahedronGeometry(1,2);
-  const cloudColors=[material(0xffd7cf),material(0xffe6d8),material(0xffc7ca)];
-  for (const [angle,height,size] of [
-    [.05,1.6,.85],[.95,-.15,.7],[1.8,-.34,.68],[2.65,1.4,.95],
-    [3.42,1.55,1.05],[4.23,1.12,.75],[5.03,1.2,.85],[5.82,2.1,.65]
-  ]) {
-    const cloud=new T.Group();
-    cloud.position.set(Math.cos(angle)*(radius+1),height,Math.sin(angle)*(radius+1));
-    cloud.rotation.y=Math.PI/2-angle;
-    cloud.scale.setScalar(size);
-    for (const [x,y,z,sx,sy,sz,tint] of [
-      [-.77,-.02,0,.67,.27,.46,0],[-.27,.12,-.08,.72,.4,.53,1],
-      [.3,.08,0,.68,.35,.51,0],[.78,-.06,.02,.59,.23,.43,1],
-      [.05,-.1,.27,.82,.22,.45,2]
-    ]) {
-      add(puffGeometry,cloudColors[tint],x,y,z,cloud).scale.set(sx,sy,sz);
-    }
-    sky.add(cloud);
-  }
   const sunShade=new T.MeshStandardMaterial({
     color:0xffd997,emissive:0xffb960,emissiveIntensity:.55,roughness:1
   });
-  add(new T.SphereGeometry(.64,24,16),sunShade,2.45,2.05,-4.45,sky);
+  add(new T.SphereGeometry(.64,24,16),sunShade,2.45,2.05,-4.45);
 
   const bark=material(0xb17c57);
   const leaves=[material(0x6b9b78),material(0x8cb17e)];
@@ -114,6 +93,5 @@ export function makeCoast(scene,theme) {
 
   return time => {
     water.uniforms.clock.value=time;
-    sky.rotation.y=Math.sin(time*.075)*.06;
   };
 }
