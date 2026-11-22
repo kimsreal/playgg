@@ -45,7 +45,10 @@ export function makeCoast(scene,theme,obstacles) {
             vec2 phase=6.28318*vec2(grain(id),grain(id+vec2(21.0,11.0)));
             vec2 center=.5+.29*sin(phase);
             vec2 delta=offset+center-local;
-            float distanceSquared=dot(delta,delta);
+            // Vary each cell's stretch so neighboring edges can curve.
+            vec2 axis=vec2(cos(phase.x),sin(phase.x));
+            float stretch=dot(delta,axis);
+            float distanceSquared=dot(delta,delta)+.32*stretch*stretch;
             third=min(third,max(second,distanceSquared));
             second=min(second,max(nearest,distanceSquared));
             nearest=min(nearest,distanceSquared);
@@ -72,9 +75,10 @@ export function makeCoast(scene,theme,obstacles) {
         float fleck=grain(floor(ground*90.0));
         color+=(fleck-.5)*.032;
         vec2 point=ground*vec2(1.75,2.15);
-        point+=.24*sin(point.yx*2.3);
+        point+=.29*sin(vec2(point.y*1.82+point.x*.61,point.x*1.63-point.y*.74));
+        point+=.14*sin(vec2(point.x*1.12-point.y*2.42,point.y*1.37+point.x*2.14));
         vec3 field=causticField(point);
-        float junction=1.0-smoothstep(.02,.22,field.z);
+        float junction=1.0-smoothstep(.015,.28,field.z);
         float widthGain=junction*.065;
         float glow=1.0-smoothstep(.035,.17+widthGain,field.x);
         float line=1.0-smoothstep(.012+widthGain*.48,.049+widthGain,field.x);
