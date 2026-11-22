@@ -382,7 +382,7 @@ async function mountScene(host,profile,preview,delivery=null) {
   if (delivery) deliverGift(delivery);
 }
 
-const foodReward=5;
+const foodReward=10;
 const backgroundChoice=byId('background-choice');
 const backgroundStatus=byId('background-status');
 const themeShopStatus=byId('theme-shop-status');
