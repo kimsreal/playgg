@@ -29,7 +29,7 @@ export function makeCoast(scene,theme) {
 
       void main() {
         float x=ground.x;
-        float shore=ground.y+.38*x-.32*sin(x*1.05);
+        float shore=ground.y+.38*x-.32*sin(x*1.05)+1.2;
         float tide=.095*sin(clock*1.8+x*.7);
         float depth=tide-shore;
         if (depth<-.15) discard;
@@ -79,13 +79,34 @@ export function makeCoast(scene,theme) {
     }
   }
 
+  const mat=new T.Group();
+  mat.position.set(-1.88,0,1.35);
+  mat.rotation.y=.24;
+  scene.add(mat);
+  const linen=material(0xffefd6);
+  const coral=material(0xda7869);
+  const width=1.6;
+  const length=1.18;
+  add(new T.BoxGeometry(width,.011,length),linen,0,0,0,mat);
+  const stripe=new T.PlaneGeometry(.13,length);
+  for (const x of [-.64,-.32,0,.32,.64]) {
+    add(stripe,coral,x,.007,0,mat).rotation.x=-Math.PI/2;
+  }
+  const tassel=new T.BoxGeometry(.12,.008,.022);
+  for (const side of [-1,1]) {
+    for (let i=0;i<16;i++) {
+      const thread=add(tassel,linen,side*(width/2+.035),0,-.54+i*.072,mat);
+      thread.rotation.y=Math.sin(i*2.4)*.24;
+    }
+  }
+
   const shellColors=[material(0xffead1),material(0xf1a997),material(0xd58e82)];
   for (let i=0;i<22;i++) {
     const angle=i*2.39996;
     const distance=2.95+.31*(i%4);
     const x=Math.cos(angle)*distance;
     const z=Math.sin(angle)*distance;
-    if (z+.38*x-.32*Math.sin(x*1.05)<.32) continue;
+    if (z+.38*x-.32*Math.sin(x*1.05)+1.2<.32) continue;
     const shell=add(new T.SphereGeometry(.12,9,5,0,Math.PI*2,0,Math.PI/2),shellColors[i%3],x,.007,z);
     shell.scale.set(1.18,.52,.83);
     shell.rotation.y=angle;
