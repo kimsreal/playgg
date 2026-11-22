@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=100">
+  <link rel="stylesheet" href="./app/style.css?v=101">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=100"></script>
+  <script type="module" src="./app/main.js?v=101"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -142,6 +142,9 @@
         <button type="button" class="scene-icon" id="food-open" data-page="food-intro" aria-label="먹이 합치기" title="먹이 합치기">
           <img src="./app/food-intro-cake.webp" alt="" width="38" height="38" draggable="false">
         </button>
+        <button type="button" class="scene-icon" id="pet-match-open" data-page="pet-match" aria-label="동물 맞추기" title="동물 맞추기">
+          <img src="./app/welcome-pets/cat.webp" alt="" width="35" height="35" draggable="false">
+        </button>
       </div>
       <div class="view-picker" role="group" aria-label="초원 시점">
         <button type="button" data-view="third" aria-pressed="true">3인칭</button>
@@ -161,6 +164,21 @@
           <button type="button" data-panel="talk" aria-label="말 걸기" title="말 걸기"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=22#message-circle"></use></svg></button>
           <button type="button" id="ride" aria-pressed="false" hidden aria-label="합체" title="합체"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10" cy="4.5" r="2"/><path d="m9.5 7-1 4.8 3.4 1.1-.4 3m-1.1-7.8 2.8 2.1H16M3 10l2.7 3.4 2.8-.4m4.5 0H15l1.6-3.9L19 11l2.5.7v2.4l-3.4 1.1-1 5.3h-2m0-4.3H8l-1.3 4.3H4.5l.7-5.6 1-1.3"/></svg></button>
         </div>
+      </div>
+    </section>
+    <section id="pet-match" aria-labelledby="pet-match-title" hidden>
+      <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <h1 id="pet-match-title">동물 맞추기</h1>
+      <p>옆 칸의 동물을 바꿔 같은 동물 세 마리 이상을 가로나 세로로 맞춰요. 한 번 사라질 때마다 잎사귀 1개를 받아요.</p>
+      <div class="pet-match-stats">
+        <span aria-label="남은 시간"><strong id="pet-match-time">1:00</strong></span>
+        <span>잎사귀 <strong id="pet-match-score">0</strong></span>
+      </div>
+      <div id="pet-match-board" role="group" aria-label="동물 맞추기 게임판" hidden></div>
+      <p id="pet-match-status" role="status"></p>
+      <div class="pet-match-actions">
+        <button type="button" class="primary" id="pet-match-start">시작하기</button>
+        <span id="pet-match-remaining"></span>
       </div>
     </section>
     <section id="food-intro" aria-label="먹이 합치기 안내" hidden>

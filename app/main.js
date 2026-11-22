@@ -1,11 +1,12 @@
 import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=100';
+import {createPetMatch} from './pet-match.js?v=101';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, friendSpace, listFriends, migrateFriendSpaces, switchFriend, addFriend, updateFriend } from './friends.js?v=80';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=80';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=101';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -666,9 +667,29 @@ window.addEventListener('popstate',event => {
   }
 });
 
+const petMatchLimit=5;
+const matchesPlayed=(current,date)=>current?.petMatch?.date===date ? current.petMatch.played : 0;
+const petMatch=createPetMatch({
+  section:byId('pet-match'),
+  remaining:()=>Math.max(0,petMatchLimit-matchesPlayed(state,dayKey())),
+  async reserve() {
+    const date=dayKey();
+    state=await updateState(current=>{
+      const played=matchesPlayed(current,date);
+      if (played>=petMatchLimit) throw new Error('daily_limit');
+      return {...current,petMatch:{date,played:played+1}};
+    });
+  },
+  async award(points) {
+    state=await updateState(current=>({...current,leaves:Math.min(999999,(current?.leaves || 0)+points)}));
+    if (page==='home') renderBalance();
+  }
+});
+
 function show(pageId,delivery=null) {
   if (!recordNavigation(pageId,delivery)) return;
   if (pageId!=='leaf-game') foodGame.pause();
+  if (page==='pet-match' && pageId!=='pet-match') petMatch.leave();
   clearBall();
   page=pageId;
   riding=false;
@@ -698,6 +719,7 @@ function show(pageId,delivery=null) {
     applyPerspective();
     void mountScene(byId('home-scene'),state.profile,false,delivery);
   }
+  if (pageId==='pet-match') petMatch.open();
   if (pageId==='photo') {
     $('#photo-status').text('');
     void showDaily();
@@ -1311,7 +1333,9 @@ $('#install').on('click',async () => {
   $('#install').prop('hidden',true);
 });
 function checkDay() {
-  if (document.hidden || dayKey()===renderedDay) return;
+  if (document.hidden) return;
+  if (page==='pet-match') petMatch.open();
+  if (dayKey()===renderedDay) return;
   if (page==='settings') renderDates();
   if (page==='photo') void showDaily();
 }

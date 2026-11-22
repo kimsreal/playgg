@@ -192,6 +192,11 @@ function cleanSettings($settings): array
         $color = is_array($input) ? ($input[$part] ?? null) : null;
         $colors[$part] = is_string($color) && preg_match('/\A#[0-9a-f]{6}\z/i', $color) ? strtolower($color) : $fallback;
     }
+    $petMatch = $settings['petMatch'] ?? null;
+    $matchDate = is_array($petMatch) ? ($petMatch['date'] ?? null) : null;
+    $matchPlayed = is_array($petMatch) ? ($petMatch['played'] ?? null) : null;
+    $petMatch = is_string($matchDate) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $matchDate) && is_int($matchPlayed)
+        ? ['date' => $matchDate, 'played' => max(0, min(5, $matchPlayed))] : null;
     return [
         'friends' => $friends,
         'active' => $active,
@@ -200,6 +205,7 @@ function cleanSettings($settings): array
         'background' => $background,
         'unlockedThemes' => $owned,
         'coastUnlocked' => in_array('coast', $owned, true),
+        'petMatch' => $petMatch,
         'leaves' => is_int($settings['leaves'] ?? null) ? max(0, min(999999, $settings['leaves'])) : 0,
     ];
 }

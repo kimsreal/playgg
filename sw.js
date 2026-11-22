@@ -1,10 +1,10 @@
-const CACHE='annyeong-v100';
+const CACHE='annyeong-v101';
 const APP_FILES=[
-  './','./manifest.webmanifest?v=7','./app/style.css?v=100','./app/main.js?v=100','./app/photos.js?v=39',
-  './app/annyeong-wordmark.webp','./app/paw-cursor-pink.png','./app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js?v=80','./app/account.js?v=80','./app/icons.svg?v=22','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=100','./app/vendor/three.module.min.js',
+  './','./manifest.webmanifest?v=7','./app/style.css?v=101','./app/main.js?v=101','./app/photos.js?v=39',
+  './app/annyeong-wordmark.webp','./app/paw-cursor-pink.png','./app/fonts/nanum-pen-script.woff2','./app/treats.js','./app/treat-meat.png','./app/treat-fish.png','./app/friends.js?v=80','./app/account.js?v=101','./app/icons.svg?v=22','./app/data.js','./app/data.js?v=18','./app/avatar.js?v=35','./app/scene.js?v=100','./app/vendor/three.module.min.js',
   './app/owner-model.js?v=43','./app/owner-colors.js','./app/models/hood_character_cylindrical_legs.glb','./app/vendor/GLTFLoader.js','./app/vendor/BufferGeometryUtils.js',
   './app/welcome-pets/dog.webp','./app/welcome-pets/cat.webp','./app/welcome-pets/hamster.webp','./app/welcome-pets/parrot.webp','./app/welcome-pets/lizard.webp',
-  './app/coast.js?v=100','./app/island-rock.js?v=100','./app/theme-catalog.js','./app/theme-catalog.js?v=100','./app/extra-themes.js?v=100','./app/walk-preview.webp?v=100','./app/clouds-preview.webp?v=100','./app/stars-preview.webp?v=100','./app/coast-preview.webp?v=100','./app/food-intro-cake.webp','./app/food-game.js?v=77','./app/items.js','./app/item-names.js',
+  './app/coast.js?v=100','./app/island-rock.js?v=100','./app/theme-catalog.js','./app/theme-catalog.js?v=100','./app/extra-themes.js?v=100','./app/walk-preview.webp?v=100','./app/clouds-preview.webp?v=100','./app/stars-preview.webp?v=100','./app/coast-preview.webp?v=100','./app/food-intro-cake.webp','./app/food-game.js?v=77','./app/pet-match.js?v=101','./app/items.js','./app/item-names.js',
   './app/item-ball.png','./app/item-bath.png','./app/item-vacuum.png','./app/item-tube.png','./app/item-bag.png','./app/item-gift-0.png','./app/item-gift-1.png','./app/item-gift-2.png',
   './app/vendor/jquery.min.js','./app/icon-drawing-192.png','./app/icon-heart-32.png','./app/icon-heart-192.png','./app/icon-heart-512.png'
 ];

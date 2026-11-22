@@ -45,6 +45,7 @@ export function accountSettings(state) {
     unlockedThemes:purchasedThemes(state),
     coastUnlocked:purchasedThemes(state).includes('coast'),
     leaves:state?.leaves || 0,
+    petMatch:state?.petMatch || null,
     perspective:state?.perspective || 'third',
     ownerColors:ownerColors(state?.ownerColors)
   };
@@ -60,7 +61,7 @@ export function mergeAccount(settings,local) {
   }));
   const active=friends.find(friend => friend.id===settings.active);
   const preferences={
-    unlockedThemes:purchasedThemes(settings),leaves:settings.leaves || 0,perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
+    unlockedThemes:purchasedThemes(settings),leaves:settings.leaves || 0,petMatch:settings.petMatch || null,perspective:settings.perspective,ownerColors:ownerColors(settings.ownerColors),welcomed:true};
   if (!active) return {...preferences,onboarding:local?.onboarding || null};
   return {
     ...preferences,friendId:active.id,profile:active.profile,space:active.space,photos:active.photos,album:active.album,
