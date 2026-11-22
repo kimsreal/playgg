@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=99">
+  <link rel="stylesheet" href="./app/style.css?v=100">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=99"></script>
+  <script type="module" src="./app/main.js?v=100"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -96,6 +96,7 @@
     <section id="home" aria-label="초원" hidden>
       <div class="scene" id="home-scene">
         <div class="meadow-fallback" aria-hidden="true">
+          <div class="meadow-rock-base"></div>
           <div class="meadow-clouds"></div>
           <div class="meadow-island">
             <span class="tree tree-a"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=22#tree-deciduous"></use></svg></span><span class="tree tree-b"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=22#tree-deciduous"></use></svg></span>

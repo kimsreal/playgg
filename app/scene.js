@@ -1,9 +1,10 @@
-import {makeWalk,makeCloudSpace,makeNightSky} from './extra-themes.js?v=95';
+import {makeWalk,makeCloudSpace,makeNightSky} from './extra-themes.js?v=100';
 import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
-import {coast,makeCoast} from './coast.js?v=99';
+import {coast,makeCoast} from './coast.js?v=100';
+import {makeRockBase} from './island-rock.js?v=100';
 import { meadow } from './data.js';
 import {buildOwnerModel} from './owner-model.js?v=43';
 import {ownerColors as cleanColors} from './owner-colors.js';
@@ -29,11 +30,11 @@ function scatter(scene, geometry, instances) {
   });
   scene.add(batch);
 }
-function makeIsland(scene,theme,obstacles) {
-  const {radius,grass,earth,trees,flowers}=theme;
-  mesh(scene,new T.CylinderGeometry(radius,radius*.98,.22,48),material(grass),0,-.115,0);
-  mesh(scene,new T.CylinderGeometry(radius*.98,radius*.89,.33,48),material(0x98a675),0,-.38,0);
-  mesh(scene,new T.CylinderGeometry(radius*.89,radius*.71,.52,48),material(earth),0,-.805,0);
+function makeIsland(scene,theme,obstacles,night) {
+  const {radius,grass,trees,flowers}=theme;
+  mesh(scene,new T.CylinderGeometry(radius,radius,.10,64),material(grass),0,-.056,0);
+  const tones=night ? [0x7a8299,0x6b7088,0x575c73,0x49465f] : [0xa39177,0x918875,0x7d796d,0x67665c];
+  scene.add(makeRockBase(radius,tones,-.106));
   const shade=new T.MeshBasicMaterial({color:0x476f50,transparent:true,opacity:.13});
   const bark=material(0xa98466);
   const foliage=[], grassBlades=[], stones=[], blooms=[], stems=[], pavers=[];
@@ -244,7 +245,7 @@ function stopAtObstacle(position,x,z,clearance,obstacles) {
 export function createScene(host,profile,onPet,{preview=false,background='meadow',perspective='third',ownerModel,ownerColors,onGraphicsChange,onBallReady}={}) {
   const environment=preview ? 'meadow' : background;
   const night=environment==='stars';
-  const theme=environment==='coast' ? coast : night ? {...meadow,grass:0x789676,earth:0x77728e} : meadow;
+  const theme=environment==='coast' ? coast : night ? {...meadow,grass:0x789676} : meadow;
   const touchScreen=matchMedia('(pointer: coarse)').matches;
   const renderer = new T.WebGLRenderer({antialias:!touchScreen,alpha:!preview});
   renderer.setPixelRatio(Math.min(devicePixelRatio,touchScreen ? 1.35 : 1.7));
@@ -256,7 +257,7 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
   const eye = new T.PerspectiveCamera(54,1,.055,60);
   let camera=overview;
   overview.position.set(preview ? 2 : 5.8,preview ? 2.3 : 7.8,preview ? 5 : 12);
-  const overviewTarget=new T.Vector3(0,preview ? .76 : environment==='coast' ? .21 : .45,0);
+  const overviewTarget=new T.Vector3(0,preview ? .76 : .21,0);
   overview.lookAt(overviewTarget);
   const orbit=new T.Spherical().setFromVector3(overview.position.clone().sub(overviewTarget));
   let eyePitch=Math.atan2(.49-1.46,3);
@@ -274,7 +275,7 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
     } else if (environment==='walk') makeWalk(scene,theme.radius,obstacles);
     else if (environment==='clouds') animateEnvironment=makeCloudSpace(scene,theme.radius);
     else {
-      makeIsland(scene,theme,obstacles);
+      makeIsland(scene,theme,obstacles,night);
       if (night) animateEnvironment=makeNightSky(scene);
       else clouds=makeSkyClouds(scene);
     }

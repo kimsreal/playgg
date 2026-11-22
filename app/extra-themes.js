@@ -1,4 +1,5 @@
 import * as T from './vendor/three.module.min.js';
+import {makeRockBase} from './island-rock.js?v=100';
 
 const standard=(color,options={})=>new T.MeshStandardMaterial({color,roughness:.85,...options});
 function place(parent,geometry,material,x,y,z) {
@@ -9,7 +10,8 @@ function place(parent,geometry,material,x,y,z) {
 }
 
 export function makeWalk(scene,radius,obstacles) {
-  place(scene,new T.CylinderGeometry(radius,radius*.93,.35,64),standard(0x9cbd90),0,-.18,0);
+  place(scene,new T.CylinderGeometry(radius,radius,.10,64),standard(0x9cbd90),0,-.055,0);
+  scene.add(makeRockBase(radius,[0xb69c83,0xa68b77,0x907567,0x796459],-.105));
   const edging=standard(0xe7d5ba);
   const paved=[standard(0xd4ab93),standard(0xe1b8a0),standard(0xc89b87)];
   const paving=new T.BoxGeometry(.53,.045,.30);
@@ -65,7 +67,12 @@ export function makeCloudSpace(scene,radius) {
   const blue=standard(0xd4dcff);
   const white=standard(0xffffff);
   const puff=new T.SphereGeometry(1,20,12);
-  place(scene,new T.CylinderGeometry(radius*.94,radius*.73,.19,64),vapor,0,-.10,0);
+  place(scene,new T.CylinderGeometry(radius*.94,radius*.94,.19,64),vapor,0,-.10,0);
+  const baseTop=-.195;
+  const cloudBase=makeRockBase(radius*.94,[0xe4eaff,0xcbd9f3,0xb1c4e8,0x99abd6],baseTop);
+  cloudBase.scale.y=1.42;
+  cloudBase.position.y=baseTop*(1-cloudBase.scale.y);
+  scene.add(cloudBase);
   for (let i=0;i<18;i++) {
     const a=i*Math.PI/9;
     const edge=radius*(.76+(i%4)*.021);

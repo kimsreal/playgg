@@ -217,9 +217,10 @@ section > .page-back { margin-bottom: 20px; }
 }
 #home[data-background="clouds"] .meadow-island {
   background: #f3f3ff;
-  box-shadow: 0 12px #cfdaff, 0 24px 18px #819eca66;
+  --island-rim: #cfdaff;
 }
 #home[data-background="clouds"] .meadow-island > * { visibility: hidden; }
+#home[data-background="stars"] { --rock-palette: #41445e, #6e7297, #575c7c, #70779a, #414258; }
 #home[data-background="stars"] .meadow-island { filter: brightness(.7) saturate(.7); }
 #home[data-background="stars"] .meadow-clouds { display: none; }
 #home[data-background="stars"] .meadow-fallback::before {
@@ -254,8 +255,7 @@ section > .page-back { margin-bottom: 20px; }
   #home[data-background="stars"] .meadow-fallback::after { animation: none; }
 }
 #home[data-background="coast"] .meadow-clouds { display: none; }
-#home[data-background="coast"] .meadow-fallback::before {
-  content: "";
+#home .meadow-rock-base {
   position: absolute;
   top: calc(43% + min(22vw, 20dvh, 192px));
   left: 50%;
@@ -263,8 +263,11 @@ section > .page-back { margin-bottom: 20px; }
   aspect-ratio: 2.65;
   transform: translateX(-50%);
   clip-path: polygon(0 0, 100% 0, 94% 52%, 84% 65%, 74% 70%, 64% 88%, 56% 100%, 47% 91%, 34% 73%, 22% 76%, 10% 54%, 4% 36%);
-  background: conic-gradient(from 218deg at 56% 100%, #77675d, #9b826c, #75665f, #ad9076, #655e58);
+  background: conic-gradient(from 218deg at 56% 100%, var(--rock-palette, #6e675b, #9b8f72, #787162, #a69779, #696456));
 }
+#home[data-background="coast"] { --rock-palette: #77675d, #9b826c, #75665f, #ad9076, #655e58; }
+#home[data-background="walk"] { --rock-palette: #7b6355, #b6977c, #8f7769, #bd9d83, #796659; }
+#home[data-background="clouds"] { --rock-palette: #91a2d1, #d8e4ff, #adbee4, #e3eaff, #91a2d1; }
 #home[data-background="coast"] .meadow-island {
   background: linear-gradient(157deg, #489caf 15%, #80cfc7 32%, #fff1ce 35%, #dfb382 37%, #ffd497 43%);
   box-shadow: 0 3px #cda371;
@@ -398,7 +401,7 @@ section > .page-back { margin-bottom: 20px; }
 #interaction-options { margin-bottom: 4px; }
 .meadow-fallback { position: absolute; inset: 0; pointer-events: none; }
 .has-webgl .meadow-fallback { display: none; }
-.meadow-island { position: absolute; top: 43%; left: 50%; width: min(89vw, 83dvh, 780px); aspect-ratio: 2.05; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse at 39% 45%, #deeba9 12%, transparent 52%), radial-gradient(ellipse at 62% 70%, #abc989, #afd192 62%, #91b77e 100%); box-shadow: 0 13px #89a877, 0 24px 0 -3px #b99f7c, 0 34px 18px -10px #61785348; }
+.meadow-island { position: absolute; top: 43%; left: 50%; width: min(89vw, 83dvh, 780px); aspect-ratio: 2.05; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse at 39% 45%, #deeba9 12%, transparent 52%), radial-gradient(ellipse at 62% 70%, #abc989, #afd192 62%, #91b77e 100%); box-shadow: 0 3px var(--island-rim, #89a877); }
 .meadow-clouds { position: absolute; inset: 20% 0 40%; background: radial-gradient(ellipse 10% 7% at 15% 30%, var(--white)d4 93%, transparent 100%), radial-gradient(ellipse 7% 12% at 17% 25%, var(--white)d4 93%, transparent 100%), radial-gradient(ellipse 11% 8% at 82% 32%, var(--white)c2 93%, transparent 100%), radial-gradient(ellipse 6% 10% at 80% 28%, var(--white)c2 93%, transparent 100%); }
 .meadow-island .tree, .meadow-island .flowers { position: absolute; }
 .tree-a { left: 15%; top: -16%; font-size: clamp(36px,11vw,91px); }
