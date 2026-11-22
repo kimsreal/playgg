@@ -31,25 +31,28 @@ export function makeCoast(scene,theme,obstacles) {
         return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);
       }
 
-      // The gap between the two nearest moving points traces the caustic network.
-      vec2 causticField(vec2 point,float time) {
+      // The gap between the nearest points traces the caustic network.
+      vec3 causticField(vec2 point) {
         vec2 cell=floor(point);
         vec2 local=fract(point);
         float nearest=8.0;
         float second=8.0;
+        float third=8.0;
         for (int y=-1;y<=1;y++) {
           for (int x=-1;x<=1;x++) {
             vec2 offset=vec2(float(x),float(y));
             vec2 id=cell+offset;
             vec2 phase=6.28318*vec2(grain(id),grain(id+vec2(21.0,11.0)));
-            vec2 center=.5+.29*sin(phase+time*vec2(.65,.49));
+            vec2 center=.5+.29*sin(phase);
             vec2 delta=offset+center-local;
             float distanceSquared=dot(delta,delta);
+            third=min(third,max(second,distanceSquared));
             second=min(second,max(nearest,distanceSquared));
             nearest=min(nearest,distanceSquared);
           }
         }
-        return vec2(sqrt(second)-sqrt(nearest),nearest);
+        float closest=sqrt(nearest);
+        return vec3(sqrt(second)-closest,nearest,sqrt(third)-closest);
       }
 
       void main() {
@@ -62,20 +65,22 @@ export function makeCoast(scene,theme,obstacles) {
         vec3 wetSand=vec3(.84,.66,.49);
         vec3 shallow=vec3(.40,.86,.86);
         vec3 deep=vec3(.047,.40,.65);
-        vec3 color=mix(wetSand,shallow,smoothstep(-.11,.43,depth));
-        color=mix(color,deep,smoothstep(.32,3.15,depth));
+        float surfaceDepth=mix(depth,-shore,smoothstep(.16,.56,-shore));
+        vec3 color=mix(wetSand,shallow,smoothstep(-.11,.43,surfaceDepth));
+        color=mix(color,deep,smoothstep(.32,3.15,surfaceDepth));
 
         float fleck=grain(floor(ground*90.0));
         color+=(fleck-.5)*.032;
         vec2 point=ground*vec2(1.75,2.15);
-        point+=.24*sin(point.yx*2.3+clock*vec2(.63,-.53));
-        vec2 field=causticField(point,clock);
-        float shimmer=.72+.28*sin(point.x*1.3+point.y*1.7-clock*.8);
-        float glow=1.0-smoothstep(.035,.17,field.x);
-        float line=1.0-smoothstep(.012,.049,field.x);
-        float visibleLight=smoothstep(.19,.61,depth)*(1.0-.35*smoothstep(1.1,3.1,depth));
+        point+=.24*sin(point.yx*2.3);
+        vec3 field=causticField(point);
+        float junction=1.0-smoothstep(.02,.22,field.z);
+        float widthGain=junction*.065;
+        float glow=1.0-smoothstep(.035,.17+widthGain,field.x);
+        float line=1.0-smoothstep(.012+widthGain*.48,.049+widthGain,field.x);
+        float visibleLight=smoothstep(.19,.61,-shore)*(1.0-.35*smoothstep(1.1,3.1,-shore));
         color+=vec3(.035,.095,.09)*(1.0-smoothstep(.1,.65,field.y))*visibleLight;
-        color=mix(color,vec3(.76,.99,1.0),(glow*.27+line*.62)*visibleLight*shimmer);
+        color=mix(color,vec3(.76,.99,1.0),(glow*.27+line*.62)*visibleLight);
 
         float surfWidth=.075+.054*(.5+.5*sin(x*4.3+clock*.9));
         float lip=1.0-smoothstep(.018,surfWidth,abs(depth-.031));
