@@ -24,7 +24,7 @@ function makeIcon(name) {
   svg.setAttribute('aria-hidden','true');
   svg.setAttribute('focusable','false');
   const use=document.createElementNS(namespace,'use');
-  use.setAttribute('href','./app/icons.svg?v=21#'+name);
+  use.setAttribute('href','./app/icons.svg?v=22#'+name);
   svg.append(use);
   return svg;
 }
@@ -724,6 +724,7 @@ function show(pageId,delivery=null) {
     renderBalance();
     backgroundChoice.value=friendSpace(state?.space).background;
     backgroundStatus.hidden=true;
+    byId('pet-avatar-label').textContent=state.profile.name+' 아바타';
     byId('settings-search').value='';
     filterSettings();
     renderDates();
@@ -736,7 +737,9 @@ function filterSettings() {
   const words=byId('settings-search').value.trim().toLocaleLowerCase().split(/\s+/);
   const rows=[...document.querySelectorAll('.settings-list [data-setting]')];
   for (const row of rows) {
-    row.hidden=!words.every(word => row.dataset.setting.toLocaleLowerCase().includes(word));
+    const label=row.querySelector('#pet-avatar-label')?.textContent || '';
+    const searchable=(row.dataset.setting+' '+label).toLocaleLowerCase();
+    row.hidden=!words.every(word => searchable.includes(word));
   }
   byId('settings-empty').hidden=rows.some(row => !row.hidden);
 }
