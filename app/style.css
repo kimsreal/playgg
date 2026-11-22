@@ -827,6 +827,7 @@ section > .page-back { margin-bottom: 20px; }
   transform: translateY(-2px);
 }
 #food-intro {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - 88px);
@@ -834,9 +835,10 @@ section > .page-back { margin-bottom: 20px; }
 @media (max-width: 500px) {
   #food-intro { min-height: calc(100dvh - 40px); }
 }
+#food-intro > .page-back { position: absolute; top: 0; left: 0; }
 .food-intro-content {
   margin-block: auto;
-  padding-block: 20px 48px;
+  padding-block: 60px 48px;
   text-align: center;
   word-break: keep-all;
 }

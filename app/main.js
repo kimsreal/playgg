@@ -587,7 +587,87 @@ document.addEventListener('click',() => {
   if (musicNeedsGesture) startMusic();
 });
 
+const navigationSession=String(Date.now());
+let navigationPath=[];
+let navigationIndex=0;
+let pendingNavigation=null;
+let restoringNavigation=false;
+
+function recordNavigation(pageId,delivery=null) {
+  if (restoringNavigation) return true;
+  if (pendingNavigation) return false;
+  const step=pageId==='setup' && !state?.profile ? profileStep : null;
+  const matches=entry => entry?.page===pageId && entry.step===step;
+  if (matches(navigationPath[navigationIndex])) return true;
+
+  let previous=navigationIndex-1;
+  while (previous>=0 && !matches(navigationPath[previous])) previous--;
+  if (previous>=0) {
+    pendingNavigation={index:previous,delivery};
+    history.go(previous-navigationIndex);
+    return false;
+  }
+
+  if (navigationIndex>0 && pageId==='home' && page==='avatar' && navigationPath[0]?.page==='welcome') {
+    pendingNavigation={index:0,next:'home',delivery};
+    history.go(-navigationIndex);
+    return false;
+  }
+
+  const replace=!navigationPath.length || (page==='account' && (pageId==='home' || pageId==='setup'));
+  if (!replace) navigationIndex++;
+  navigationPath=navigationPath.slice(0,navigationIndex);
+  navigationPath.push({page:pageId,step});
+  const entry={annyeong:navigationSession,index:navigationIndex};
+  if (replace) history.replaceState(entry,'');
+  else history.pushState(entry,'');
+  return true;
+}
+
+window.addEventListener('popstate',event => {
+  const entry=event.state;
+  if (entry?.annyeong!==navigationSession) return;
+  const target=navigationPath[entry.index];
+  if (!target) return;
+  const transition=pendingNavigation?.index===entry.index ? pendingNavigation : null;
+  pendingNavigation=null;
+  navigationIndex=entry.index;
+  if (transition?.next) {
+    show(transition.next,transition.delivery);
+    return;
+  }
+  const delivery=transition?.delivery;
+  restoringNavigation=true;
+  try {
+    if (target.page==='setup' && page==='setup' && target.step!==null) {
+      goToProfileStep(target.step);
+    } else if (target.page==='setup' && page==='avatar') {
+      backFromAvatar(target.step ?? profilePanels.length-1);
+    } else if (target.page==='setup' && page!=='account') {
+      addingFriend=page==='friends';
+      openProfile(target.step);
+    } else if (target.page==='avatar') {
+      draft ||= page==='setup' ? readProfileForm() : state?.profile;
+      if (draft) openAvatar();
+    } else {
+      if (!state?.profile && target.page!=='welcome' && target.page!=='account' && target.page!=='setup') {
+        show('welcome');
+        return;
+      }
+      if (target.page==='account') accountReturnPage=page;
+      if (target.page==='home' || target.page==='settings' || target.page==='friends') {
+        draft=null;
+        addingFriend=false;
+      }
+      show(target.page,delivery);
+    }
+  } finally {
+    restoringNavigation=false;
+  }
+});
+
 function show(pageId,delivery=null) {
+  if (!recordNavigation(pageId,delivery)) return;
   if (pageId!=='leaf-game') foodGame.pause();
   clearBall();
   page=pageId;
@@ -707,6 +787,7 @@ function renderProfileStep(focus=false) {
 
 function goToProfileStep(step) {
   profileStep=step;
+  if (!recordNavigation('setup')) return;
   byId('setup-error').textContent='';
   renderProfileStep(true);
   void saveOnboarding('setup',readProfileForm());
@@ -861,16 +942,17 @@ $(avatarForm).on('change',() => {
   void mountScene(byId('avatar-scene'),profile,true);
   void saveOnboarding('avatar',profile);
 });
-$('#avatar-back').on('click',() => {
+function backFromAvatar(step=profilePanels.length-1) {
   draft=avatarProfile();
   if (state?.profile && !addingFriend) {
     draft=null;
     show('settings');
   } else {
-    openProfile(profilePanels.length-1);
+    openProfile(step);
     void saveOnboarding('setup',draft);
   }
-});
+}
+$('#avatar-back').on('click',() => backFromAvatar());
 
 $(avatarForm).on('submit',async event => {
   event.preventDefault();
