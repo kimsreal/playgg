@@ -100,8 +100,25 @@ export function makeCoast(scene,theme) {
     }
   }
 
+  const coconut=new T.Group();
+  coconut.position.set(.27,.007,-.14);
+  mat.add(coconut);
+  const huskProfile=[[0,0],[.14,0],[.21,.07],[.24,.17],[.22,.26],[.15,.33]];
+  const husk=new T.LatheGeometry(huskProfile.map(([r,y])=>new T.Vector2(r,y)),12);
+  add(husk,material(0x91a75c),0,0,0,coconut);
+  add(new T.CylinderGeometry(.15,.15,.014,12),linen,0,.33,0,coconut);
+  add(new T.CylinderGeometry(.058,.058,.004,12),material(0x805c3b),.034,.339,0,coconut);
+  const straw=new T.TubeGeometry(new T.CatmullRomCurve3([
+    new T.Vector3(.035,.331,0),
+    new T.Vector3(.028,.48,0),
+    new T.Vector3(.008,.53,0),
+    new T.Vector3(-.085,.57,0)
+  ]),12,.017,8);
+  add(straw,material(0xe67979),0,0,0,coconut);
+
   const shellColors=[material(0xffead1),material(0xf1a997),material(0xd58e82)];
   for (let i=0;i<22;i++) {
+    if (i===1 || i===9) continue; // Keep the two spots next to the mat clear.
     const angle=i*2.39996;
     const distance=2.95+.31*(i%4);
     const x=Math.cos(angle)*distance;

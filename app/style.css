@@ -269,6 +269,18 @@ section > .page-back { margin-bottom: 20px; }
   background: repeating-linear-gradient(90deg, #fff0d8 0 10%, #4685c4 10% 20%);
   transform: rotate(-12deg);
 }
+#home[data-background="coast"] .meadow-island::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 33%;
+  top: 51%;
+  width: 5%;
+  aspect-ratio: 1;
+  border-radius: 48%;
+  background: radial-gradient(ellipse at 54% 23%, #865d3b 9%, #fff0d7 12% 25%, transparent 28%),
+              linear-gradient(#b6c97b, #718647);
+}
 #home[data-background="coast"] .meadow-island > * { visibility: hidden; }
 #background-choice {
   display: block;
