@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=87">
+  <link rel="stylesheet" href="./app/style.css?v=89">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=88"></script>
+  <script type="module" src="./app/main.js?v=89"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -95,7 +95,7 @@
     </section>
     <section id="home" aria-label="초원" hidden>
       <div class="scene" id="home-scene">
-        <span class="coast-sunset" aria-hidden="true"></span>
+        <div class="coast-sky" aria-hidden="true"><span class="coast-sunset"></span><span class="coast-cloud"></span><span class="coast-cloud"></span><span class="coast-cloud"></span></div>
         <div class="meadow-fallback" aria-hidden="true">
           <div class="meadow-clouds"></div>
           <div class="meadow-island">

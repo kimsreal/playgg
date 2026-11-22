@@ -14,45 +14,49 @@ export function makeCoast(scene,theme) {
   add(new T.CylinderGeometry(radius,radius*.98,.25,64),material(0xf3c88c),0,-.131,0);
   add(new T.CylinderGeometry(radius*.98,radius*.93,.36,64),material(0xd9a473),0,-.43,0);
 
-  // Fade the edge of the water into the painted horizon behind the scene.
+  // The sand and water share a ground plane so both halves remain walkable.
   const water=new T.ShaderMaterial({
     uniforms:{clock:{value:0}},
     vertexShader:`
-      varying vec2 shore;
+      varying vec2 ground;
       void main() {
-        shore=position.xy;
+        ground=vec2(position.x,-position.y);
         gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
       }`,
     fragmentShader:`
       uniform float clock;
-      varying vec2 shore;
+      varying vec2 ground;
+
       void main() {
-        float distanceFromCenter=length(shore);
-        float ripples=.5+.5*sin(shore.y*9.0+sin(shore.x*1.75)*1.1-clock*1.8);
-        float depth=smoothstep(4.45,10.0,distanceFromCenter);
-        vec3 color=mix(vec3(.56,.81,.76),vec3(.39,.59,.72),depth);
-        color+=ripples*.028;
-        gl_FragColor=vec4(color,1.0-smoothstep(7.8,15.0,distanceFromCenter));
+        float x=ground.x;
+        float shore=ground.y+.38*x-.32*sin(x*1.05);
+        float tide=.095*sin(clock*1.8+x*.7);
+        float depth=tide-shore;
+        if (depth<-.15) discard;
+
+        vec3 wetSand=vec3(.84,.66,.49);
+        vec3 shallow=vec3(.53,.84,.79);
+        vec3 deep=vec3(.27,.61,.74);
+        vec3 color=mix(wetSand,shallow,smoothstep(-.11,.43,depth));
+        color=mix(color,deep,smoothstep(.42,3.8,depth));
+
+        float ripples=sin(depth*9.0+sin(x*2.4)*.65+sin(x*4.1+depth*3.2)*.22-clock*1.5);
+        float shine=smoothstep(-.65,.8,sin(x*1.8+depth*2.8)+.22*sin(x*6.0));
+        color+=smoothstep(.78,1.0,ripples)*.045*shine*smoothstep(.3,1.8,depth);
+        float lip=(1.0-smoothstep(.026,.11,abs(depth-.035)));
+        float trailing=(1.0-smoothstep(.016,.068,abs(depth-.39+.045*sin(x*3.8+clock))));
+        float broken=smoothstep(-.52,.72,sin(x*3.2+clock*.6)+.3*sin(x*7.2));
+        color=mix(color,vec3(1.0,.98,.89),lip*.86+trailing*broken*.46);
+
+        gl_FragColor=vec4(color,smoothstep(-.15,-.07,depth));
       }`,
     transparent:true,depthWrite:false
   });
-  add(new T.CircleGeometry(16,96),water,0,-.46,0).rotation.x=-Math.PI/2;
-
-  const foam=new T.MeshBasicMaterial({color:0xfff4dc,transparent:true,opacity:.63,depthWrite:false});
-  const breakers=add(new T.RingGeometry(radius-.09,radius+.04,80),foam,0,.012,0);
-  breakers.rotation.x=-Math.PI/2;
-  const shallows=add(new T.RingGeometry(radius+.1,radius+.15,80),foam,0,-.39,0);
-  shallows.rotation.x=-Math.PI/2;
-  for (let i=0;i<35;i++) {
-    const angle=i*2.39996;
-    const distance=5.15+(i%9)*.57;
-    const glint=add(new T.PlaneGeometry(.35+(i%5)*.22,.026),foam,Math.cos(angle)*distance,-.40,Math.sin(angle)*distance);
-    glint.rotation.x=-Math.PI/2;
-  }
+  add(new T.CircleGeometry(radius,64),water,0,.002,0).rotation.x=-Math.PI/2;
 
   const bark=material(0xb17c57);
   const leaves=[material(0x6b9b78),material(0x8cb17e)];
-  for (const [x,z,lean] of [[-2.85,-1.55,-.24],[2.48,-2.2,.21]]) {
+  for (const [x,z,lean] of [[-3.25,1.67,-.24],[3.16,.06,.21]]) {
     const trunk=add(new T.CylinderGeometry(.09,.16,1.85,8),bark,x,.9,z);
     trunk.rotation.z=lean;
     const crown=add(new T.IcosahedronGeometry(.19,1),leaves[0],x-Math.sin(lean)*.9,1.79,z);
@@ -71,15 +75,15 @@ export function makeCoast(scene,theme) {
   for (let i=0;i<22;i++) {
     const angle=i*2.39996;
     const distance=2.95+.31*(i%4);
-    const shell=add(new T.SphereGeometry(.12,9,5,0,Math.PI*2,0,Math.PI/2),shellColors[i%3],
-      Math.cos(angle)*distance,.007,Math.sin(angle)*distance);
+    const x=Math.cos(angle)*distance;
+    const z=Math.sin(angle)*distance;
+    if (z+.38*x-.32*Math.sin(x*1.05)<.32) continue;
+    const shell=add(new T.SphereGeometry(.12,9,5,0,Math.PI*2,0,Math.PI/2),shellColors[i%3],x,.007,z);
     shell.scale.set(1.18,.52,.83);
     shell.rotation.y=angle;
   }
 
   return time => {
     water.uniforms.clock.value=time;
-    shallows.scale.setScalar(1+Math.sin(time*1.15)*.019);
-    foam.opacity=.58+Math.sin(time*1.4)*.1;
   };
 }
