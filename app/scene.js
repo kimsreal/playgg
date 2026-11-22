@@ -3,7 +3,7 @@ import * as T from './vendor/three.module.min.js';
 import { createAvatar } from './avatar.js?v=35';
 import { createMeatTreat, createFishTreat } from './treats.js';
 import {createItem} from './items.js';
-import {coast,makeCoast} from './coast.js?v=98';
+import {coast,makeCoast} from './coast.js?v=99';
 import { meadow } from './data.js';
 import {buildOwnerModel} from './owner-model.js?v=43';
 import {ownerColors as cleanColors} from './owner-colors.js';
@@ -256,7 +256,7 @@ export function createScene(host,profile,onPet,{preview=false,background='meadow
   const eye = new T.PerspectiveCamera(54,1,.055,60);
   let camera=overview;
   overview.position.set(preview ? 2 : 5.8,preview ? 2.3 : 7.8,preview ? 5 : 12);
-  const overviewTarget=new T.Vector3(0,preview ? .76 : .45,0);
+  const overviewTarget=new T.Vector3(0,preview ? .76 : environment==='coast' ? .21 : .45,0);
   overview.lookAt(overviewTarget);
   const orbit=new T.Spherical().setFromVector3(overview.position.clone().sub(overviewTarget));
   let eyePitch=Math.atan2(.49-1.46,3);

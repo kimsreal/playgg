@@ -254,9 +254,20 @@ section > .page-back { margin-bottom: 20px; }
   #home[data-background="stars"] .meadow-fallback::after { animation: none; }
 }
 #home[data-background="coast"] .meadow-clouds { display: none; }
+#home[data-background="coast"] .meadow-fallback::before {
+  content: "";
+  position: absolute;
+  top: calc(43% + min(22vw, 20dvh, 192px));
+  left: 50%;
+  width: min(87vw, 81dvh, 764px);
+  aspect-ratio: 2.65;
+  transform: translateX(-50%);
+  clip-path: polygon(0 0, 100% 0, 94% 52%, 84% 65%, 74% 70%, 64% 88%, 56% 100%, 47% 91%, 34% 73%, 22% 76%, 10% 54%, 4% 36%);
+  background: conic-gradient(from 218deg at 56% 100%, #77675d, #9b826c, #75665f, #ad9076, #655e58);
+}
 #home[data-background="coast"] .meadow-island {
   background: linear-gradient(157deg, #489caf 15%, #80cfc7 32%, #fff1ce 35%, #dfb382 37%, #ffd497 43%);
-  box-shadow: 0 11px #cda371, 0 20px 0 -3px #b88c68;
+  box-shadow: 0 3px #cda371;
 }
 #home[data-background="coast"] .meadow-island::after {
   content: "";
