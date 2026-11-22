@@ -253,38 +253,6 @@ section > .page-back { margin-bottom: 20px; }
 @media (prefers-reduced-motion: reduce) {
   #home[data-background="stars"] .meadow-fallback::after { animation: none; }
 }
-.coast-sky { display: none; }
-#home[data-background="coast"] .coast-sky {
-  display: block;
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-.coast-sunset {
-  position: absolute;
-  left: 66%;
-  top: 21%;
-  width: clamp(54px, 11vmin, 112px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: linear-gradient(#fff5ca,#ffd69d);
-  box-shadow: 0 0 64px 24px #ffd8aa91;
-}
-.coast-cloud {
-  position: absolute;
-  left: 10%;
-  top: 26%;
-  width: clamp(94px, 23vw, 360px);
-  aspect-ratio: 4.2;
-  background:
-    radial-gradient(ellipse 37% 42% at 38% 57%, #ffe3d8 76%, transparent 100%),
-    radial-gradient(ellipse 31% 42% at 56% 42%, #ffe5db 74%, transparent 100%),
-    radial-gradient(ellipse 34% 27% at 65% 68%, #ffd8cb 72%, transparent 100%);
-  opacity: .72;
-}
-.coast-cloud:nth-of-type(3) { left: 59%; top: 31%; width: clamp(94px, 21vw, 330px); }
-.coast-cloud:nth-of-type(4) { left: 33%; top: 15%; width: clamp(65px, 13vw, 200px); opacity: .5; }
 #home[data-background="coast"] .meadow-clouds { display: none; }
 #home[data-background="coast"] .meadow-island {
   background: linear-gradient(157deg, #489caf 15%, #80cfc7 45%, #fff1ce 49%, #dfb382 51%, #ffd497 57%);
