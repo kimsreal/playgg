@@ -8,7 +8,7 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=101">
+  <link rel="stylesheet" href="./app/style.css?v=102">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
   <script type="module" src="./app/main.js?v=101"></script>
@@ -139,11 +139,11 @@
         <button type="button" class="scene-icon" data-page="letters" aria-label="반려동물에게 편지쓰기" title="반려동물에게 편지쓰기"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><use href="./app/icons.svg?v=22#mail"></use></svg></button>
         <button type="button" class="scene-icon" data-page="photo" aria-label="오늘의 사진" title="오늘의 사진"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=22#image"></use></svg></button>
         <button type="button" class="scene-icon" data-page="settings" aria-label="설정" title="설정"><svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="./app/icons.svg?v=22#settings"></use></svg></button>
-        <button type="button" class="scene-icon" id="food-open" data-page="food-intro" aria-label="먹이 합치기" title="먹이 합치기">
-          <img src="./app/food-intro-cake.webp" alt="" width="38" height="38" draggable="false">
-        </button>
-        <button type="button" class="scene-icon" id="pet-match-open" data-page="pet-match" aria-label="동물 맞추기" title="동물 맞추기">
-          <img src="./app/welcome-pets/cat.webp" alt="" width="35" height="35" draggable="false">
+        <button type="button" class="scene-icon" id="games-open" data-page="games" aria-label="게임 선택" title="게임 선택">
+          <svg class="ui-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path d="M7.5 7h9a4 4 0 0 1 3.9 3.2l1.1 5.1a2.5 2.5 0 0 1-4.2 2.4l-2.1-2.2H8.8l-2.1 2.2a2.5 2.5 0 0 1-4.2-2.4l1.1-5.1A4 4 0 0 1 7.5 7Z"/>
+            <path d="M8 9.8v4m-2-2h4M16 10.7h.01m2 2h.01"/>
+          </svg>
         </button>
       </div>
       <div class="view-picker" role="group" aria-label="초원 시점">
@@ -166,8 +166,34 @@
         </div>
       </div>
     </section>
+    <section id="games" aria-labelledby="games-title" hidden>
+      <header class="games-header">
+        <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
+        <h1 id="games-title">게임 선택</h1>
+      </header>
+      <ul class="games-list">
+        <li>
+          <button type="button" class="game-card" data-page="food-intro">
+            <span class="game-card-art game-card-art--food">
+              <img src="./app/food-intro-cake.webp" alt="" width="320" height="320" draggable="false">
+            </span>
+            <span>먹이 합치기</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="game-card" data-page="pet-match">
+            <span class="game-card-art game-card-art--pets">
+              <img src="./app/welcome-pets/cat.webp" alt="" width="272" height="272" draggable="false">
+              <img src="./app/welcome-pets/dog.webp" alt="" width="272" height="272" draggable="false">
+              <img src="./app/welcome-pets/hamster.webp" alt="" width="272" height="272" draggable="false">
+            </span>
+            <span>동물 맞추기</span>
+          </button>
+        </li>
+      </ul>
+    </section>
     <section id="pet-match" aria-labelledby="pet-match-title" hidden>
-      <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="page-back scene-icon" data-page="games" aria-label="게임 선택으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1 id="pet-match-title">동물 맞추기</h1>
       <p>옆 칸의 동물을 바꿔 같은 동물 세 마리 이상을 가로나 세로로 맞춰요. 한 번 사라질 때마다 잎사귀 1개를 받아요.</p>
       <div class="pet-match-stats">
@@ -182,7 +208,7 @@
       </div>
     </section>
     <section id="food-intro" aria-label="먹이 합치기 안내" hidden>
-      <button type="button" class="page-back scene-icon" data-page="home" aria-label="공간으로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="page-back scene-icon" data-page="games" aria-label="게임 선택으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <div class="food-intro-content">
         <img class="food-intro-cake" src="./app/food-intro-cake.webp" alt="" width="320" height="320">
         <p>같은 먹이를 합쳐 케이크를 만들어봐요!<br>잎사귀 10개를 받을 수 있어요.</p>
