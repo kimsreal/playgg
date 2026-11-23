@@ -69,13 +69,15 @@ function collapse(board,matched) {
   return {board:result,falls};
 }
 
-export function createPetMatch({section,remaining,reserve,award}) {
+export function createPetMatch({section,remaining,reserve,award,pending,claim,onClaim}) {
   const get=id=>section.querySelector('#'+id);
   const grid=get('pet-match-board');
   const start=get('pet-match-start');
   const status=get('pet-match-status');
   const scoreLabel=get('pet-match-score');
   const clock=get('pet-match-time');
+  const collect=get('pet-match-claim');
+  let resultTimer,phase='ready';
   let board=[],selected=-1,score=0,deadline=0,timer,busy=false;
   let pointer=null,ignoreClick=false;
   const tiles=Array.from({length:size*size},(_,i)=>{
@@ -92,30 +94,51 @@ export function createPetMatch({section,remaining,reserve,award}) {
   function showAvailability() {
     const count=remaining();
     get('pet-match-remaining').textContent='오늘 '+count+'판 남았어요';
-    start.disabled=busy || Boolean(deadline) || count===0;
+    start.disabled=busy || Boolean(deadline) || count===0 || Boolean(pending());
   }
 
-  function finish(message) {
+  function setPhase(next) {
+    phase=next;
+    section.dataset.phase=next;
+    get('pet-match-ready').hidden=next!=='ready';
+    section.querySelector('.pet-match-stats').hidden=next!=='playing';
+    get('pet-match-over').hidden=next!=='over';
+    get('pet-match-result').hidden=next!=='result';
+    render();
+  }
+
+  function showResult(focus=false) {
+    clearTimeout(resultTimer);
+    get('pet-match-total').textContent=pending()+'개 획득!';
+    collect.disabled=busy;
+    setPhase('result');
+    if (focus && !section.hidden) collect.focus();
+  }
+
+  function finish(expired) {
     if (!deadline) return;
     deadline=0;
     clearInterval(timer);
     clock.textContent='0:00';
     selected=-1;
     clearDrag();
-    status.textContent=message;
-    render();
-    showAvailability();
+    if (!expired) {
+      setPhase('ready');
+      return;
+    }
+    setPhase('over');
+    resultTimer=setTimeout(()=>showResult(true),reducedMotion.matches ? 0 : 950);
   }
 
   function tick() {
     if (!deadline) return;
     const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));
     clock.textContent=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
-    if (!seconds) finish('시간이 다 됐어요!');
+    if (!seconds) finish(true);
   }
 
   function render() {
-    grid.hidden=!board.length;
+    grid.hidden=!board.length || phase!=='playing';
     tiles.forEach((tile,i)=>{
       const pet=pets[board[i]];
       if (!pet) return;
@@ -229,6 +252,7 @@ export function createPetMatch({section,remaining,reserve,award}) {
       if (deadline) status.textContent='잎사귀를 저장하지 못했어요. 다시 맞춰 보세요.';
     } finally {
       busy=false;
+      if (phase==='result' || (phase==='ready' && !section.hidden && pending())) showResult();
       render();
       showAvailability();
     }
@@ -295,7 +319,7 @@ export function createPetMatch({section,remaining,reserve,award}) {
   });
 
   start.addEventListener('click',async ()=>{
-    if (busy || deadline || !remaining()) return;
+    if (busy || phase!=='ready' || !remaining() || pending()) return;
     busy=true;
     showAvailability();
     try {
@@ -306,6 +330,7 @@ export function createPetMatch({section,remaining,reserve,award}) {
       score=0;
       deadline=Date.now()+60000;
       status.textContent='';
+      setPhase('playing');
       tick();
       timer=setInterval(tick,150);
     } catch {
@@ -317,8 +342,36 @@ export function createPetMatch({section,remaining,reserve,award}) {
     }
   });
 
+  collect.addEventListener('click',async ()=>{
+    if (busy || phase!=='result') return;
+    busy=true;
+    collect.disabled=true;
+    get('pet-match-claim-error').textContent='';
+    try {
+      const earned=await claim();
+      board=[];
+      score=0;
+      setPhase('ready');
+      if (!section.hidden) onClaim(earned);
+    } catch {
+      get('pet-match-claim-error').textContent='잎사귀를 저장하지 못했어요. 다시 눌러 주세요.';
+    } finally {
+      busy=false;
+      collect.disabled=false;
+      showAvailability();
+    }
+  });
+
   return {
-    open:showAvailability,
-    leave:()=>finish('이번 판을 마쳤어요.')
+    open() {
+      if (phase==='ready' && pending() && !busy) showResult();
+      showAvailability();
+    },
+    leave() {
+      clearTimeout(resultTimer);
+      finish(false);
+      get('pet-match-claim-error').textContent='';
+      setPhase('ready');
+    }
   };
 }

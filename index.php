@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=103">
+  <link rel="stylesheet" href="./app/style.css?v=104">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=103"></script>
+  <script type="module" src="./app/main.js?v=104"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -192,19 +192,24 @@
         </li>
       </ul>
     </section>
-    <section id="pet-match" aria-labelledby="pet-match-title" hidden>
-      <button type="button" class="page-back scene-icon" data-page="games" aria-label="게임 선택으로 돌아가기"><span aria-hidden="true">‹</span></button>
-      <h1 id="pet-match-title">동물 맞추기</h1>
-      <p>동물을 옆 칸으로 밀어 같은 동물 세 마리 이상을 가로나 세로로 맞춰요. 한 번 사라질 때마다 잎사귀 1개를 받아요.</p>
-      <div class="pet-match-stats">
-        <span aria-label="남은 시간"><strong id="pet-match-time">1:00</strong></span>
-        <span>잎사귀 <strong id="pet-match-score">0</strong></span>
-      </div>
-      <div id="pet-match-board" role="group" aria-label="동물 맞추기 게임판" hidden></div>
-      <p id="pet-match-status" role="status"></p>
-      <div class="pet-match-actions">
+    <section id="pet-match" aria-label="동물 맞추기" data-phase="ready" hidden>
+      <div id="pet-match-ready">
+        <button type="button" class="page-back scene-icon" data-page="games" aria-label="게임 선택으로 돌아가기"><span aria-hidden="true">‹</span></button>
         <button type="button" class="primary" id="pet-match-start">시작하기</button>
         <span id="pet-match-remaining"></span>
+      </div>
+      <div class="pet-match-stats" hidden>
+        <strong id="pet-match-time" aria-label="남은 시간">1:00</strong>
+        <span><img src="./app/reward-leaf.svg" alt="이번 판 잎사귀" width="26" height="26"><strong id="pet-match-score">0</strong></span>
+      </div>
+      <div id="pet-match-board" role="group" aria-label="동물 맞추기 게임판" hidden></div>
+      <p id="pet-match-status" class="pet-match-announcement" role="status"></p>
+      <div id="pet-match-over" role="status" hidden>Time Over</div>
+      <div id="pet-match-result" hidden>
+        <img src="./app/reward-leaf.svg" alt="" width="130" height="130">
+        <p id="pet-match-total"></p>
+        <button type="button" class="primary" id="pet-match-claim">받기</button>
+        <p id="pet-match-claim-error" role="alert"></p>
       </div>
     </section>
     <section id="food-intro" aria-label="먹이 합치기 안내" hidden>

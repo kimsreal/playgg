@@ -1,12 +1,12 @@
 import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=100';
-import {createPetMatch} from './pet-match.js?v=103';
+import {createPetMatch} from './pet-match.js?v=104';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
 import { phrases, photoTitles } from './data.js?v=18';
 import { activeFriendId, friendSpace, listFriends, migrateFriendSpaces, switchFriend, addFriend, updateFriend } from './friends.js?v=80';
 import {readState,updateState as writeLocalState,preparePhotos,chooseDaily} from './photos.js?v=39';
-import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=101';
+import {readAccount,changeAccount,saveAccount,accountSettings,mergeAccount} from './account.js?v=104';
 
 const $=window.jQuery;
 const byId=id => document.getElementById(id);
@@ -669,22 +669,60 @@ window.addEventListener('popstate',event => {
 
 const petMatchLimit=5;
 const matchesPlayed=(current,date)=>current?.petMatch?.date===date ? current.petMatch.played : 0;
+const matchPending=current=>current?.petMatch?.pending || 0;
 const petMatch=createPetMatch({
   section:byId('pet-match'),
   remaining:()=>Math.max(0,petMatchLimit-matchesPlayed(state,dayKey())),
+  pending:()=>matchPending(state),
   async reserve() {
     const date=dayKey();
     state=await updateState(current=>{
       const played=matchesPlayed(current,date);
-      if (played>=petMatchLimit) throw new Error('daily_limit');
-      return {...current,petMatch:{date,played:played+1}};
+      if (played>=petMatchLimit || matchPending(current)) throw new Error('daily_limit');
+      return {...current,petMatch:{date,played:played+1,pending:0}};
     });
   },
   async award(points) {
-    state=await updateState(current=>({...current,leaves:Math.min(999999,(current?.leaves || 0)+points)}));
-    if (page==='home') renderBalance();
-  }
+    state=await updateState(current=>({...current,petMatch:{
+      ...current.petMatch,pending:Math.min(999999,matchPending(current)+points)
+    }}));
+  },
+  async claim() {
+    let earned=0;
+    if (!matchPending(state)) return earned;
+    state=await updateState(current=>{
+      const balance=current?.leaves || 0;
+      earned=Math.min(999999-balance,matchPending(current));
+      return {...current,leaves:balance+earned,petMatch:{...current.petMatch,pending:0}};
+    });
+    return earned;
+  },
+  onClaim:earned=>show('home',earned ? {earned} : null)
 });
+
+function animateLeafCredit(earned) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const counter=byId('home-leaf-count');
+  const target=byId('home-leaf-balance');
+  const total=state.leaves;
+  const bounds=target.getBoundingClientRect();
+  const leaf=document.createElement('img');
+  leaf.className='match-credit-leaf';
+  leaf.alt='';
+  leaf.src='./app/reward-leaf.svg';
+  byId('home').append(leaf);
+  counter.textContent=String(total-earned);
+  leaf.animate([
+    {transform:'translate(-50%,-50%) scale(.75)',opacity:0},
+    {transform:'translate(-50%,-50%) scale(1.15)',opacity:1,offset:.26},
+    {transform:`translate(calc(-50% + ${bounds.x+bounds.width/2-innerWidth/2}px),calc(-50% + ${bounds.y+bounds.height/2-innerHeight/2}px)) scale(.23)`,opacity:1}
+  ],{duration:680,easing:'ease-in-out'}).finished.then(()=>{
+    leaf.remove();
+    if (page!=='home') return;
+    counter.textContent=String(state.leaves || 0);
+    target.animate([{scale:'1'},{scale:'1.16'},{scale:'1'}],{duration:310});
+  });
+}
 
 function show(pageId,delivery=null) {
   if (!recordNavigation(pageId,delivery)) return;
@@ -717,7 +755,8 @@ function show(pageId,delivery=null) {
     byId('home').dataset.background=background;
     byId('home').setAttribute('aria-label',themes[background].name);
     applyPerspective();
-    void mountScene(byId('home-scene'),state.profile,false,delivery);
+    void mountScene(byId('home-scene'),state.profile,false,delivery?.earned ? null : delivery);
+    if (delivery?.earned) animateLeafCredit(delivery.earned);
   }
   if (pageId==='pet-match') petMatch.open();
   if (pageId==='photo') {

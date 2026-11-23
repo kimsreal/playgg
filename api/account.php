@@ -195,8 +195,9 @@ function cleanSettings($settings): array
     $petMatch = $settings['petMatch'] ?? null;
     $matchDate = is_array($petMatch) ? ($petMatch['date'] ?? null) : null;
     $matchPlayed = is_array($petMatch) ? ($petMatch['played'] ?? null) : null;
+    $matchPending = is_array($petMatch) ? ($petMatch['pending'] ?? 0) : 0;
     $petMatch = is_string($matchDate) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $matchDate) && is_int($matchPlayed)
-        ? ['date' => $matchDate, 'played' => max(0, min(5, $matchPlayed))] : null;
+        ? ['date' => $matchDate, 'played' => max(0, min(5, $matchPlayed)), 'pending' => is_int($matchPending) ? max(0, min(999999, $matchPending)) : 0] : null;
     return [
         'friends' => $friends,
         'active' => $active,
