@@ -998,6 +998,61 @@ body:has(#app:not([hidden]) #pet-match:not([hidden])) {
   gap: 12px;
   text-align: center;
 }
+body:has(#app:not([hidden]) #pet-match[data-phase="ready"]:not([hidden])) { background: #fff; }
+.pet-match-intro-art {
+  display: block;
+  width: min(42vw,174px);
+  height: auto;
+  filter: drop-shadow(0 8px 10px #45647d29);
+}
+#pet-match-ready p { margin: 0 0 8px; word-break: keep-all; }
+#pet-match-start { min-width: 140px; }
+#pet-match-remaining { color: var(--muted-ink); font-size: .875rem; }
+.game-exit {
+  position: fixed;
+  z-index: 4;
+  top: max(14px,env(safe-area-inset-top));
+  left: max(14px,env(safe-area-inset-left));
+  background: #ffffffad;
+  box-shadow: inset 0 0 0 1px var(--line), 0 3px 12px var(--shadow);
+}
+#pet-match[data-phase="playing"] { padding-top: max(68px,calc(env(safe-area-inset-top) + 58px)); }
+#game-exit-dialog {
+  width: min(calc(100% - 32px), 340px);
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 0 18px 45px var(--shadow);
+}
+#game-exit-dialog::backdrop { background: #23375150; }
+#game-exit-dialog form { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+#leaf-game { padding-top: 52px; }
+@media (min-width: 820px) {
+  body:has(#app:not([hidden]) :is(#food-intro,#leaf-game):not([hidden])) {
+    padding: 0;
+    background: #fff;
+  }
+  .app:has(:is(#food-intro,#leaf-game):not([hidden])) {
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .app:has(:is(#food-intro,#leaf-game):not([hidden])) > main { padding: 0; }
+  #food-intro { min-height: 100dvh; }
+  #food-intro > .page-back { top: 14px; left: 14px; }
+  #leaf-game {
+    min-height: 100dvh;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    padding: 64px 20px 22px;
+    text-align: center;
+  }
+  #leaf-game .food-stage { width: min(100%, 58dvh, 510px); }
+  #leaf-game #food-board { max-width: none; }
+}
 #pet-match-ready .page-back {
   position: fixed;
   top: max(14px,env(safe-area-inset-top));

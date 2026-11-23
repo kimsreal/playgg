@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=104">
+  <link rel="stylesheet" href="./app/style.css?v=105">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=104"></script>
+  <script type="module" src="./app/main.js?v=105"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -195,9 +195,12 @@
     <section id="pet-match" aria-label="동물 맞추기" data-phase="ready" hidden>
       <div id="pet-match-ready">
         <button type="button" class="page-back scene-icon" data-page="games" aria-label="게임 선택으로 돌아가기"><span aria-hidden="true">‹</span></button>
+        <img class="pet-match-intro-art" src="./app/welcome-pets/dog.webp" alt="" width="272" height="272">
+        <p>같은 동물 세 마리를 맞춰봐요!<br>동물들이 사라질 때마다 잎사귀 1개를 받아요.</p>
         <button type="button" class="primary" id="pet-match-start">시작하기</button>
         <span id="pet-match-remaining"></span>
       </div>
+      <button type="button" class="game-exit" id="pet-match-exit" data-game-exit hidden>나가기</button>
       <div class="pet-match-stats" hidden>
         <strong id="pet-match-time" aria-label="남은 시간">1:00</strong>
         <span><img src="./app/reward-leaf.svg" alt="이번 판 잎사귀" width="26" height="26"><strong id="pet-match-score">0</strong></span>
@@ -221,7 +224,7 @@
       </div>
     </section>
     <section id="leaf-game" hidden>
-      <button type="button" class="page-back scene-icon" data-page="food-intro" aria-label="먹이 합치기 안내로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="game-exit" data-game-exit>나가기</button>
       <h1>먹이 합치기</h1>
       <p class="small" id="food-upcoming"></p>
       <div class="food-stage">
@@ -426,5 +429,12 @@
     <p id="app-error" role="alert" hidden></p>
   </main>
 </div>
+<dialog id="game-exit-dialog" aria-labelledby="game-exit-title">
+  <h2 id="game-exit-title">정말 그만하시겠어요?</h2>
+  <form method="dialog">
+    <button type="submit" value="continue" autofocus>계속하기</button>
+    <button type="submit" value="exit" class="primary">나가기</button>
+  </form>
+</dialog>
 </body>
 </html>

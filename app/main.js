@@ -1,5 +1,5 @@
 import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=100';
-import {createPetMatch} from './pet-match.js?v=104';
+import {createPetMatch} from './pet-match.js?v=105';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';
@@ -724,8 +724,39 @@ function animateLeafCredit(earned) {
   });
 }
 
+const gameExitDialog=byId('game-exit-dialog');
+let exitingGame=null;
+
+document.querySelectorAll('[data-game-exit]').forEach(button=>{
+  button.addEventListener('click',()=>{
+    if (gameExitDialog.open) return;
+    exitingGame=page;
+    gameExitDialog.returnValue='';
+    gameExitDialog.showModal();
+    if (page==='leaf-game') foodGame.pause();
+    else petMatch.pause();
+  });
+});
+
+gameExitDialog.addEventListener('close',()=>{
+  const game=exitingGame;
+  exitingGame=null;
+  if (!game || page!==game) return;
+  if (gameExitDialog.returnValue==='exit') {
+    if (game==='leaf-game' && !rewardPending && foodGift.hidden) restartFoodGame();
+    show('games');
+    return;
+  }
+  if (game==='leaf-game') foodGame.resume();
+  else petMatch.resume();
+});
+
 function show(pageId,delivery=null) {
   if (!recordNavigation(pageId,delivery)) return;
+  if (pageId!==page && gameExitDialog.open) {
+    exitingGame=null;
+    gameExitDialog.close();
+  }
   if (pageId!=='leaf-game') foodGame.pause();
   if (page==='pet-match' && pageId!=='pet-match') petMatch.leave();
   clearBall();

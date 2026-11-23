@@ -77,7 +77,7 @@ export function createPetMatch({section,remaining,reserve,award,pending,claim,on
   const scoreLabel=get('pet-match-score');
   const clock=get('pet-match-time');
   const collect=get('pet-match-claim');
-  let resultTimer,phase='ready';
+  let resultTimer,phase='ready',pausedAt=0;
   let board=[],selected=-1,score=0,deadline=0,timer,busy=false;
   let pointer=null,ignoreClick=false;
   const tiles=Array.from({length:size*size},(_,i)=>{
@@ -101,6 +101,7 @@ export function createPetMatch({section,remaining,reserve,award,pending,claim,on
     phase=next;
     section.dataset.phase=next;
     get('pet-match-ready').hidden=next!=='ready';
+    get('pet-match-exit').hidden=next!=='playing';
     section.querySelector('.pet-match-stats').hidden=next!=='playing';
     get('pet-match-over').hidden=next!=='over';
     get('pet-match-result').hidden=next!=='result';
@@ -119,6 +120,7 @@ export function createPetMatch({section,remaining,reserve,award,pending,claim,on
     if (!deadline) return;
     deadline=0;
     clearInterval(timer);
+    pausedAt=0;
     clock.textContent='0:00';
     selected=-1;
     clearDrag();
@@ -131,7 +133,7 @@ export function createPetMatch({section,remaining,reserve,award,pending,claim,on
   }
 
   function tick() {
-    if (!deadline) return;
+    if (!deadline || pausedAt) return;
     const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));
     clock.textContent=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
     if (!seconds) finish(true);
@@ -363,6 +365,17 @@ export function createPetMatch({section,remaining,reserve,award,pending,claim,on
   });
 
   return {
+    pause() {
+      if (!deadline || pausedAt) return;
+      clearDrag();
+      pausedAt=Date.now();
+    },
+    resume() {
+      if (!pausedAt) return;
+      deadline+=Date.now()-pausedAt;
+      pausedAt=0;
+      tick();
+    },
     open() {
       if (phase==='ready' && pending() && !busy) showResult();
       showAvailability();
