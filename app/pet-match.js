@@ -48,15 +48,25 @@ function newBoard() {
 
 function collapse(board,matched) {
   const result=board.slice();
+  const falls=[];
   for (let column=0;column<size;column++) {
     let write=size-1;
     for (let row=size-1;row>=0;row--) {
       const index=row*size+column;
-      if (!matched.has(index)) result[write--*size+column]=board[index];
+      if (matched.has(index)) continue;
+      const destination=write*size+column;
+      result[destination]=board[index];
+      if (write!==row) falls.push([destination,write-row]);
+      write--;
     }
-    while (write>=0) result[write--*size+column]=randomPet();
+    const newRows=write+1;
+    while (write>=0) {
+      const destination=write--*size+column;
+      result[destination]=randomPet();
+      falls.push([destination,newRows]);
+    }
   }
-  return result;
+  return {board:result,falls};
 }
 
 export function createPetMatch({section,remaining,reserve,award}) {
@@ -91,6 +101,7 @@ export function createPetMatch({section,remaining,reserve,award}) {
     clearInterval(timer);
     clock.textContent='0:00';
     selected=-1;
+    clearDrag();
     status.textContent=message;
     render();
     showAvailability();
@@ -120,41 +131,101 @@ export function createPetMatch({section,remaining,reserve,award}) {
     scoreLabel.textContent=score;
   }
 
-  async function move(a,b) {
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  const sprite=i=>tiles[i].firstChild;
+  const shifted=(x,y)=>`translate(${x}px,${y}px)`;
+
+  function animate(element,frames,duration) {
+    if (reducedMotion.matches || section.hidden) return Promise.resolve();
+    return element.animate(frames,{duration,easing:'ease-out'}).finished.catch(()=>{});
+  }
+
+  async function slide(a,b,progress=0,reverse=false) {
+    const x=tiles[b].offsetLeft-tiles[a].offsetLeft;
+    const y=tiles[b].offsetTop-tiles[a].offsetTop;
+    const end=reverse ? 0 : 1;
+    tiles[a].dataset.moving='true';
+    tiles[b].dataset.moving='true';
+    try {
+      await Promise.all([[a,1],[b,-1]].map(([index,direction])=>animate(sprite(index),[
+        {transform:shifted(x*progress*direction,y*progress*direction)},
+        {transform:shifted(x*end*direction,y*end*direction)}
+      ],reverse ? 145 : 155)));
+    } finally {
+      delete tiles[a].dataset.moving;
+      delete tiles[b].dataset.moving;
+    }
+  }
+
+  async function breakTiles(cleared) {
+    if (reducedMotion.matches || section.hidden) return;
+    await Promise.all([...cleared].map(async index=>{
+      const burst=document.createElement('span');
+      burst.className='pet-match-burst';
+      burst.setAttribute('aria-hidden','true');
+      tiles[index].append(burst);
+      try {
+        await Promise.all([
+          animate(sprite(index),[
+            {transform:'scale(1)',opacity:1},
+            {transform:'scale(1.18) rotate(-8deg)',opacity:1,offset:.32},
+            {transform:'scale(.26) rotate(12deg)',opacity:0}
+          ],240),
+          animate(burst,[{scale:'.25',opacity:0},{scale:'1',opacity:1,offset:.38},{scale:'1.45',opacity:0}],240)
+        ]);
+      } finally {
+        burst.remove();
+      }
+    }));
+  }
+
+  async function move(a,b,progress=0) {
     tick();
     if (!deadline || busy) return;
+    const original=board;
     const next=swap(board,a,b);
-    let cleared=matches(next);
-    selected=-1;
-    if (!cleared.size) {
-      status.textContent='같은 동물을 가로나 세로로 세 개 이상 맞춰 보세요.';
-      render();
-      return;
-    }
-    const first=cleared;
-    let points=0;
+    const waves=[];
     let settled=next;
+    let cleared=matches(next);
     while (cleared.size) {
-      points++;
-      settled=collapse(settled,cleared);
+      const drop=collapse(settled,cleared);
+      waves.push({cleared,...drop});
+      settled=drop.board;
       cleared=matches(settled);
     }
-    const reshuffled=!hasMove(settled);
+    const reshuffled=waves.length>0 && !hasMove(settled);
     const final=reshuffled ? newBoard() : settled;
     busy=true;
+    selected=-1;
+    render();
     try {
-      await award(points);
-      score+=points;
-      board=final;
+      await slide(a,b,progress);
+      if (!waves.length) {
+        await slide(a,b,1,true);
+        if (deadline) status.textContent='같은 동물을 가로나 세로로 세 개 이상 맞춰 보세요.';
+        return;
+      }
+      board=next;
+      render();
+      await award(waves.length);
+      score+=waves.length;
       if (deadline) {
-        status.textContent='잎사귀 +'+points+(reshuffled ? ' · 새로 섞었어요' : '');
-        for (const index of first) {
-          if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            tiles[index].animate([{scale:'.76',opacity:.55},{scale:'1',opacity:1}],{duration:230});
-          }
+        status.textContent='잎사귀 +'+waves.length+(reshuffled ? ' · 새로 섞었어요' : '');
+        for (const wave of waves) {
+          if (!deadline) break;
+          await breakTiles(wave.cleared);
+          board=wave.board;
+          render();
+          const pitch=tiles[size].offsetTop-tiles[0].offsetTop;
+          await Promise.all(wave.falls.map(([index,rows])=>animate(sprite(index),[
+            {transform:shifted(0,-rows*pitch),opacity:.65},
+            {transform:shifted(0,0),opacity:1}
+          ],245)));
         }
       }
+      board=final;
     } catch {
+      board=original;
       if (deadline) status.textContent='잎사귀를 저장하지 못했어요. 다시 맞춰 보세요.';
     } finally {
       busy=false;
@@ -169,7 +240,7 @@ export function createPetMatch({section,remaining,reserve,award}) {
     return tile && grid.contains(tile) ? Number(tile.dataset.tile) : -1;
   }
   grid.addEventListener('click',event=>{
-    if (ignoreClick || busy || !deadline) return;
+    if ((ignoreClick && event.detail!==0) || busy || !deadline) return;
     const index=tileAt(event.target);
     if (index<0) return;
     if (selected>=0 && adjacent(selected,index)) void move(selected,index);
@@ -178,22 +249,49 @@ export function createPetMatch({section,remaining,reserve,award}) {
       render();
     }
   });
-  grid.addEventListener('pointerdown',event=>{
-    if (!event.isPrimary || event.button!==0) return;
-    ignoreClick=false;
-    pointer={id:event.pointerId,tile:tileAt(event.target)};
-  });
-  grid.addEventListener('pointercancel',()=>{ pointer=null; });
-  grid.addEventListener('pointerup',event=>{
-    const from=pointer;
+  function clearDrag() {
+    if (!pointer) return;
+    sprite(pointer.tile).style.transform='';
+    if (pointer.target>=0) sprite(pointer.target).style.transform='';
+    delete tiles[pointer.tile].dataset.dragging;
     pointer=null;
-    if (!from || from.id!==event.pointerId) return;
-    const to=tileAt(document.elementFromPoint(event.clientX,event.clientY));
-    if (from.tile>=0 && to>=0 && adjacent(from.tile,to)) {
-      ignoreClick=true;
-      setTimeout(()=>{ ignoreClick=false; },0);
-      void move(from.tile,to);
+  }
+
+  grid.addEventListener('pointerdown',event=>{
+    if (!deadline || busy || !event.isPrimary || event.button!==0) return;
+    const tile=tileAt(event.target);
+    if (tile<0) return;
+    ignoreClick=false;
+    pointer={id:event.pointerId,tile,x:event.clientX,y:event.clientY,target:-1,progress:0};
+    tiles[tile].setPointerCapture(event.pointerId);
+  });
+  grid.addEventListener('pointermove',event=>{
+    if (pointer?.id!==event.pointerId || !deadline) return;
+    const dx=event.clientX-pointer.x;
+    const dy=event.clientY-pointer.y;
+    const horizontal=Math.abs(dx)>=Math.abs(dy);
+    const delta=horizontal ? dx : dy;
+    const target=pointer.tile+Math.sign(delta)*(horizontal ? 1 : size);
+    if (pointer.target>=0) sprite(pointer.target).style.transform='';
+    pointer.target=target>=0 && target<tiles.length && adjacent(pointer.tile,target) ? target : -1;
+    pointer.distance=Math.abs(delta);
+    const pitch=(horizontal ? tiles[1].offsetLeft-tiles[0].offsetLeft : tiles[size].offsetTop-tiles[0].offsetTop);
+    pointer.progress=pointer.target<0 ? 0 : Math.min(.9,pointer.distance/pitch);
+    if (!reducedMotion.matches) {
+      tiles[pointer.tile].dataset.dragging='true';
+      const offset=Math.sign(delta)*pitch*pointer.progress;
+      sprite(pointer.tile).style.transform=shifted(horizontal ? offset : 0,horizontal ? 0 : offset);
+      if (pointer.target>=0) sprite(pointer.target).style.transform=shifted(horizontal ? -offset : 0,horizontal ? 0 : -offset);
     }
+  });
+  grid.addEventListener('lostpointercapture',event=>{ if (pointer?.id===event.pointerId) clearDrag(); });
+  grid.addEventListener('pointercancel',event=>{ if (pointer?.id===event.pointerId) clearDrag(); });
+  grid.addEventListener('pointerup',event=>{
+    if (pointer?.id!==event.pointerId) return;
+    const {tile,target,progress,distance}=pointer;
+    clearDrag();
+    ignoreClick=distance>7;
+    if (target>=0 && progress>=.24) void move(tile,target,progress);
   });
 
   start.addEventListener('click',async ()=>{

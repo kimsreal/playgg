@@ -986,38 +986,56 @@ section > .page-back { margin-bottom: 20px; }
   font-variant-numeric: tabular-nums;
 }
 #pet-match-board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(7,minmax(0,1fr));
   margin: 12px auto;
-  gap: 3px;
-  padding: 5px;
+  gap: 2px;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px solid #cbe6f7;
   border-radius: 18px;
-  background: #d2e9f8;
+  background: radial-gradient(ellipse at 48% 35%, #f3fbff, #dceefa);
   touch-action: none;
   user-select: none;
 }
 #pet-match-board button {
+  position: relative;
   display: grid;
   place-items: center;
   min-width: 0;
   min-height: 0;
   padding: 0;
   aspect-ratio: 1;
-  border-radius: 9px;
-  background: var(--tile-color,#fff);
+  background: transparent;
+  cursor: grab;
 }
+#pet-match-board [data-dragging] { z-index: 2; cursor: grabbing; }
+#pet-match-board [data-moving] { z-index: 2; }
 #pet-match-board button:disabled { opacity: .72; }
-#pet-match-board [aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--focus); }
-#pet-match-board [data-pet="dog"] { --tile-color: #ffe8cc; }
-#pet-match-board [data-pet="cat"] { --tile-color: #ece3ff; }
-#pet-match-board [data-pet="hamster"] { --tile-color: #fff4ca; }
-#pet-match-board [data-pet="parrot"] { --tile-color: #d9f4ef; }
-#pet-match-board [data-pet="lizard"] { --tile-color: #e7f4d7; }
+#pet-match-board [aria-pressed="true"] img {
+  filter: drop-shadow(0 0 4px #318bcb) drop-shadow(0 2px 1px #76c9ff);
+}
 #pet-match-board img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+  filter: drop-shadow(0 2px 2px #455e7533);
+}
+.pet-match-burst {
+  position: absolute;
+  inset: 8%;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 15%, #fff6aa 0 7%, transparent 9%),
+    radial-gradient(circle at 84% 37%, #fff 0 6%, transparent 8%),
+    radial-gradient(circle at 72% 81%, #9fdcff 0 7%, transparent 9%),
+    radial-gradient(circle at 25% 79%, #fff0ab 0 6%, transparent 8%),
+    radial-gradient(circle at 12% 37%, #f2ffff 0 7%, transparent 9%),
+    radial-gradient(circle at 49% 49%, #fff9d0 0 13%, transparent 47%);
+  filter: drop-shadow(0 0 3px #68baf3);
 }
 #pet-match-status { min-height: 1.5em; margin: 8px 0; }
 .pet-match-actions { color: var(--muted-ink); }

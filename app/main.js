@@ -1,5 +1,5 @@
 import {themes,themeId,purchasedThemes} from './theme-catalog.js?v=100';
-import {createPetMatch} from './pet-match.js?v=101';
+import {createPetMatch} from './pet-match.js?v=103';
 import {createFoodGame} from './food-game.js?v=77';
 import {ownerColors as cleanOwnerColors} from './owner-colors.js';
 import {itemShape} from './item-names.js';

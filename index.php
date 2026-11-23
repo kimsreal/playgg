@@ -8,10 +8,10 @@
   <link rel="manifest" href="./manifest.webmanifest?v=7">
   <link rel="icon" type="image/png" sizes="32x32" href="./app/icon-heart-32.png">
   <link rel="apple-touch-icon" href="./app/icon-drawing-192.png">
-  <link rel="stylesheet" href="./app/style.css?v=102">
+  <link rel="stylesheet" href="./app/style.css?v=103">
   <title>안녕</title>
   <script defer src="./app/vendor/jquery.min.js"></script>
-  <script type="module" src="./app/main.js?v=101"></script>
+  <script type="module" src="./app/main.js?v=103"></script>
 </head>
 <body>
 <audio id="meadow-music" src="./app/meadow-music.m4a" preload="none" loop></audio>
@@ -195,7 +195,7 @@
     <section id="pet-match" aria-labelledby="pet-match-title" hidden>
       <button type="button" class="page-back scene-icon" data-page="games" aria-label="게임 선택으로 돌아가기"><span aria-hidden="true">‹</span></button>
       <h1 id="pet-match-title">동물 맞추기</h1>
-      <p>옆 칸의 동물을 바꿔 같은 동물 세 마리 이상을 가로나 세로로 맞춰요. 한 번 사라질 때마다 잎사귀 1개를 받아요.</p>
+      <p>동물을 옆 칸으로 밀어 같은 동물 세 마리 이상을 가로나 세로로 맞춰요. 한 번 사라질 때마다 잎사귀 1개를 받아요.</p>
       <div class="pet-match-stats">
         <span aria-label="남은 시간"><strong id="pet-match-time">1:00</strong></span>
         <span>잎사귀 <strong id="pet-match-score">0</strong></span>
